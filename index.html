@@ -1,0 +1,86 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>O&A ELITE PRO</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Bebas+Neue&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react-dom": "https://esm.sh/react-dom@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+          "@google/genai": "https://esm.sh/@google/genai"
+        }
+      }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ed1d23",
+              "navy": "#003876",
+              "navy-deep": "#050A18",
+              "surface": "#ffffff",
+              "background": "#fdfdfd",
+            },
+            fontFamily: {
+              "display": ["Lexend", "sans-serif"],
+              "condensed": ["Bebas Neue", "sans-serif"],
+              "body": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+              "apple": "1.5rem",
+              "apple-xl": "2.5rem"
+            }
+          },
+        },
+      }
+    </script>
+    <style type="text/tailwindcss">
+      @layer utilities {
+        .bg-croatia {
+          background-image: 
+            linear-gradient(45deg, rgba(237, 29, 35, 0.015) 25%, transparent 25%), 
+            linear-gradient(-45deg, rgba(237, 29, 35, 0.015) 25%, transparent 25%), 
+            linear-gradient(45deg, transparent 75%, rgba(237, 29, 35, 0.015) 75%), 
+            linear-gradient(-45deg, transparent 75%, rgba(237, 29, 35, 0.015) 75%);
+          background-size: 40px 40px;
+          background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+        }
+        .croatia-pattern {
+           background-image: 
+            linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), 
+            linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), 
+            linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%), 
+            linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%);
+          background-size: 20px 20px;
+        }
+        .glass-button {
+          background: linear-gradient(135deg, #003876 0%, #002147 100%);
+          backdrop-filter: blur(8px);
+          box-shadow: 0 8px 32px 0 rgba(0, 56, 118, 0.3);
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .heavy-italic { font-family: 'Inter', sans-serif; font-weight: 900; font-style: italic; }
+      }
+    </style>
+  </head>
+  <body class="bg-slate-100 font-display text-slate-900">
+    <div id="root"></div>
+    <!-- Script de entrada explícito -->
+    <script type="module" src="index.tsx"></script>
+  </body>
+</html>
