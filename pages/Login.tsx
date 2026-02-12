@@ -1,12 +1,22 @@
 
 import React from 'react';
+import { loginWithGoogle } from '../services/firebase.ts';
 
 interface LoginProps {
   onLogin: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC<LoginProps> = () => {
   const logoUrl = "https://upload.wikimedia.org/wikipedia/pt/c/cf/Croatia_football_federation.png";
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (error) {
+      console.error("Falha no login:", error);
+      alert("Erro ao entrar com Google. Tente novamente.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -39,7 +49,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         <div className="w-full space-y-6">
           <button 
-            onClick={onLogin}
+            onClick={handleGoogleLogin}
             className="flex w-full cursor-pointer items-center justify-center gap-4 rounded-full bg-white border border-slate-200 h-16 px-8 text-slate-700 font-semibold shadow-sm hover:border-primary/30 hover:shadow-lg transition-all active:scale-95"
           >
             <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="Google" />

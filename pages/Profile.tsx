@@ -1,6 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Player } from '../types.ts';
+import { db, doc, setDoc } from '../services/firebase.ts';
 
 interface ProfileProps {
   player: Player;
@@ -10,11 +11,11 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
   const [currentPhoto, setCurrentPhoto] = useState(player.photoUrl);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Local state for editable stats
   const [stats, setStats] = useState({
     matches: "38",
-    goals: player.goals.toString(),
+    goals: player.goals?.toString() || "0",
     assists: "12",
     winRate: "82%"
   });
@@ -29,9 +30,9 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
   const logoUrl = "https://upload.wikimedia.org/wikipedia/pt/c/cf/Croatia_football_federation.png";
 
   useEffect(() => {
-    const changed = JSON.stringify(stats) !== JSON.stringify(originalStats);
+    const changed = JSON.stringify(stats) !== JSON.stringify(originalStats) || currentPhoto !== player.photoUrl;
     setHasChanges(changed);
-  }, [stats, originalStats]);
+  }, [stats, originalStats, currentPhoto, player.photoUrl]);
 
   const startCamera = async () => {
     setCameraError(null);
@@ -77,21 +78,27 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
     }
   };
 
-  const handleSave = () => {
-    setOriginalStats({ ...stats });
-    setHasChanges(false);
-    // Here you would typically call an API to save the data
-    alert("Alterações salvas com sucesso!");
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const playerDoc = doc(db, "players", player.id);
+      await setDoc(playerDoc, {
+        ...player,
+        goals: parseInt(stats.goals),
+        photoUrl: currentPhoto,
+        lastUpdated: new Date().toISOString()
+      }, { merge: true });
+      
+      setOriginalStats({ ...stats });
+      setHasChanges(false);
+      alert("Perfil atualizado na Arena Elite!");
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Erro ao salvar alterações.");
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-    };
-  }, []);
 
   return (
     <div className="flex flex-col animate-in fade-in zoom-in duration-500 relative min-h-full">
@@ -125,7 +132,6 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
             <img src={currentPhoto} alt={player.name} className="h-[85%] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] scale-110 transition-transform duration-700 group-hover:scale-[1.15]" />
           </div>
 
-          {/* Botão de Câmera */}
           <button 
             onClick={startCamera}
             className="absolute bottom-24 right-6 z-30 w-14 h-14 bg-primary text-white rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center hover:scale-110 active:scale-90 transition-all"
@@ -134,11 +140,11 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
           </button>
 
           <div className="absolute bottom-0 w-full p-8 flex flex-col items-center z-20 bg-gradient-to-t from-navy-deep via-navy-deep/80 to-transparent pt-20">
-            <h1 className="text-white text-6xl font-condensed tracking-tighter uppercase leading-none mb-2">{player.name.split(' ').pop()}</h1>
+            <h1 className="text-white text-6xl font-condensed tracking-tighter uppercase leading-none mb-2">{player.name?.split(' ').pop()}</h1>
             <div className="flex items-center gap-2">
               <span className="text-primary font-black text-[10px] tracking-widest uppercase">{player.position}</span>
               <div className="w-1.5 h-1.5 rounded-full bg-white/20"></div>
-              <span className="text-white/60 font-bold text-[10px] tracking-widest uppercase">{player.team}</span>
+              <span className="text-white/60 font-bold text-[10px] tracking-widest uppercase">{player.team || 'Elite Pro'}</span>
             </div>
           </div>
         </div>
@@ -188,64 +194,41 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
         </div>
       </div>
 
-      {/* Botão Salvar Alterações */}
       {hasChanges && (
         <div className="fixed bottom-28 left-0 right-0 px-6 z-40 animate-in slide-in-from-bottom-8">
           <button 
             onClick={handleSave}
-            className="w-full h-16 bg-navy text-white rounded-2xl shadow-2xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-xs hover:bg-navy-deep active:scale-95 transition-all"
+            disabled={isSaving}
+            className={`w-full h-16 bg-navy text-white rounded-2xl shadow-2xl flex items-center justify-center gap-3 font-black uppercase tracking-[0.2em] text-xs transition-all ${isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-navy-deep active:scale-95'}`}
           >
-            <span className="material-symbols-outlined">save</span>
-            Salvar Alterações
+            <span className={`material-symbols-outlined ${isSaving ? 'animate-spin' : ''}`}>{isSaving ? 'sync' : 'save'}</span>
+            {isSaving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
       )}
 
-      {/* Modal da Câmera */}
       {isCameraOpen && (
         <div className="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center animate-in fade-in duration-300">
           <div className="absolute top-6 right-6 z-[110]">
-            <button 
-              onClick={stopCamera}
-              className="w-12 h-12 bg-white/10 backdrop-blur-md text-white rounded-full flex items-center justify-center active:scale-90 transition-all"
-            >
+            <button onClick={stopCamera} className="w-12 h-12 bg-white/10 backdrop-blur-md text-white rounded-full flex items-center justify-center active:scale-90 transition-all">
               <span className="material-symbols-outlined">close</span>
             </button>
           </div>
-
           <div className="relative w-full max-w-[430px] aspect-[3/4] overflow-hidden bg-navy-deep border-y-4 border-primary">
-            <video 
-              ref={videoRef} 
-              autoPlay 
-              playsInline 
-              className="w-full h-full object-cover scale-x-[-1]"
-            />
-            {/* Overlay de Guia */}
+            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover scale-x-[-1]" />
             <div className="absolute inset-0 border-[30px] border-black/40 pointer-events-none">
               <div className="w-full h-full border border-white/20 rounded-[20%]"></div>
             </div>
           </div>
-
           <div className="mt-12 flex flex-col items-center gap-6">
             <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.3em]">Centralize seu rosto</p>
-            <button 
-              onClick={capturePhoto}
-              className="w-20 h-20 rounded-full bg-white p-1.5 active:scale-90 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)]"
-            >
+            <button onClick={capturePhoto} className="w-20 h-20 rounded-full bg-white p-1.5 active:scale-90 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)]">
               <div className="w-full h-full rounded-full border-4 border-black/5 flex items-center justify-center">
                 <div className="w-14 h-14 rounded-full bg-primary"></div>
               </div>
             </button>
           </div>
-
           <canvas ref={canvasRef} className="hidden" />
-        </div>
-      )}
-
-      {/* Toast de Erro */}
-      {cameraError && (
-        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[120] bg-red-500 text-white text-[10px] font-black uppercase tracking-widest px-6 py-3 rounded-full shadow-2xl animate-in slide-in-from-bottom-4">
-          {cameraError}
         </div>
       )}
     </div>
@@ -257,9 +240,7 @@ const StatCard = ({ label, value, icon, rank, dark, onEdit }: { label: string, v
   const [tempValue, setTempValue] = useState(value);
 
   const handleToggleEdit = () => {
-    if (isEditing) {
-      onEdit(tempValue);
-    }
+    if (isEditing) onEdit(tempValue);
     setIsEditing(!isEditing);
   };
 
@@ -268,28 +249,17 @@ const StatCard = ({ label, value, icon, rank, dark, onEdit }: { label: string, v
       <div className="flex justify-between items-start mb-4">
         <span className={`material-symbols-outlined ${dark ? 'text-primary' : 'text-slate-300'}`}>{icon}</span>
         <div className="flex items-center gap-2">
-          <button 
-            onClick={handleToggleEdit}
-            className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${dark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-50 hover:bg-slate-100 text-slate-400'}`}
-          >
+          <button onClick={handleToggleEdit} className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${dark ? 'bg-white/10 hover:bg-white/20 text-white' : 'bg-slate-50 hover:bg-slate-100 text-slate-400'}`}>
             <span className="material-symbols-outlined text-[16px]">{isEditing ? 'check' : 'edit'}</span>
           </button>
           <span className="text-[10px] font-black opacity-20">{rank}</span>
         </div>
       </div>
-      
       {isEditing ? (
-        <input 
-          autoFocus
-          className={`w-full bg-transparent text-4xl font-condensed tracking-tight border-b border-primary/50 outline-none ${dark ? 'text-white' : 'text-navy'}`}
-          value={tempValue}
-          onChange={(e) => setTempValue(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleToggleEdit()}
-        />
+        <input autoFocus className={`w-full bg-transparent text-4xl font-condensed tracking-tight border-b border-primary/50 outline-none ${dark ? 'text-white' : 'text-navy'}`} value={tempValue} onChange={(e) => setTempValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleToggleEdit()} />
       ) : (
         <p className="text-4xl font-condensed tracking-tight">{value}</p>
       )}
-      
       <p className={`text-[9px] font-black uppercase tracking-widest mt-1 ${dark ? 'opacity-40' : 'text-slate-400'}`}>{label}</p>
     </div>
   );

@@ -1,0 +1,43 @@
+
+import { initializeApp } from "firebase/app";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "firebase/auth";
+import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, query, orderBy, updateDoc, addDoc, where } from "firebase/firestore";
+
+// Configuração fornecida pelo usuário para o projeto 'ousadia-5b1d8'
+// Usando as chaves diretamente para garantir que o deploy no Vercel funcione sem erros de 'undefined'
+const firebaseConfig = {
+  apiKey: "AIzaSyBa8kF4pSrx_-GuHVT_hGMgh_UmRc0NBx0",
+  authDomain: "ousadia-5b1d8.firebaseapp.com",
+  projectId: "ousadia-5b1d8",
+  storageBucket: "ousadia-5b1d8.firebasestorage.app",
+  messagingSenderId: "812821310641",
+  appId: "1:812821310641:web:d5256ab8fea0ad1323c690"
+};
+
+// Inicialização segura
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const googleProvider = new GoogleAuthProvider();
+
+// Configurações extras para melhorar a UX de Login
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
+
+export const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const logout = () => signOut(auth);
+
+export { 
+  onAuthStateChanged, 
+  collection, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  onSnapshot, 
+  query, 
+  orderBy, 
+  updateDoc, 
+  addDoc, 
+  where 
+};
