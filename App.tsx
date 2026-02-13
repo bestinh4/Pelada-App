@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
+import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout.tsx';
 import Login from './pages/Login.tsx';
 import Dashboard from './pages/Dashboard.tsx';
@@ -21,19 +21,23 @@ const App: React.FC = () => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        const playerDocRef = doc(db, "players", firebaseUser.uid);
-        const playerDoc = await getDoc(playerDocRef);
-        
-        if (!playerDoc.exists()) {
-          await setDoc(playerDocRef, {
-            id: firebaseUser.uid,
-            name: firebaseUser.displayName || "Jogador Anônimo",
-            photoUrl: firebaseUser.photoURL || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-            goals: 0,
-            position: 'A definir',
-            status: 'pendente',
-            skills: { attack: 50, defense: 50, stamina: 50 }
-          });
+        try {
+          const playerDocRef = doc(db, "players", firebaseUser.uid);
+          const playerDoc = await getDoc(playerDocRef);
+          
+          if (!playerDoc.exists()) {
+            await setDoc(playerDocRef, {
+              id: firebaseUser.uid,
+              name: firebaseUser.displayName || "Jogador Anônimo",
+              photoUrl: firebaseUser.photoURL || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+              goals: 0,
+              position: 'A definir',
+              status: 'pendente',
+              skills: { attack: 50, defense: 50, stamina: 50 }
+            });
+          }
+        } catch (err) {
+          console.error("Erro ao verificar/criar perfil do jogador:", err);
         }
         setCurrentPage(Page.Dashboard);
       } else {
@@ -46,6 +50,8 @@ const App: React.FC = () => {
     const unsubscribePlayers = onSnapshot(qPlayers, (snapshot) => {
       const playerList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
       setPlayers(playerList);
+    }, (error) => {
+      console.error("Erro ao escutar jogadores:", error);
     });
 
     const qMatches = query(collection(db, "matches"), orderBy("date", "desc"));
@@ -55,6 +61,8 @@ const App: React.FC = () => {
       } else {
         setCurrentMatch(null);
       }
+    }, (error) => {
+      console.error("Erro ao escutar partidas:", error);
     });
 
     return () => {
@@ -78,15 +86,17 @@ const App: React.FC = () => {
   const renderPage = () => {
     if (!user) return <Login />;
 
+    const commonProps = { onPageChange: setCurrentPage };
+
     switch (currentPage) {
       case Page.Dashboard:
-        return <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />;
+        return <Dashboard match={currentMatch} players={players} user={user} {...commonProps} />;
       case Page.PlayerList:
-        return <PlayerList players={players} currentUser={user} onPageChange={setCurrentPage} />;
+        return <PlayerList players={players} currentUser={user} {...commonProps} />;
       case Page.Ranking:
-        return <Ranking players={players} onPageChange={setCurrentPage} />;
+        return <Ranking players={players} {...commonProps} />;
       case Page.CreateMatch:
-        return <CreateMatch onMatchCreated={() => setCurrentPage(Page.Dashboard)} onPageChange={setCurrentPage} />;
+        return <CreateMatch onMatchCreated={() => setCurrentPage(Page.Dashboard)} {...commonProps} />;
       case Page.Profile:
         const currentPlayer = players.find(p => p.id === user.uid) || {
           id: user.uid,
@@ -97,9 +107,9 @@ const App: React.FC = () => {
           status: 'pendente',
           skills: { attack: 50, defense: 50, stamina: 50 }
         } as Player;
-        return <Profile player={currentPlayer} onPageChange={setCurrentPage} />;
+        return <Profile player={currentPlayer} {...commonProps} />;
       default:
-        return <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />;
+        return <Dashboard match={currentMatch} players={players} user={user} {...commonProps} />;
     }
   };
 
