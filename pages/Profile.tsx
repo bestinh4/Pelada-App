@@ -1,29 +1,28 @@
-
 import { logout, db, doc, updateDoc } from '../services/firebase.ts';
 import React, { useRef, useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
+import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 
-const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> = ({ player, onPageChange }) => {
+const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChange: (page: Page) => void }> = ({ player, currentUserEmail, onPageChange }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isPromoting, setIsPromoting] = useState(false);
   const [editedName, setEditedName] = useState(player.name);
   const [editedPosition, setEditedPosition] = useState(player.position);
-  const [editedPlayerType, setEditedPlayerType] = useState(player.playerType || 'mensalista');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
+  const isMaster = currentUserEmail === MASTER_ADMIN_EMAIL;
+
   useEffect(() => {
     setEditedName(player.name);
     setEditedPosition(player.position);
-    setEditedPlayerType(player.playerType || 'mensalista');
-  }, [player.name, player.position, player.playerType]);
+  }, [player.name, player.position]);
 
   const isDirty = 
     editedName !== player.name || 
-    editedPosition !== player.position || 
-    editedPlayerType !== player.playerType;
+    editedPosition !== player.position;
 
   const handleLogout = async () => {
     if (confirm("Deseja realmente sair da Arena O&A?")) {
@@ -32,6 +31,7 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
   };
 
   const handleClaimAdmin = async () => {
+    if (isMaster) return; // Não necessário para o master
     if (confirm("Deseja assumir o controle como ADMINISTRADOR da Arena?")) {
       setIsPromoting(true);
       try {
@@ -83,8 +83,7 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
       const playerDocRef = doc(db, "players", player.id);
       await updateDoc(playerDocRef, { 
         name: editedName, 
-        position: editedPosition,
-        playerType: editedPlayerType
+        position: editedPosition
       });
       alert("Perfil atualizado com sucesso!");
     } catch (error) {
@@ -101,7 +100,9 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img src={mainLogoUrl} className="w-10 h-10 object-contain" alt="Logo" />
-            <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">MEU PERFIL ELITE</h2>
+            <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">
+              {isMaster ? 'DIRETORIA MASTER' : 'MEU PERFIL ELITE'}
+            </h2>
           </div>
           <button onClick={handleLogout} className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary active:scale-90 transition-all">
              <span className="material-symbols-outlined text-xl">logout</span>
@@ -112,10 +113,10 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
       <section className="px-6 mt-10 flex flex-col items-center">
         {/* Avatar Section */}
         <div className="relative mb-6 group">
-           <div className="absolute inset-0 bg-primary/20 rounded-full blur-[50px] scale-150 opacity-50"></div>
+           <div className={`absolute inset-0 ${isMaster ? 'bg-primary/30' : 'bg-primary/20'} rounded-full blur-[50px] scale-150 opacity-50`}></div>
            <div 
             onClick={handleUploadClick}
-            className="w-44 h-44 rounded-[3.5rem] border-[10px] border-white shadow-2xl overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105 cursor-pointer"
+            className={`w-44 h-44 rounded-[3.5rem] border-[10px] ${isMaster ? 'border-primary ring-8 ring-primary/5' : 'border-white'} shadow-2xl overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105 cursor-pointer`}
            >
              <img src={player.photoUrl} className="w-full h-full object-cover" alt={player.name} />
              {isUploading && (
@@ -132,7 +133,7 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
            <button 
             onClick={handleUploadClick}
             disabled={isUploading}
-            className="absolute -bottom-2 -right-2 w-16 h-16 bg-primary text-white rounded-[1.5rem] border-4 border-white flex items-center justify-center z-20 shadow-xl active:scale-95 transition-all hover:bg-red-600"
+            className={`absolute -bottom-2 -right-2 w-16 h-16 ${isMaster ? 'bg-navy' : 'bg-primary'} text-white rounded-[1.5rem] border-4 border-white flex items-center justify-center z-20 shadow-xl active:scale-95 transition-all`}
            >
              <span className="material-symbols-outlined text-2xl fill-1">add_a_photo</span>
            </button>
@@ -146,10 +147,12 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
            />
         </div>
 
-        {/* Cargo Badge */}
-        <div className={`mb-6 px-4 py-1.5 rounded-full flex items-center gap-2 ${player.role === 'admin' ? 'bg-navy text-white shadow-lg shadow-navy/20' : 'bg-slate-100 text-slate-400'}`}>
-          <span className="material-symbols-outlined text-sm fill-1">{player.role === 'admin' ? 'military_tech' : 'person'}</span>
-          <span className="text-[9px] font-black uppercase tracking-[0.2em]">{player.role === 'admin' ? 'DIRETORIA / ADM' : 'ATLETA ELITE'}</span>
+        {/* Cargo Badge Master */}
+        <div className={`mb-6 px-6 py-2 rounded-full flex items-center gap-2 shadow-2xl transition-all ${isMaster ? 'bg-primary text-white scale-110 animate-pulse' : (player.role === 'admin' ? 'bg-navy text-white' : 'bg-slate-100 text-slate-400')}`}>
+          <span className="material-symbols-outlined text-sm fill-1">{isMaster ? 'workspace_premium' : (player.role === 'admin' ? 'military_tech' : 'person')}</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+            {isMaster ? 'MASTER ADMIN SUPREMO' : (player.role === 'admin' ? 'DIRETORIA / ADM' : 'ATLETA ELITE')}
+          </span>
         </div>
         
         <div className="w-full text-center space-y-4 mb-10 px-4">
@@ -158,7 +161,7 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
               type="text"
               value={editedName}
               onChange={(e) => setEditedName(e.target.value)}
-              className="w-full text-4xl font-condensed text-navy uppercase italic tracking-tighter text-center bg-transparent border-b-2 border-transparent focus:border-primary/20 outline-none transition-all pb-1"
+              className={`w-full text-4xl font-condensed uppercase italic tracking-tighter text-center bg-transparent border-b-2 border-transparent focus:border-primary/20 outline-none transition-all pb-1 ${isMaster ? 'text-primary' : 'text-navy'}`}
               placeholder="NOME DO ATLETA"
             />
           </div>
@@ -166,7 +169,7 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
           <select 
             value={editedPosition}
             onChange={(e) => setEditedPosition(e.target.value)}
-            className="text-[10px] font-black uppercase text-primary tracking-[0.4em] italic bg-slate-100 px-4 py-2 rounded-full border-none outline-none appearance-none cursor-pointer text-center"
+            className={`text-[10px] font-black uppercase tracking-[0.4em] italic bg-slate-100 px-4 py-2 rounded-full border-none outline-none appearance-none cursor-pointer text-center ${isMaster ? 'text-primary' : 'text-navy'}`}
           >
             <option value="Goleiro">Goleiro</option>
             <option value="Zagueiro">Zagueiro</option>
@@ -177,25 +180,8 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
           </select>
         </div>
 
-        <div className="w-full bg-slate-100 p-1.5 rounded-[2rem] flex mb-10">
-           <button 
-            onClick={() => setEditedPlayerType('mensalista')}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.8rem] text-[10px] font-black uppercase tracking-widest transition-all ${editedPlayerType === 'mensalista' ? 'bg-white text-navy shadow-lg' : 'text-slate-400'}`}
-           >
-             <span className="material-symbols-outlined text-sm">calendar_month</span>
-             Mensalista
-           </button>
-           <button 
-            onClick={() => setEditedPlayerType('avulso')}
-            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.8rem] text-[10px] font-black uppercase tracking-widest transition-all ${editedPlayerType === 'avulso' ? 'bg-white text-navy shadow-lg' : 'text-slate-400'}`}
-           >
-             <span className="material-symbols-outlined text-sm">confirmation_number</span>
-             Avulso
-           </button>
-        </div>
-
-        {/* Promoção a ADM - Visível se for o dono do perfil e não for admin ainda */}
-        {player.role !== 'admin' && (
+        {/* Promoção a ADM - Oculto para o Master */}
+        {!isMaster && player.role !== 'admin' && (
           <button 
             onClick={handleClaimAdmin}
             disabled={isPromoting}
@@ -212,6 +198,13 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
           </button>
         )}
 
+        {isMaster && (
+           <div className="w-full bg-primary/5 border border-primary/20 rounded-3xl p-6 mb-10 text-center animate-in zoom-in-95 duration-500">
+             <span className="material-symbols-outlined text-primary text-3xl mb-2 fill-1">verified</span>
+             <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Você possui controle total sobre a Arena Elite</p>
+           </div>
+        )}
+
         <div className="grid grid-cols-2 gap-4 w-full mb-10">
            <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft text-center group transition-all hover:border-primary/20">
               <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -226,25 +219,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
               </div>
               <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] block mb-1">ASSISTÊNCIAS</span>
               <span className="text-4xl font-black text-navy italic font-condensed">{player.assists || 0}</span>
-           </div>
-        </div>
-
-        <div className="w-full bg-navy-deep rounded-[3rem] p-8 text-white relative overflow-hidden mb-12 shadow-2xl">
-           <div className="absolute inset-0 bg-croatia opacity-[0.05] pointer-events-none"></div>
-           <div className="relative z-10 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">DADOS DO CONTRATO</h3>
-                <span className="bg-emerald-500/20 text-emerald-400 text-[8px] font-black px-2 py-1 rounded">ATIVO</span>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/60">
-                  <span className="material-symbols-outlined">badge</span>
-                </div>
-                <div>
-                   <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">ID DO ATLETA</p>
-                   <p className="text-xs font-bold font-mono text-white/80">ELITE-{player.id.substring(0, 8).toUpperCase()}</p>
-                </div>
-              </div>
            </div>
         </div>
 

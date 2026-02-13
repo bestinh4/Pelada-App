@@ -3,29 +3,29 @@ import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
 import { db, doc, updateDoc, getDoc, setDoc, onSnapshot } from '../services/firebase.ts';
 
-const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void }> = ({ players, onPageChange }) => {
+const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (page: Page) => void }> = ({ players, currentUser, onPageChange }) => {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<'todos' | 'pendentes' | 'pagos'>('todos');
   const [isEditingPrices, setIsEditingPrices] = useState(false);
   const [prices, setPrices] = useState({ mensalista: 50, avulso: 35 });
   const [isSavingPrices, setIsSavingPrices] = useState(false);
 
+  const currentPlayer = players.find(p => p.id === currentUser?.uid);
+  const isAdmin = currentPlayer?.role === 'admin';
+
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
-  // Carregar preços do Firestore
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "settings", "finance"), (docSnap) => {
       if (docSnap.exists()) {
         setPrices(docSnap.data() as { mensalista: number, avulso: number });
-      } else {
-        // Criar documento inicial se não existir
+      } else if (isAdmin) {
         setDoc(doc(db, "settings", "finance"), { mensalista: 50, avulso: 35 });
       }
     });
     return () => unsub();
-  }, []);
+  }, [isAdmin]);
 
-  // Cálculo de valores dinâmicos
   const totals = players.reduce((acc, p) => {
     const value = p.playerType === 'mensalista' ? prices.mensalista : prices.avulso;
     if (p.paymentStatus === 'pago') {
@@ -43,7 +43,7 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
   });
 
   const handleTogglePayment = async (player: Player) => {
-    if (loadingId) return;
+    if (!isAdmin || loadingId) return;
     setLoadingId(player.id);
     try {
       const playerRef = doc(db, "players", player.id);
@@ -58,6 +58,7 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
   };
 
   const saveNewPrices = async () => {
+    if (!isAdmin) return;
     setIsSavingPrices(true);
     try {
       await setDoc(doc(db, "settings", "finance"), prices);
@@ -80,18 +81,19 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">FECHAMENTO FINANCEIRO</p>
             </div>
           </div>
-          <button 
-            onClick={() => setIsEditingPrices(!isEditingPrices)}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isEditingPrices ? 'bg-primary text-white' : 'bg-slate-100 text-navy hover:bg-slate-200'}`}
-          >
-            <span className="material-symbols-outlined text-xl">{isEditingPrices ? 'close' : 'settings_suggest'}</span>
-          </button>
+          {isAdmin && (
+            <button 
+              onClick={() => setIsEditingPrices(!isEditingPrices)}
+              className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${isEditingPrices ? 'bg-primary text-white' : 'bg-slate-100 text-navy hover:bg-slate-200'}`}
+            >
+              <span className="material-symbols-outlined text-xl">{isEditingPrices ? 'close' : 'settings_suggest'}</span>
+            </button>
+          )}
         </div>
       </header>
 
       <section className="px-6 mt-6">
-        {/* Painel de Ajuste de Preços (Expansível) */}
-        {isEditingPrices && (
+        {isAdmin && isEditingPrices && (
           <div className="mb-8 bg-navy rounded-[2rem] p-6 text-white animate-in slide-in-from-top-4 duration-300 shadow-xl shadow-navy/20">
              <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4">REAJUSTE DE VALORES</h3>
              <div className="grid grid-cols-2 gap-4 mb-4">
@@ -124,7 +126,6 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
           </div>
         )}
 
-        {/* Dashboard de Valores */}
         <div className="grid grid-cols-2 gap-3 mb-8">
           <div className="bg-emerald-500 rounded-[2rem] p-5 text-white shadow-lg shadow-emerald-500/20 relative overflow-hidden">
              <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
@@ -140,7 +141,6 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
           </div>
         </div>
 
-        {/* Filtros */}
         <div className="flex bg-slate-100 p-1.5 rounded-2xl mb-8">
           {(['todos', 'pendentes', 'pagos'] as const).map((f) => (
             <button
@@ -153,7 +153,6 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
           ))}
         </div>
 
-        {/* Lista de Cobrança */}
         <div className="space-y-4">
           {filteredPlayers.length > 0 ? filteredPlayers.map((p) => {
             const isMensalista = p.playerType === 'mensalista';
@@ -168,11 +167,6 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
                     <div className="w-14 h-14 rounded-2xl overflow-hidden border border-slate-100 shadow-inner">
                       <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
                     </div>
-                    <div className={`absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-md ${isMensalista ? 'bg-navy text-white' : 'bg-amber-500 text-white'}`}>
-                       <span className="material-symbols-outlined text-[12px] fill-1">
-                         {isMensalista ? 'calendar_month' : 'confirmation_number'}
-                       </span>
-                    </div>
                   </div>
                   <div>
                     <h4 className="text-[13px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</h4>
@@ -185,21 +179,27 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
                   </div>
                 </div>
 
-                <button 
-                  type="button"
-                  disabled={isProcessing}
-                  onClick={() => handleTogglePayment(p)}
-                  className={`min-w-[100px] h-11 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${isPaid ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-primary text-white shadow-lg shadow-primary/20'}`}
-                >
-                  {isProcessing ? (
-                    <div className="w-4 h-4 border-2 border-navy/10 border-t-navy rounded-full animate-spin"></div>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-sm">{isPaid ? 'check_circle' : 'payments'}</span>
-                      {isPaid ? 'PAGO' : 'CONFIRMAR'}
-                    </>
-                  )}
-                </button>
+                {isAdmin ? (
+                  <button 
+                    type="button"
+                    disabled={isProcessing}
+                    onClick={() => handleTogglePayment(p)}
+                    className={`min-w-[100px] h-11 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 ${isPaid ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-primary text-white shadow-lg shadow-primary/20'}`}
+                  >
+                    {isProcessing ? (
+                      <div className="w-4 h-4 border-2 border-navy/10 border-t-navy rounded-full animate-spin"></div>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-sm">{isPaid ? 'check_circle' : 'payments'}</span>
+                        {isPaid ? 'PAGO' : 'CONFIRMAR'}
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <div className={`px-4 py-2 rounded-xl text-[8px] font-black uppercase tracking-widest ${isPaid ? 'bg-emerald-50 text-emerald-500' : 'bg-slate-100 text-slate-400'}`}>
+                    {isPaid ? 'CONCLUÍDO' : 'PENDENTE'}
+                  </div>
+                )}
               </div>
             );
           }) : (
@@ -211,16 +211,18 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
         </div>
       </section>
 
-      <div className="px-6 mt-12 mb-20">
-        <button 
-          type="button"
-          onClick={() => window.print()}
-          className="w-full h-16 bg-navy text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-navy/20"
-        >
-          <span className="material-symbols-outlined">description</span>
-          EXPORTAR RELATÓRIO PDF
-        </button>
-      </div>
+      {isAdmin && (
+        <div className="px-6 mt-12 mb-20">
+          <button 
+            type="button"
+            onClick={() => window.print()}
+            className="w-full h-16 bg-navy text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl shadow-navy/20"
+          >
+            <span className="material-symbols-outlined">description</span>
+            EXPORTAR RELATÓRIO PDF
+          </button>
+        </div>
+      )}
     </div>
   );
 };

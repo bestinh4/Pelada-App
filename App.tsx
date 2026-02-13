@@ -9,7 +9,8 @@ import Ranking from './pages/Ranking.tsx';
 import CreateMatch from './pages/CreateMatch.tsx';
 import Profile from './pages/Profile.tsx';
 import { Page, Player, Match } from './types.ts';
-import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc } from './services/firebase.ts';
+import { MASTER_ADMIN_EMAIL } from './constants.tsx';
+import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc } from './services/firebase.ts';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -26,6 +27,15 @@ const App: React.FC = () => {
           const playerDocRef = doc(db, "players", firebaseUser.uid);
           const playerDoc = await getDoc(playerDocRef);
           
+          // Se for o MASTER_ADMIN, garante que o role seja admin no banco também
+          if (firebaseUser.email === MASTER_ADMIN_EMAIL) {
+            if (!playerDoc.exists() || playerDoc.data().role !== 'admin') {
+               await updateDoc(playerDocRef, { role: 'admin' }).catch(async () => {
+                 // Caso o documento não exista (primeiro login)
+               });
+            }
+          }
+
           if (!playerDoc.exists()) {
             setCurrentPage(Page.Onboarding);
           } else {
@@ -73,6 +83,11 @@ const App: React.FC = () => {
     );
   }
 
+  const currentPlayer = players.find(p => p.id === user?.uid);
+  
+  // Forçar role admin para o Master se o banco ainda não atualizou
+  const effectiveRole = user?.email === MASTER_ADMIN_EMAIL ? 'admin' : currentPlayer?.role;
+
   const renderPage = () => {
     if (!user) return <Login />;
     if (currentPage === Page.Onboarding) {
@@ -87,19 +102,23 @@ const App: React.FC = () => {
       case Page.PlayerList:
         return <PlayerList players={players} currentUser={user} match={currentMatch} {...commonProps} />;
       case Page.Ranking:
-        return <Ranking players={players} {...commonProps} />;
+        return <Ranking players={players} currentUser={user} {...commonProps} />;
       case Page.CreateMatch:
-        return <CreateMatch players={players} {...commonProps} />;
+        return <CreateMatch players={players} currentUser={user} {...commonProps} />;
       case Page.Profile:
-        const currentPlayer = players.find(p => p.id === user.uid) || { id: user.uid, name: user.displayName, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente' } as Player;
-        return <Profile player={currentPlayer} {...commonProps} />;
+        const playerProfile = currentPlayer || { id: user.uid, name: user.displayName, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente', role: effectiveRole } as Player;
+        return <Profile player={playerProfile} currentUserEmail={user?.email} {...commonProps} />;
       default:
         return <Dashboard match={currentMatch} players={players} user={user} {...commonProps} />;
     }
   };
 
   return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
+    <Layout 
+      currentPage={currentPage} 
+      onPageChange={setCurrentPage} 
+      currentUserRole={effectiveRole}
+    >
       {renderPage()}
     </Layout>
   );

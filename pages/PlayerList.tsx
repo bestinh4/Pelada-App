@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Player, Page, Match } from '../types.ts';
+import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { db, doc, updateDoc } from '../services/firebase.ts';
 
 interface PlayerListProps {
@@ -16,7 +17,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
   const adminUser = players.find(p => p.id === currentUser?.uid);
-  const isCurrentUserAdmin = adminUser?.role === 'admin';
+  const isCurrentUserAdmin = adminUser?.role === 'admin' || currentUser?.email === MASTER_ADMIN_EMAIL;
 
   const fieldSlots = match?.fieldSlots || 30;
   const gkSlots = match?.gkSlots || 4;
@@ -24,6 +25,18 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const handleToggleAdmin = async (player: Player) => {
     if (!isCurrentUserAdmin || promotingId) return;
     
+    // Bloqueio Master: Ninguém altera o Master
+    // Precisamos de um jeito de saber se o player alvo é o master (pelo e-mail)
+    // Como o e-mail não costuma estar no objeto Player público, usaremos o ID ou um campo fixo se preferir.
+    // Mas aqui vamos assumir que apenas um ADM Master pode existir e ele é inatingível.
+    
+    // Nota: Em uma app real, o e-mail estaria no doc do player. 
+    // Vamos adicionar uma verificação de segurança aqui.
+    if (player.id === currentUser?.uid && currentUser?.email === MASTER_ADMIN_EMAIL) {
+       alert("Você é o Master Admin. Sua hierarquia é absoluta.");
+       return;
+    }
+
     const action = player.role === 'admin' ? 'remover o acesso ADM de' : 'promover a ADM';
     if (!confirm(`Deseja realmente ${action} ${player.name}?`)) return;
 
@@ -51,7 +64,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     );
 
     const sorted = [...filtered].sort((a, b) => {
-      // Admins primeiro na lista dentro de cada categoria
+      // Admins primeiro
       if (a.role === 'admin' && b.role !== 'admin') return -1;
       if (a.role !== 'admin' && b.role === 'admin') return 1;
       
@@ -124,6 +137,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           isAdmin={isCurrentUserAdmin}
           onToggleAdmin={handleToggleAdmin}
           promotingId={promotingId}
+          currentUser={currentUser}
         />
         <Section 
           title="FILA DE ESPERA" 
@@ -135,6 +149,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           isAdmin={isCurrentUserAdmin}
           onToggleAdmin={handleToggleAdmin}
           promotingId={promotingId}
+          currentUser={currentUser}
         />
         <Section 
           title="FORA DA PELADA" 
@@ -146,13 +161,14 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           isAdmin={isCurrentUserAdmin}
           onToggleAdmin={handleToggleAdmin}
           promotingId={promotingId}
+          currentUser={currentUser}
         />
       </main>
     </div>
   );
 };
 
-const Section = ({ title, color, badgeColor, list, countText, isWaitlist, isNotPlaying, isAdmin, onToggleAdmin, promotingId }: any) => (
+const Section = ({ title, color, badgeColor, list, countText, isWaitlist, isNotPlaying, isAdmin, onToggleAdmin, promotingId, currentUser }: any) => (
   <section>
     <div className="flex items-center justify-between mb-6 px-2">
       <div className="flex items-center gap-3">
@@ -164,64 +180,68 @@ const Section = ({ title, color, badgeColor, list, countText, isWaitlist, isNotP
       </span>
     </div>
     <div className={`space-y-4 ${isNotPlaying ? 'opacity-60 grayscale' : ''}`}>
-      {list.map((p: Player) => (
-        <div key={p.id} className={`bg-white rounded-[2rem] p-5 border border-slate-100 shadow-soft flex items-center gap-4 transition-all group ${isNotPlaying ? 'border-dashed' : 'hover:border-primary/20'}`}>
-          <div className="relative">
-            <div className={`w-16 h-16 rounded-2xl overflow-hidden border-2 ${p.role === 'admin' ? 'border-amber-400 p-0.5' : 'border-slate-50'}`}>
-              <img src={p.photoUrl} className="w-full h-full object-cover rounded-[14px]" alt={p.name} />
+      {list.map((p: Player) => {
+        const isTargetMaster = p.id === currentUser?.uid && currentUser?.email === MASTER_ADMIN_EMAIL;
+        
+        return (
+          <div key={p.id} className={`bg-white rounded-[2rem] p-5 border border-slate-100 shadow-soft flex items-center gap-4 transition-all group ${isNotPlaying ? 'border-dashed' : 'hover:border-primary/20'}`}>
+            <div className="relative">
+              <div className={`w-16 h-16 rounded-2xl overflow-hidden border-2 ${p.role === 'admin' ? (isTargetMaster ? 'border-primary ring-4 ring-primary/10 shadow-glow' : 'border-amber-400 p-0.5') : 'border-slate-50'}`}>
+                <img src={p.photoUrl} className="w-full h-full object-cover rounded-[14px]" alt={p.name} />
+              </div>
+              {p.role === 'admin' && (
+                <div className={`absolute -top-2 -right-2 w-6 h-6 ${isTargetMaster ? 'bg-primary' : 'bg-amber-400'} text-white rounded-full flex items-center justify-center border-2 border-white shadow-md animate-bounce`}>
+                  <span className="material-symbols-outlined text-[14px] fill-1">{isTargetMaster ? 'star' : 'military_tech'}</span>
+                </div>
+              )}
             </div>
-            {p.role === 'admin' && (
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-amber-400 text-white rounded-full flex items-center justify-center border-2 border-white shadow-md animate-bounce">
-                <span className="material-symbols-outlined text-[14px] fill-1">military_tech</span>
-              </div>
-            )}
-          </div>
 
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-center">
-              <div className="truncate">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <h4 className="font-black text-navy uppercase italic tracking-tight text-sm leading-none truncate">{p.name}</h4>
-                  {p.role === 'admin' && (
-                    <span className="text-[7px] font-black text-amber-500 border border-amber-200 px-1 rounded uppercase">STAFF</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full ${isWaitlist ? 'bg-amber-500' : isNotPlaying ? 'bg-slate-300' : 'bg-emerald-500'}`}></div>
-                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">{p.position}</span>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {!isNotPlaying && (
-                  <div className="flex items-center gap-1.5 bg-primary/5 px-2.5 py-1 rounded-lg">
-                    <span className="text-[12px] font-black text-primary">{p.goals}</span>
-                    <span className="material-symbols-outlined text-primary text-[14px] fill-1">sports_soccer</span>
-                  </div>
-                )}
-                
-                {/* Ferramenta de ADM para promover outros */}
-                {isAdmin && (
-                  <button 
-                    onClick={() => onToggleAdmin(p)}
-                    disabled={promotingId === p.id}
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${p.role === 'admin' ? 'bg-amber-100 text-amber-600' : 'bg-slate-50 text-slate-300 hover:bg-navy hover:text-white'}`}
-                  >
-                    {promotingId === p.id ? (
-                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <span className={`material-symbols-outlined text-xl ${p.role === 'admin' ? 'fill-1' : ''}`}>
-                        {p.role === 'admin' ? 'verified_user' : 'add_moderator'}
+            <div className="flex-1 min-w-0">
+              <div className="flex justify-between items-center">
+                <div className="truncate">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <h4 className="font-black text-navy uppercase italic tracking-tight text-sm leading-none truncate">{p.name}</h4>
+                    {p.role === 'admin' && (
+                      <span className={`text-[7px] font-black ${isTargetMaster ? 'text-primary border-primary' : 'text-amber-500 border-amber-200'} border px-1 rounded uppercase animate-pulse`}>
+                        {isTargetMaster ? 'MASTER ADM' : 'STAFF'}
                       </span>
                     )}
-                  </button>
-                )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${isWaitlist ? 'bg-amber-500' : isNotPlaying ? 'bg-slate-300' : 'bg-emerald-500'}`}></div>
+                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">{p.position}</span>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {!isNotPlaying && (
+                    <div className="flex items-center gap-1.5 bg-primary/5 px-2.5 py-1 rounded-lg">
+                      <span className="text-[12px] font-black text-primary">{p.goals}</span>
+                      <span className="material-symbols-outlined text-primary text-[14px] fill-1">sports_soccer</span>
+                    </div>
+                  )}
+                  
+                  {isAdmin && (
+                    <button 
+                      onClick={() => onToggleAdmin(p)}
+                      disabled={promotingId === p.id || isTargetMaster}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isTargetMaster ? 'bg-slate-100 text-slate-300 cursor-not-allowed opacity-50' : (p.role === 'admin' ? 'bg-amber-100 text-amber-600' : 'bg-slate-50 text-slate-300 hover:bg-navy hover:text-white')}`}
+                    >
+                      {promotingId === p.id ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <span className={`material-symbols-outlined text-xl ${(p.role === 'admin' && !isTargetMaster) ? 'fill-1' : ''}`}>
+                          {isTargetMaster ? 'shield_person' : (p.role === 'admin' ? 'verified_user' : 'add_moderator')}
+                        </span>
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      ))}
-      {list.length === 0 && <p className="py-6 text-center text-[9px] font-black uppercase tracking-widest text-slate-300 border-2 border-dashed border-slate-50 rounded-[2rem]">Nenhum registro</p>}
+        );
+      })}
     </div>
   </section>
 );

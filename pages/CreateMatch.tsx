@@ -4,11 +4,14 @@ import { Page, Player } from '../types.ts';
 import { balanceTeams } from '../services/geminiService.ts';
 import { db, addDoc, collection } from '../services/firebase.ts';
 
-const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => void }> = ({ players, onPageChange }) => {
+const CreateMatch: React.FC<{ players: Player[], currentUser: any, onPageChange: (page: Page) => void }> = ({ players, currentUser, onPageChange }) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSavingMatch, setIsSavingMatch] = useState(false);
   const [teams, setTeams] = useState<{ teamRed: string[], teamBlue: string[] } | null>(null);
   
+  const currentPlayer = players.find(p => p.id === currentUser?.uid);
+  const isAdmin = currentPlayer?.role === 'admin';
+
   const [matchData, setMatchData] = useState({
     location: '',
     date: new Date().toISOString().split('T')[0],
@@ -17,6 +20,24 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
     fieldSlots: 30,
     gkSlots: 5
   });
+
+  if (!isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[80vh] px-8 text-center animate-in fade-in zoom-in-95">
+        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-6">
+          <span className="material-symbols-outlined text-5xl">lock</span>
+        </div>
+        <h2 className="text-2xl font-black text-navy uppercase italic tracking-tighter mb-2">ACESSO RESTRITO</h2>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed mb-8">Esta área é exclusiva para a diretoria da Arena Elite.</p>
+        <button 
+          onClick={() => onPageChange(Page.Dashboard)}
+          className="px-8 py-4 bg-navy text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-navy/20 active:scale-95 transition-all"
+        >
+          VOLTAR AO DASHBOARD
+        </button>
+      </div>
+    );
+  }
 
   const confirmedPlayers = players.filter(p => p.status === 'presente');
 

@@ -1,15 +1,18 @@
 
 import React from 'react';
-import { Page } from '../types.ts';
+import { Page, Player } from '../types.ts';
 
 interface LayoutProps {
   children: React.ReactNode;
   currentPage: Page;
   onPageChange: (page: Page) => void;
+  currentUserRole?: 'admin' | 'player';
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
+const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, currentUserRole }) => {
   if (currentPage === Page.Login || currentPage === Page.Onboarding) return <>{children}</>;
+
+  const isAdmin = currentUserRole === 'admin';
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-slate-100 p-0 sm:p-4 font-display">
@@ -27,18 +30,26 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
           <NavItem icon="dashboard" active={currentPage === Page.Dashboard} onClick={() => onPageChange(Page.Dashboard)} />
           <NavItem icon="stadium" active={currentPage === Page.PlayerList} onClick={() => onPageChange(Page.PlayerList)} />
           
-          <div className="relative -mt-16">
-            <button 
-              type="button"
-              onClick={() => onPageChange(Page.CreateMatch)} 
-              className={`w-18 h-18 rounded-3xl flex items-center justify-center shadow-2xl transition-all active:scale-90 border-4 border-slate-50 ${currentPage === Page.CreateMatch ? 'bg-primary text-white scale-110 rotate-12' : 'bg-navy text-white'}`}
-              style={{ width: '4.5rem', height: '4.5rem' }}
-            >
-              <span className="material-symbols-outlined text-4xl fill-1">bolt</span>
-            </button>
-          </div>
+          {/* Botão de Criar Pelada - Apenas para ADMS */}
+          {isAdmin && (
+            <div className="relative -mt-16">
+              <button 
+                type="button"
+                onClick={() => onPageChange(Page.CreateMatch)} 
+                className={`w-18 h-18 rounded-3xl flex items-center justify-center shadow-2xl transition-all active:scale-90 border-4 border-slate-50 ${currentPage === Page.CreateMatch ? 'bg-primary text-white scale-110 rotate-12' : 'bg-navy text-white'}`}
+                style={{ width: '4.5rem', height: '4.5rem' }}
+              >
+                <span className="material-symbols-outlined text-4xl fill-1">bolt</span>
+              </button>
+            </div>
+          )}
           
-          <NavItem icon="account_balance_wallet" active={currentPage === Page.Ranking} onClick={() => onPageChange(Page.Ranking)} />
+          <NavItem 
+            icon="account_balance_wallet" 
+            active={currentPage === Page.Ranking} 
+            onClick={() => onPageChange(Page.Ranking)}
+            hide={!isAdmin} /* Jogadores comuns não precisam ver o caixa diretamente no menu se desejar, mas vamos manter o acesso de leitura se o ADM permitir. Aqui vou ocultar para focar em 'apenas adms configuram' */
+          />
           <NavItem icon="person" active={currentPage === Page.Profile} onClick={() => onPageChange(Page.Profile)} />
         </nav>
       </div>
@@ -46,20 +57,23 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
   );
 };
 
-const NavItem = ({ icon, active, onClick }: { icon: string, active: boolean, onClick: () => void }) => (
-  <button 
-    type="button"
-    onClick={onClick}
-    className={`flex flex-col items-center justify-center transition-all duration-300 z-50 ${active ? 'scale-110' : 'opacity-40 hover:opacity-100'}`}
-  >
-    <span 
-      className={`material-symbols-outlined text-[30px] ${active ? 'text-primary' : 'text-navy'}`} 
-      style={{ fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}
+const NavItem = ({ icon, active, onClick, hide }: { icon: string, active: boolean, onClick: () => void, hide?: boolean }) => {
+  if (hide) return null;
+  return (
+    <button 
+      type="button"
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center transition-all duration-300 z-50 ${active ? 'scale-110' : 'opacity-40 hover:opacity-100'}`}
     >
-      {icon}
-    </span>
-    <div className={`w-1 h-1 bg-primary rounded-full mt-1 transition-all duration-500 ${active ? 'opacity-100' : 'opacity-0'}`}></div>
-  </button>
-);
+      <span 
+        className={`material-symbols-outlined text-[30px] ${active ? 'text-primary' : 'text-navy'}`} 
+        style={{ fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0" }}
+      >
+        {icon}
+      </span>
+      <div className={`w-1 h-1 bg-primary rounded-full mt-1 transition-all duration-500 ${active ? 'opacity-100' : 'opacity-0'}`}></div>
+    </button>
+  );
+}
 
 export default Layout;
