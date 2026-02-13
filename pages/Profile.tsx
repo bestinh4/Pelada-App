@@ -1,7 +1,7 @@
 
+import { logout, db, doc, updateDoc } from '../services/firebase.ts';
 import React, { useRef, useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
-import { logout, db, doc, updateDoc } from '../services/firebase.ts';
 
 const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> = ({ player, onPageChange }) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -30,13 +30,19 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
     }
   };
 
-  const handleCameraClick = () => {
+  const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Verificar se é uma imagem
+    if (!file.type.startsWith('image/')) {
+      alert("Por favor, selecione um arquivo de imagem válido.");
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -92,25 +98,41 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
         {/* Avatar Section */}
         <div className="relative mb-10 group">
            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[50px] scale-150 opacity-50"></div>
-           <div className="w-44 h-44 rounded-[3.5rem] border-[10px] border-white shadow-2xl overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105">
+           <div 
+            onClick={handleUploadClick}
+            className="w-44 h-44 rounded-[3.5rem] border-[10px] border-white shadow-2xl overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105 cursor-pointer"
+           >
              <img src={player.photoUrl} className="w-full h-full object-cover" alt={player.name} />
              {isUploading && (
-               <div className="absolute inset-0 bg-navy/60 backdrop-blur-sm flex items-center justify-center">
+               <div className="absolute inset-0 bg-navy/80 backdrop-blur-md flex flex-col items-center justify-center gap-2">
                  <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+                 <span className="text-[8px] font-black text-white uppercase tracking-widest">SUBINDO...</span>
                </div>
              )}
+             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <span className="material-symbols-outlined text-white text-3xl">add_a_photo</span>
+             </div>
            </div>
+           
            <button 
-            onClick={handleCameraClick}
+            onClick={handleUploadClick}
             disabled={isUploading}
             className="absolute -bottom-2 -right-2 w-16 h-16 bg-primary text-white rounded-[1.5rem] border-4 border-white flex items-center justify-center z-20 shadow-xl active:scale-90 transition-all hover:bg-red-600"
            >
-             <span className="material-symbols-outlined text-2xl fill-1">photo_camera</span>
+             <span className="material-symbols-outlined text-2xl fill-1">add_a_photo</span>
            </button>
-           <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" capture="user" className="hidden" />
+           
+           {/* Removido o 'capture="user"' para permitir escolha entre galeria e câmera */}
+           <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileChange} 
+            accept="image/*" 
+            className="hidden" 
+           />
         </div>
         
-        {/* Basic Info Edit */}
+        {/* Restante do formulário permanece igual para manter a consistência do design Elite */}
         <div className="w-full text-center space-y-4 mb-12 px-4">
           <div className="relative inline-block w-full">
             <input
@@ -136,7 +158,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
           </select>
         </div>
 
-        {/* Player Type Selector */}
         <div className="w-full bg-slate-100 p-1.5 rounded-[2rem] flex mb-12">
            <button 
             onClick={() => setEditedPlayerType('mensalista')}
@@ -154,7 +175,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
            </button>
         </div>
 
-        {/* High Performance Scouts */}
         <div className="grid grid-cols-2 gap-4 w-full mb-12">
            <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft text-center group transition-all hover:border-primary/20">
               <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center mx-auto mb-3">
@@ -172,7 +192,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
            </div>
         </div>
 
-        {/* Contract & Security */}
         <div className="w-full bg-navy-deep rounded-[3rem] p-8 text-white relative overflow-hidden mb-12 shadow-2xl">
            <div className="absolute inset-0 bg-croatia opacity-[0.05] pointer-events-none"></div>
            <div className="relative z-10 space-y-6">
@@ -180,7 +199,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
                 <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">DADOS DO CONTRATO</h3>
                 <span className="bg-emerald-500/20 text-emerald-400 text-[8px] font-black px-2 py-1 rounded">ATIVO</span>
               </div>
-              
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-white/60">
                   <span className="material-symbols-outlined">badge</span>
@@ -190,20 +208,9 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
                    <p className="text-xs font-bold font-mono text-white/80">ELITE-{player.id.substring(0, 8).toUpperCase()}</p>
                 </div>
               </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-emerald-400">
-                  <span className="material-symbols-outlined fill-1">verified_user</span>
-                </div>
-                <div>
-                   <p className="text-[8px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">VERIFICAÇÃO</p>
-                   <p className="text-xs font-bold text-white uppercase italic">MEMBRO FILIADO O&A</p>
-                </div>
-              </div>
            </div>
         </div>
 
-        {/* Save Button Floating/Bottom */}
         {isDirty && (
           <div className="fixed bottom-32 left-6 right-6 z-50 animate-in slide-in-from-bottom-8">
             <button 
