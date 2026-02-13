@@ -18,7 +18,7 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
   ];
 
   return (
-    <div className="flex flex-col animate-in fade-in duration-500 pb-48 relative min-h-full">
+    <div className="flex flex-col animate-in fade-in duration-500 pb-56 relative min-h-full">
       <header className="px-6 pt-12 pb-6 bg-white/80 backdrop-blur-2xl border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -28,7 +28,7 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">GESTÃO FINANCEIRA ELITE</p>
             </div>
           </div>
-          <button type="button" className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-navy active:scale-90 transition-all">
+          <button type="button" onClick={() => alert('Recurso em desenvolvimento')} className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-navy active:scale-90 transition-all z-50 cursor-pointer">
             <span className="material-symbols-outlined text-xl">ios_share</span>
           </button>
         </div>
@@ -66,13 +66,13 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-10">
-           <QuickAction icon="qr_code_2" label="MEU PIX" color="text-primary" />
-           <QuickAction icon="list_alt" label="EXTRATO" color="text-navy" />
-           <QuickAction icon="shield_with_heart" label="REGRAS" color="text-emerald-500" />
+        <div className="grid grid-cols-3 gap-3 mb-10 relative z-10">
+           <QuickAction icon="qr_code_2" label="MEU PIX" color="text-primary" onClick={() => alert('Pix da Arena: elite@arena.com')} />
+           <QuickAction icon="list_alt" label="EXTRATO" color="text-navy" onClick={() => alert('Abrindo extrato...')} />
+           <QuickAction icon="shield_with_heart" label="REGRAS" color="text-emerald-500" onClick={() => alert('Regras Financeiras:\n1. Mensalidade até dia 10\n2. Valor R$ 50,00')} />
         </div>
 
-        <div className="space-y-6 mb-12">
+        <div className="space-y-6 mb-12 relative z-10">
           <div className="flex justify-between items-center px-2">
             <div>
               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-navy italic">MENSALIDADES</h3>
@@ -96,7 +96,11 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">R$ 50,00 • {status === 'pago' ? 'PAGO' : 'PENDENTE'}</p>
                       </div>
                    </div>
-                   <button type="button" className={`w-10 h-10 rounded-xl flex items-center justify-center active:scale-90 transition-all ${status === 'pago' ? 'bg-emerald-50 text-emerald-600' : 'bg-primary/5 text-primary'}`}>
+                   <button 
+                    type="button" 
+                    onClick={() => alert(`Cobrar ${p.name}`)}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center active:scale-90 transition-all z-30 cursor-pointer ${status === 'pago' ? 'bg-emerald-50 text-emerald-600' : 'bg-primary/5 text-primary'}`}
+                   >
                       <span className="material-symbols-outlined text-lg">{status === 'pago' ? 'receipt' : 'chat'}</span>
                    </button>
                 </div>
@@ -106,9 +110,13 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
         </div>
       </section>
 
-      {/* Floating Action Bar - Adjusted to absolute for better mobile frame compliance */}
-      <div className="absolute bottom-32 left-0 right-0 px-6 z-40 pointer-events-none">
-        <button type="button" className="w-full h-18 bg-white border-2 border-slate-100 text-navy rounded-[2.2rem] shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all pointer-events-auto group">
+      {/* Botão Flutuante Reativo */}
+      <div className="absolute bottom-36 left-0 right-0 px-6 z-40">
+        <button 
+          type="button" 
+          onClick={() => alert('Selecione o arquivo do comprovante')}
+          className="w-full h-18 bg-white border-2 border-slate-100 text-navy rounded-[2.2rem] shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all cursor-pointer group pointer-events-auto"
+        >
           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-transform group-hover:rotate-12">
             <span className="material-symbols-outlined">cloud_upload</span>
           </div>
@@ -119,8 +127,12 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
   );
 };
 
-const QuickAction = ({ icon, label, color }: { icon: string, label: string, color: string }) => (
-  <button type="button" className="bg-white p-4 rounded-3xl border border-slate-100 shadow-soft flex flex-col items-center gap-2 active:scale-95 transition-all group">
+const QuickAction = ({ icon, label, color, onClick }: { icon: string, label: string, color: string, onClick: () => void }) => (
+  <button 
+    type="button" 
+    onClick={onClick}
+    className="bg-white p-4 rounded-3xl border border-slate-100 shadow-soft flex flex-col items-center gap-2 active:scale-95 transition-all group cursor-pointer z-30"
+  >
     <span className={`material-symbols-outlined ${color} text-2xl transition-transform group-hover:scale-110`}>{icon}</span>
     <span className="text-[8px] font-black uppercase tracking-widest text-navy text-center">{label}</span>
   </button>

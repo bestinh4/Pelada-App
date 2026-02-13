@@ -78,6 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <section className="px-6 mt-8 pb-32">
+        {/* Card Próxima Pelada */}
         <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-6">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
           <div className="relative z-10">
@@ -125,48 +126,65 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
         </div>
 
-        <div className="bg-white rounded-apple-xl p-6 border border-slate-100 shadow-soft flex items-center justify-between mb-10">
-           <div>
-              <p className="text-[9px] font-black uppercase text-slate-300 tracking-[0.3em] mb-1.5">SUA CONVOCAÇÃO</p>
-              <p className="text-xl font-condensed tracking-widest text-navy uppercase italic leading-none">{currentPlayer?.position || 'RESERVA'}</p>
-           </div>
-           <div className="w-12 h-12 rounded-xl bg-navy/5 flex items-center justify-center">
-              <span className="material-symbols-outlined text-navy text-2xl">sports_soccer</span>
-           </div>
-        </div>
-
-        <div className="space-y-8">
+        {/* Líderes da Temporada */}
+        <div className="space-y-6">
            <div className="flex items-center gap-3 px-2">
              <div className="w-1.5 h-6 bg-primary rounded-full"></div>
              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-navy italic">LÍDERES DA TEMPORADA</h3>
            </div>
 
-           <div className="grid grid-cols-1 gap-6">
-              <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft">
-                 <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                       <span className="material-symbols-outlined text-primary">emoji_events</span>
-                       <span className="text-[10px] font-black uppercase tracking-widest text-navy">TOP ARTILHEIROS</span>
+           <div className="grid grid-cols-1 gap-4">
+              {/* Artilheiros */}
+              <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-soft">
+                 <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                       <span className="material-symbols-outlined text-primary text-xl">emoji_events</span>
+                       <span className="text-[10px] font-black uppercase tracking-widest text-navy">ARTILHARIA</span>
                     </div>
+                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">GOLS</span>
                  </div>
-                 
-                 <div className="space-y-4">
+                 <div className="space-y-3">
                     {topScorers.length > 0 ? topScorers.map((p, i) => (
                       <div key={p.id} className="flex items-center justify-between">
-                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100">
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-50">
                                <img src={p.photoUrl} className="w-full h-full object-cover" />
                             </div>
                             <div>
-                               <h4 className="text-xs font-black text-navy uppercase italic">{p.name}</h4>
-                               <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{p.position}</p>
+                               <h4 className="text-[11px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
+                               <p className="text-[8px] font-bold text-slate-400 uppercase">{p.position}</p>
                             </div>
                          </div>
-                         <div className="flex items-center gap-1.5">
-                            <span className="text-lg font-black text-primary italic">{p.goals}</span>
-                         </div>
+                         <span className="text-md font-black text-primary italic">{p.goals}</span>
                       </div>
-                    )) : <p className="text-center py-4 text-[9px] font-bold text-slate-300 uppercase italic">Aguardando dados...</p>}
+                    )) : <p className="text-center py-2 text-[9px] text-slate-300 italic">Nenhum gol registrado</p>}
+                 </div>
+              </div>
+
+              {/* Garçons */}
+              <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-soft">
+                 <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                       <span className="material-symbols-outlined text-navy text-xl">volunteer_activism</span>
+                       <span className="text-[10px] font-black uppercase tracking-widest text-navy">GARÇONS</span>
+                    </div>
+                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">AST</span>
+                 </div>
+                 <div className="space-y-3">
+                    {topAssistants.length > 0 ? topAssistants.map((p, i) => (
+                      <div key={p.id} className="flex items-center justify-between">
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden border border-slate-50">
+                               <img src={p.photoUrl} className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                               <h4 className="text-[11px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
+                               <p className="text-[8px] font-bold text-slate-400 uppercase">{p.position}</p>
+                            </div>
+                         </div>
+                         <span className="text-md font-black text-navy italic">{p.assists}</span>
+                      </div>
+                    )) : <p className="text-center py-2 text-[9px] text-slate-300 italic">Nenhuma assistência</p>}
                  </div>
               </div>
            </div>
