@@ -1,12 +1,15 @@
 
 import React, { useState } from 'https://esm.sh/react@18.2.0';
 import { Player } from '../types.ts';
-import { balanceTeams } from '../services/geminiService.ts';
 import { db, doc, updateDoc } from '../services/firebase.ts';
 
 const PlayerList: React.FC<{ players: Player[], currentUser: any }> = ({ players, currentUser }) => {
-  const [isBalancing, setIsBalancing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'confirmados' | 'espera' | 'nao_vao'>('confirmados');
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const confirmed = players.filter(p => p.status === 'presente');
+  const waiting = players.filter(p => p.status === 'pendente');
+  const declined = []; // Mock de jogadores que não vão
 
   const togglePresence = async () => {
     if (!currentUser) return;
@@ -15,118 +18,124 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any }> = ({ players
       const p = players.find(x => x.id === currentUser.uid);
       const nextStatus = p?.status === 'presente' ? 'pendente' : 'presente';
       await updateDoc(doc(db, "players", currentUser.uid), { status: nextStatus });
-    } catch (e) { 
-      console.error(e); 
-    } finally { 
-      setIsUpdating(false); 
-    }
-  };
-
-  const handleShuffle = async () => {
-    const present = players.filter(p => p.status === 'presente');
-    if (present.length < 2) return alert("Selecione pelo menos 2 guerreiros!");
-    setIsBalancing(true);
-    try {
-      const teams = await balanceTeams(present);
-      alert(`⚔️ ESCALAÇÃO DEFINIDA PELA IA ⚔️\n\n🔴 TIME VERMELHO:\n${teams.teamRed.join('\n')}\n\n🔵 TIME AZUL:\n${teams.teamBlue.join('\n')}\n\nBoa sorte, guerreiros!`);
-    } catch (e) { 
-      console.error(e); 
-    } finally { 
-      setIsBalancing(false); 
-    }
+    } catch (e) { console.error(e); } finally { setIsUpdating(false); }
   };
 
   return (
-    <div className="p-6 pb-32 animate-in fade-in slide-in-from-right duration-700 min-h-full">
-      <header className="flex flex-col mb-10 pt-4">
-        <div className="flex justify-between items-end mb-1">
-          <h2 className="text-4xl font-black italic tracking-tighter text-navy-deep leading-none">CONVOCAÇÃO</h2>
-          <span className="px-3 py-1 bg-primary/10 rounded-lg text-[10px] font-black text-primary uppercase tracking-widest">
-            {players.filter(p => p.status === 'presente').length} Confirmados
-          </span>
+    <div className="flex flex-col min-h-full bg-navy-deep text-white animate-in fade-in duration-500">
+      <header className="px-6 pt-12 pb-6">
+        <div className="flex items-center justify-between mb-8">
+          <button className="material-symbols-outlined text-white/60">arrow_back</button>
+          <h2 className="text-lg font-bold">Lista de Chamada</h2>
+          <button className="material-symbols-outlined text-white/60">share</button>
         </div>
-        <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em]">Lista de Atletas Ativos</p>
+
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-black tracking-tight">Pelada dos Amigos</h1>
+            <div className="flex items-center gap-4 mt-2 text-white/40 text-xs font-bold">
+              <div className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">calendar_today</span>
+                Quarta, 20:00h
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-sm">location_on</span>
+                Arena Society
+              </div>
+            </div>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary border border-primary/20">
+            <span className="material-symbols-outlined fill-1">sports_soccer</span>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex justify-between items-center border-b border-white/5">
+          <TabItem 
+            active={activeTab === 'confirmados'} 
+            label="Confirmados" 
+            count={confirmed.length} 
+            icon="check_circle" 
+            onClick={() => setActiveTab('confirmados')} 
+          />
+          <TabItem 
+            active={activeTab === 'espera'} 
+            label="Espera" 
+            count={waiting.length} 
+            icon="schedule" 
+            color="text-amber-500"
+            onClick={() => setActiveTab('espera')} 
+          />
+          <TabItem 
+            active={activeTab === 'nao_vao'} 
+            label="Não Vão" 
+            count={5} 
+            icon="cancel" 
+            color="text-red-500"
+            onClick={() => setActiveTab('nao_vao')} 
+          />
+        </div>
       </header>
 
-      {/* Botões de Ação Superior */}
-      <div className="flex flex-col gap-4 mb-10">
-        <button 
-          onClick={handleShuffle} 
-          disabled={isBalancing}
-          className="relative overflow-hidden group w-full h-24 bg-navy-deep rounded-apple shadow-2xl transition-all active:scale-[0.98] disabled:opacity-70"
-        >
-          <div className="absolute inset-0 bg-croatia opacity-5 group-hover:opacity-10 transition-opacity"></div>
-          <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full -mr-24 -mt-24 blur-3xl"></div>
-          
-          <div className="relative z-10 flex items-center justify-between px-8">
-            <div className="flex flex-col items-start">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                <span className="text-primary text-[10px] font-black uppercase tracking-widest">Gemini Engine</span>
-              </div>
-              <span className="text-white text-xl font-black tracking-tighter italic">ESCALAR COM IA</span>
-            </div>
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${isBalancing ? 'bg-white/5 animate-spin' : 'bg-primary shadow-lg shadow-primary/20 hover:scale-110'}`}>
-              <span className="material-symbols-outlined text-white text-3xl">{isBalancing ? 'sync' : 'auto_awesome'}</span>
-            </div>
-          </div>
-        </button>
+      <section className="px-6 pb-40">
+        <div className="flex items-center justify-between py-4">
+          <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Jogadores Confirmados</span>
+          <button className="flex items-center gap-1 text-primary text-[10px] font-black uppercase tracking-widest">
+            <span className="material-symbols-outlined text-sm">swap_vert</span> Ordenar A-Z
+          </button>
+        </div>
 
-        <button 
-          onClick={togglePresence} 
-          disabled={isUpdating}
-          className={`w-full h-16 rounded-apple border-2 flex items-center justify-center gap-3 transition-all active:scale-[0.98] font-black uppercase tracking-widest text-xs ${isUpdating ? 'bg-slate-50 border-slate-100 opacity-50' : 'bg-white border-slate-100 text-navy-deep hover:bg-slate-50'}`}
-        >
-          {isUpdating ? (
-            <span className="material-symbols-outlined animate-spin">sync</span>
-          ) : (
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}>
-              <span className="material-symbols-outlined text-[14px]">check</span>
-            </div>
-          )}
-          {players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'Retirar Minha Presença' : 'Confirmar Minha Presença'}
-        </button>
-      </div>
-
-      {/* Grid de Jogadores */}
-      <div className="grid grid-cols-1 gap-3">
-        {players.map((p, idx) => (
-          <div 
-            key={p.id} 
-            className={`flex items-center gap-4 p-4 bg-white rounded-2xl border transition-all duration-300 ${p.status === 'presente' ? 'border-primary/20 shadow-md ring-1 ring-primary/5' : 'border-slate-100 opacity-60'}`}
-            style={{ animationDelay: `${idx * 40}ms` }}
-          >
-            <div className="relative">
-              <img src={p.photoUrl} className={`w-16 h-16 rounded-2xl object-cover border-2 ${p.status === 'presente' ? 'border-primary' : 'border-slate-50'}`} alt={p.name} />
-              {p.status === 'presente' && (
-                <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-primary rounded-full border-2 border-white flex items-center justify-center shadow-lg">
-                  <span className="material-symbols-outlined text-[12px] text-white font-black">done_all</span>
+        <div className="space-y-4">
+          {(activeTab === 'confirmados' ? confirmed : waiting).map((p) => (
+            <div key={p.id} className="flex items-center justify-between group">
+              <div className="flex items-center gap-4">
+                <div className="relative">
+                  <img src={p.photoUrl} className="w-14 h-14 rounded-full object-cover border-2 border-white/10" alt={p.name} />
+                  {activeTab === 'confirmados' && (
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-navy-deep flex items-center justify-center text-[10px] font-black">10</div>
+                  )}
                 </div>
-              )}
-            </div>
-            
-            <div className="flex-1">
-              <p className="font-black text-navy-deep text-base leading-none mb-1 group-hover:text-primary transition-colors">{p.name}</p>
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest ${p.status === 'presente' ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-400'}`}>
-                  {p.position}
-                </span>
-                <span className="w-1 h-1 rounded-full bg-slate-200"></span>
-                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                  {p.status === 'presente' ? 'Relacionado' : 'Ausente'}
-                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-base">{p.name}</h4>
+                    {p.goals > 10 && <span className="material-symbols-outlined text-amber-500 text-sm fill-1">verified</span>}
+                  </div>
+                  <p className="text-white/40 text-xs">{p.position}</p>
+                </div>
               </div>
+              <button className="material-symbols-outlined text-white/20">more_vert</button>
             </div>
+          ))}
+        </div>
+      </section>
 
-            <div className="flex flex-col items-end gap-1">
-               <span className="text-2xl font-condensed text-navy-deep leading-none">{p.goals}</span>
-               <span className="text-[7px] font-black uppercase text-slate-400 tracking-widest">Gols</span>
-            </div>
-          </div>
-        ))}
+      {/* Footer Buttons */}
+      <div className="fixed bottom-24 left-0 right-0 px-6 py-4 bg-gradient-to-t from-navy-deep via-navy-deep to-transparent z-50 flex gap-4">
+        <button className="flex-1 h-16 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest text-white/60">
+          <span className="material-symbols-outlined">person_add</span> Convidar
+        </button>
+        <button 
+          onClick={togglePresence}
+          className="flex-[1.5] h-16 bg-primary rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20"
+        >
+          <span className="material-symbols-outlined">{players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'check' : 'login'}</span>
+          {players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'Presença Confirmada' : 'Confirmar Presença'}
+        </button>
       </div>
     </div>
   );
 };
+
+const TabItem = ({ active, label, count, icon, color = "text-emerald-500", onClick }: any) => (
+  <div 
+    onClick={onClick}
+    className={`flex-1 flex flex-col items-center py-4 relative cursor-pointer transition-all ${active ? 'opacity-100' : 'opacity-30'}`}
+  >
+    <span className={`material-symbols-outlined mb-1 ${active ? color : 'text-white'} ${active ? 'fill-1' : ''}`}>{icon}</span>
+    <span className="text-[10px] font-black uppercase tracking-widest mb-1">{label}</span>
+    <div className={`px-2 py-0.5 rounded-md text-[10px] font-black ${active ? 'bg-white/10 text-white' : 'bg-transparent text-transparent'}`}>{count}</div>
+    {active && <div className="absolute bottom-0 w-full h-1 bg-primary rounded-full"></div>}
+  </div>
+);
 
 export default PlayerList;
