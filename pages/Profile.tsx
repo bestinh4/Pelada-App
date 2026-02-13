@@ -132,13 +132,6 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
             <img src={currentPhoto} alt={player.name} className="h-[85%] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] scale-110 transition-transform duration-700 group-hover:scale-[1.15]" />
           </div>
 
-          <button 
-            onClick={startCamera}
-            className="absolute bottom-24 right-6 z-30 w-14 h-14 bg-primary text-white rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-center hover:scale-110 active:scale-90 transition-all"
-          >
-            <span className="material-symbols-outlined text-[28px]">photo_camera</span>
-          </button>
-
           <div className="absolute bottom-0 w-full p-8 flex flex-col items-center z-20 bg-gradient-to-t from-navy-deep via-navy-deep/80 to-transparent pt-20">
             <h1 className="text-white text-6xl font-condensed tracking-tighter uppercase leading-none mb-2">{player.name?.split(' ').pop()}</h1>
             <div className="flex items-center gap-2">
@@ -148,6 +141,16 @@ const Profile: React.FC<ProfileProps> = ({ player }) => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="px-6 pt-4 pb-2">
+        <button 
+          onClick={startCamera}
+          className="w-full h-16 bg-primary text-white rounded-2xl shadow-xl shadow-primary/20 flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all font-black uppercase tracking-[0.15em] text-xs"
+        >
+          <span className="material-symbols-outlined text-[24px]">photo_camera</span>
+          Tirar foto do jogo
+        </button>
       </div>
 
       <div className="px-6 py-6 pb-32">

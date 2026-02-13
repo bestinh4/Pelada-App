@@ -1,10 +1,9 @@
 
-import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "firebase/auth";
-import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, query, orderBy, updateDoc, addDoc, where } from "firebase/firestore";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, doc, setDoc, getDoc, onSnapshot, query, orderBy, updateDoc, addDoc, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Configuração fornecida pelo usuário para o projeto 'ousadia-5b1d8'
-// Usando as chaves diretamente para garantir que o deploy no Vercel funcione sem erros de 'undefined'
 const firebaseConfig = {
   apiKey: "AIzaSyBa8kF4pSrx_-GuHVT_hGMgh_UmRc0NBx0",
   authDomain: "ousadia-5b1d8.firebaseapp.com",
