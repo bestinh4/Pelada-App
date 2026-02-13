@@ -1,10 +1,11 @@
-
 {
   "name": "O&A Elite Pro",
   "short_name": "O&A Elite",
   "description": "Plataforma de Gestão Esportiva Ousadia & Alegria",
-  "start_url": "/",
+  "start_url": ".",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#ed1d23",
   "icons": [
@@ -12,13 +13,13 @@
       "src": "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }

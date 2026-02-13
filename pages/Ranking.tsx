@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
-import { db, doc, updateDoc, getDoc, setDoc, onSnapshot } from '../services/firebase.ts';
+import { db, doc, updateDoc, setDoc, onSnapshot } from '../services/firebase.ts';
 
 const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (page: Page) => void }> = ({ players, currentUser, onPageChange }) => {
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -26,7 +25,10 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
     return () => unsub();
   }, [isAdmin]);
 
-  const totals = players.reduce((acc, p) => {
+  // CRÍTICO: Filtra apenas jogadores que confirmaram presença na pelada atual
+  const activePlayers = players.filter(p => p.status === 'presente');
+
+  const totals = activePlayers.reduce((acc, p) => {
     const value = p.playerType === 'mensalista' ? prices.mensalista : prices.avulso;
     if (p.paymentStatus === 'pago') {
       acc.paid += value;
@@ -36,7 +38,7 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
     return acc;
   }, { paid: 0, pending: 0 });
 
-  const filteredPlayers = players.filter(p => {
+  const filteredPlayers = activePlayers.filter(p => {
     if (filter === 'pendentes') return p.paymentStatus !== 'pago';
     if (filter === 'pagos') return p.paymentStatus === 'pago';
     return true;
@@ -72,13 +74,13 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
 
   return (
     <div className="flex flex-col animate-in fade-in duration-500 pb-32">
-      <header className="px-6 pt-12 pb-6 bg-white border-b border-slate-100 sticky top-0 z-40">
+      <header className="px-6 pt-12 pb-6 bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img src={mainLogoUrl} className="w-10 h-10 object-contain" alt="Logo" />
             <div>
               <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">CAIXA DA ARENA</h2>
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">FECHAMENTO FINANCEIRO</p>
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 text-primary">APENAS CONFIRMADOS</p>
             </div>
           </div>
           {isAdmin && (
@@ -204,14 +206,15 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
             );
           }) : (
             <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-[2.5rem]">
-               <span className="material-symbols-outlined text-4xl text-slate-200 mb-2">search_off</span>
-               <p className="text-[10px] font-black uppercase text-slate-300 tracking-widest">Nenhum jogador encontrado</p>
+               <span className="material-symbols-outlined text-4xl text-slate-200 mb-2">group_off</span>
+               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Caixa Vazio</p>
+               <p className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">Aguardando jogadores confirmarem presença</p>
             </div>
           )}
         </div>
       </section>
 
-      {isAdmin && (
+      {isAdmin && activePlayers.length > 0 && (
         <div className="px-6 mt-12 mb-20">
           <button 
             type="button"
