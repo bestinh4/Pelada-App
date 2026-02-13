@@ -55,12 +55,14 @@ const Login: React.FC = () => {
           <div className="w-full mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl animate-in fade-in slide-in-from-top-2">
             <div className="flex gap-3">
               <span className="material-symbols-outlined text-red-500 text-sm">error</span>
-              <p className="text-[10px] font-bold text-red-600 leading-tight">
+              <div className="text-[10px] font-bold text-red-600 leading-tight">
                 {error}
                 {error.includes('Domínio') && (
-                  <span className="block mt-2 underline opacity-70">Acesse: Console Firebase > Auth > Settings > Authorized Domains</span>
+                  <span className="block mt-2 underline opacity-70 italic">
+                    Configuração: Console Firebase {' > '} Auth {' > '} Settings {' > '} Authorized Domains
+                  </span>
                 )}
-              </p>
+              </div>
             </div>
           </div>
         )}
@@ -79,7 +81,7 @@ const Login: React.FC = () => {
         </button>
         
         <p className="mt-10 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-          Temporada 2024 • V1.0.5
+          Temporada 2024 • V1.0.6
         </p>
       </div>
     </div>
