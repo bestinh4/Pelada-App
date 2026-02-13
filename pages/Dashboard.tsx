@@ -1,5 +1,4 @@
-
-import React, { useState } from 'https://esm.sh/react@18.2.0';
+import React, { useState } from 'react';
 import { Match, Player, Page } from '../types.ts';
 import { logout, db, doc, updateDoc } from '../services/firebase.ts';
 
@@ -13,7 +12,6 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPageChange }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   
-  // Logos
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
   const currentPlayer = players.find(p => p.id === user?.uid);
@@ -22,15 +20,12 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const totalSlots = match?.totalSlots || 18;
   const confirmedPlayers = players.filter(p => p.status === 'presente');
   const filledSlots = confirmedPlayers.length;
-  const remainingSlots = Math.max(0, totalSlots - filledSlots);
 
-  // Helper para formatar data de forma segura (evita crash de tela branca)
   const safeFormatDate = (dateVal: any) => {
     try {
       if (!dateVal) return { dayMonth: '24 Out', hour: '18:00' };
       
       let date: Date;
-      // Trata Timestamp do Firestore ou String ISO
       if (dateVal?.toDate) {
         date = dateVal.toDate();
       } else {
@@ -81,30 +76,21 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   return (
     <div className="flex flex-col min-h-full bg-slate-50 text-slate-900 animate-in fade-in duration-500">
-      {/* Header */}
       <header className="px-6 pt-12 pb-6 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-30 border-b border-slate-100">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 flex items-center justify-center cursor-pointer active:scale-95 transition-transform" onClick={() => onPageChange(Page.Dashboard)}>
-            <img 
-              src={mainLogoUrl} 
-              alt="O&A Elite Pro Logo" 
-              className="w-full h-full object-contain drop-shadow-lg" 
-            />
+            <img src={mainLogoUrl} alt="O&A Elite Pro Logo" className="w-full h-full object-contain drop-shadow-lg" />
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] font-black uppercase text-primary tracking-[0.3em] leading-none mb-1">ARENA</span>
             <h1 className="text-xl font-black tracking-tighter text-navy uppercase italic leading-none">O&A ELITE</h1>
           </div>
         </div>
-        <button 
-          onClick={handleLogout}
-          className="w-11 h-11 rounded-2xl bg-white shadow-soft border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary transition-all active:scale-90"
-        >
+        <button onClick={handleLogout} className="w-11 h-11 rounded-2xl bg-white shadow-soft border border-slate-100 flex items-center justify-center text-slate-400 hover:text-primary transition-all active:scale-90">
           <span className="material-symbols-outlined text-[20px]">logout</span>
         </button>
       </header>
 
-      {/* Próxima Partida */}
       <section className="px-6 mt-6 mb-4">
         <div className="flex items-center justify-between mb-5 px-1">
            <h3 className="text-lg font-black text-navy uppercase italic tracking-tight">Próxima Convocação</h3>
@@ -124,23 +110,17 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           <div className="relative z-10 p-8">
             <div className="flex items-center gap-2 mb-6">
               <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase tracking-wider">Inscrições Abertas</span>
-              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-wider">
-                {match?.type || 'Sábado'}
-              </span>
+              <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-wider">{match?.type || 'Sábado'}</span>
             </div>
 
             <div className="flex items-center gap-6 mb-8">
               <div className="flex flex-col">
-                <span className="text-5xl font-condensed tracking-tighter text-navy uppercase">
-                  {matchDateTime.dayMonth}
-                </span>
+                <span className="text-5xl font-condensed tracking-tighter text-navy uppercase">{matchDateTime.dayMonth}</span>
                 <span className="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Data do Jogo</span>
               </div>
               <div className="w-px h-12 bg-slate-200"></div>
               <div className="flex flex-col">
-                <span className="text-5xl font-condensed tracking-tighter text-primary">
-                  {matchDateTime.hour}
-                </span>
+                <span className="text-5xl font-condensed tracking-tighter text-primary">{matchDateTime.hour}</span>
                 <span className="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Início</span>
               </div>
             </div>
@@ -179,7 +159,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         </div>
       </section>
 
-      {/* Buttons */}
       <section className="px-6 space-y-4 mb-10">
         <button 
           onClick={() => updatePresence('presente')}
@@ -199,7 +178,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         </button>
       </section>
 
-      {/* Status Card */}
       <section className="px-6 grid grid-cols-1 gap-4 mb-32">
         <div className="bg-white rounded-apple-xl p-7 border border-slate-100 flex items-center gap-5 shadow-soft hover:shadow-lg transition-shadow relative overflow-hidden">
           <div className="absolute top-0 right-0 w-24 h-24 bg-navy/5 rounded-full -mr-12 -mt-12 blur-2xl"></div>
