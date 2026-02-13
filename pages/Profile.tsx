@@ -9,6 +9,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
   const [isPromoting, setIsPromoting] = useState(false);
   const [editedName, setEditedName] = useState(player.name);
   const [editedPosition, setEditedPosition] = useState(player.position);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
@@ -18,7 +19,9 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
   useEffect(() => {
     setEditedName(player.name);
     setEditedPosition(player.position);
-  }, [player.name, player.position]);
+    // Resetar preview quando o player mudar via props (sync com banco)
+    setPreviewUrl(null);
+  }, [player.id, player.name, player.position, player.photoUrl]);
 
   const isDirty = 
     editedName !== player.name || 
@@ -31,7 +34,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
   };
 
   const handleClaimAdmin = async () => {
-    if (isMaster) return; // Não necessário para o master
+    if (isMaster) return;
     if (confirm("Deseja assumir o controle como ADMINISTRADOR da Arena?")) {
       setIsPromoting(true);
       try {
@@ -59,11 +62,21 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
       return;
     }
 
+    // Limite de 2MB para base64 no Firestore (recomendado manter pequeno)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("A imagem deve ter no máximo 2MB.");
+      return;
+    }
+
     setIsUploading(true);
     try {
       const reader = new FileReader();
       reader.onloadend = async () => {
         const base64String = reader.result as string;
+        
+        // Preview Instantâneo (Optimistic UI)
+        setPreviewUrl(base64String);
+        
         const playerDocRef = doc(db, "players", player.id);
         await updateDoc(playerDocRef, { photoUrl: base64String });
         setIsUploading(false);
@@ -72,6 +85,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
     } catch (error) {
       console.error("Erro ao atualizar foto:", error);
       alert("Falha ao atualizar foto de perfil.");
+      setPreviewUrl(null);
       setIsUploading(false);
     }
   };
@@ -116,15 +130,21 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
            <div className={`absolute inset-0 ${isMaster ? 'bg-primary/30' : 'bg-primary/20'} rounded-full blur-[50px] scale-150 opacity-50`}></div>
            <div 
             onClick={handleUploadClick}
-            className={`w-44 h-44 rounded-[3.5rem] border-[10px] ${isMaster ? 'border-primary ring-8 ring-primary/5' : 'border-white'} shadow-2xl overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105 cursor-pointer`}
+            className={`w-44 h-44 rounded-[3.5rem] border-[10px] ${isMaster ? 'border-primary ring-8 ring-primary/5' : 'border-white'} shadow-2xl overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105 cursor-pointer bg-slate-100`}
            >
-             <img src={player.photoUrl} className="w-full h-full object-cover" alt={player.name} />
+             <img 
+              src={previewUrl || player.photoUrl} 
+              className={`w-full h-full object-cover transition-opacity duration-300 ${isUploading ? 'opacity-50' : 'opacity-100'}`} 
+              alt={player.name} 
+             />
+             
              {isUploading && (
-               <div className="absolute inset-0 bg-navy/80 backdrop-blur-md flex flex-col items-center justify-center gap-2">
+               <div className="absolute inset-0 bg-navy/40 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
                  <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-                 <span className="text-[8px] font-black text-white uppercase tracking-widest">SUBINDO...</span>
+                 <span className="text-[8px] font-black text-white uppercase tracking-widest">SINCRO...</span>
                </div>
              )}
+             
              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <span className="material-symbols-outlined text-white text-3xl">add_a_photo</span>
              </div>
@@ -135,9 +155,12 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
             disabled={isUploading}
             className={`absolute -bottom-2 -right-2 w-16 h-16 ${isMaster ? 'bg-navy' : 'bg-primary'} text-white rounded-[1.5rem] border-4 border-white flex items-center justify-center z-20 shadow-xl active:scale-95 transition-all`}
            >
-             <span className="material-symbols-outlined text-2xl fill-1">add_a_photo</span>
+             <span className="material-symbols-outlined text-2xl fill-1">
+               {isUploading ? 'sync' : 'add_a_photo'}
+             </span>
            </button>
            
+           {/* Input invisível para Câmera ou Galeria */}
            <input 
             type="file" 
             ref={fileInputRef} 
@@ -180,7 +203,6 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
           </select>
         </div>
 
-        {/* Promoção a ADM - Oculto para o Master */}
         {!isMaster && player.role !== 'admin' && (
           <button 
             onClick={handleClaimAdmin}
