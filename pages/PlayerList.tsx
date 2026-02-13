@@ -4,9 +4,11 @@ import { Player, Page } from '../types.ts';
 import { db, doc, updateDoc, addDoc, collection } from '../services/firebase.ts';
 
 const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: (page: Page) => void }> = ({ players, currentUser, onPageChange }) => {
-  const [activeTab, setActiveTab] = useState<'confirmados' | 'espera' | 'nao_vao'>('confirmados');
+  const [activeTab, setActiveTab] = useState<'confirmados' | 'espera'>('confirmados');
   const [isUpdating, setIsUpdating] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
   // Form State
   const [formData, setFormData] = useState({
@@ -72,30 +74,22 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: 
 
   return (
     <div className="flex flex-col min-h-full bg-slate-50 text-slate-900 animate-in fade-in duration-500">
-      {/* Header Fixo */}
+      {/* Header Padronizado com Home */}
       <header className="px-6 pt-12 pb-4 bg-white/70 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
-        <div className="flex items-center justify-between mb-6">
-          <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-transform">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-          <h2 className="text-sm font-black text-navy uppercase tracking-widest italic">Escalação Oficial</h2>
-          <button onClick={handleShare} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-transform">
-            <span className="material-symbols-outlined">share</span>
-          </button>
-        </div>
-
-        {/* Resumo da Partida no Topo */}
-        <div className="flex items-center justify-between mb-4 px-2">
-          <div>
-            <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter">Pelada dos Amigos</h1>
-            <div className="flex items-center gap-3 mt-1">
-               <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase tracking-wider">Confirmados: {confirmed.length}</span>
-               <span className="text-[10px] text-slate-400 font-bold uppercase">Sábado • 18:00h</span>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <button onClick={() => onPageChange(Page.Dashboard)} className="material-symbols-outlined text-slate-300 hover:text-primary transition-colors active:scale-90">arrow_back</button>
+            <div className="w-10 h-10 flex items-center justify-center">
+              <img src={mainLogoUrl} alt="Logo" className="w-full h-full object-contain" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[8px] font-black uppercase text-primary tracking-[0.3em] leading-none mb-0.5">ARENA</span>
+              <h2 className="text-sm font-black text-navy uppercase italic tracking-tighter leading-none">O&A ELITE</h2>
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
-            <span className="material-symbols-outlined fill-1">sports_soccer</span>
-          </div>
+          <button onClick={handleShare} className="w-10 h-10 rounded-xl bg-white shadow-soft border border-slate-100 flex items-center justify-center text-slate-400 active:scale-90 transition-all">
+            <span className="material-symbols-outlined text-[20px]">share</span>
+          </button>
         </div>
 
         {/* Tabs Estilo Apple */}
@@ -104,20 +98,38 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: 
             onClick={() => setActiveTab('confirmados')}
             className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'confirmados' ? 'bg-white text-navy shadow-sm' : 'text-slate-400'}`}
           >
-            Confirmados
+            Confirmados ({confirmed.length})
           </button>
           <button 
             onClick={() => setActiveTab('espera')}
             className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'espera' ? 'bg-white text-navy shadow-sm' : 'text-slate-400'}`}
           >
-            Lista de Espera
+            Espera ({waiting.length})
           </button>
         </div>
       </header>
 
-      <section className="px-6 py-6 pb-40 space-y-3">
-        {/* Jogadores Renderizados como Cards */}
-        {(activeTab === 'confirmados' ? confirmed : (activeTab === 'espera' ? waiting : [])).map((p, idx) => (
+      {/* Hero Summary Card com bg-croatia */}
+      <section className="px-6 mt-6">
+        <div className="relative overflow-hidden rounded-apple-xl bg-white border border-slate-100 shadow-soft p-6 mb-6 group">
+          <div className="absolute inset-0 z-0 bg-croatia opacity-[0.03]"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+          
+          <div className="relative z-10 flex justify-between items-center">
+            <div>
+              <span className="text-[9px] font-black uppercase text-primary tracking-widest block mb-1">CONVOCADOS</span>
+              <h3 className="text-3xl font-condensed text-navy uppercase tracking-tighter leading-none">{confirmed.length} ATLETAS</h3>
+              <p className="text-[10px] text-slate-400 font-bold uppercase mt-1 italic">Pelada dos Amigos • Arena Central</p>
+            </div>
+            <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-primary border border-slate-100 shadow-sm">
+              <span className="material-symbols-outlined text-3xl fill-1">groups</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 space-y-3 pb-40">
+        {(activeTab === 'confirmados' ? confirmed : waiting).map((p, idx) => (
           <div 
             key={p.id} 
             className="bg-white rounded-apple p-4 border border-slate-100 shadow-soft flex items-center justify-between animate-in slide-in-from-bottom-2 duration-300"
@@ -128,50 +140,45 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: 
                 <div className="w-14 h-14 rounded-2xl p-0.5 border border-slate-100 overflow-hidden bg-slate-50">
                   <img src={p.photoUrl} className="w-full h-full object-cover rounded-xl" alt={p.name} />
                 </div>
-                <div className="absolute -top-2 -left-2 w-6 h-6 bg-navy text-white rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black italic">
+                <div className="absolute -top-1.5 -left-1.5 w-6 h-6 bg-navy text-white rounded-full border-2 border-white flex items-center justify-center text-[9px] font-black italic shadow-sm">
                   {idx + 1}
                 </div>
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
-                  <h4 className="font-black text-navy uppercase italic tracking-tight">{p.name}</h4>
-                  {p.goals > 10 && <span className="material-symbols-outlined text-amber-500 text-[14px] fill-1">verified</span>}
-                </div>
+                <h4 className="font-black text-navy uppercase italic tracking-tight">{p.name}</h4>
                 <div className="flex items-center gap-2">
                    <span className="text-[9px] font-black text-primary uppercase tracking-widest">{p.position}</span>
-                   <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{p.team || 'Sem Clube'}</span>
+                   <span className="w-1 h-1 rounded-full bg-slate-200"></span>
+                   <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">{p.team || 'Peladeiro'}</span>
                 </div>
               </div>
             </div>
             
             <div className="flex flex-col items-end border-l border-slate-50 pl-4 shrink-0">
-               <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-0.5">ESTADO</span>
+               <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-0.5">STATUS</span>
                <div className={`flex items-center gap-1 ${activeTab === 'confirmados' ? 'text-emerald-500' : 'text-amber-500'}`}>
-                 <span className="material-symbols-outlined text-[14px] font-black">{activeTab === 'confirmados' ? 'check' : 'schedule'}</span>
-                 <span className="text-[9px] font-black uppercase tracking-widest">{activeTab === 'confirmados' ? 'Pronto' : 'Aguardando'}</span>
+                 <span className="material-symbols-outlined text-[14px] font-black">{activeTab === 'confirmados' ? 'check_circle' : 'pending'}</span>
+                 <span className="text-[9px] font-black uppercase tracking-widest">{activeTab === 'confirmados' ? 'OK' : 'WAIT'}</span>
                </div>
             </div>
           </div>
         ))}
 
-        {/* Estado Vazio */}
         {((activeTab === 'confirmados' && confirmed.length === 0) || (activeTab === 'espera' && waiting.length === 0)) && (
           <div className="py-20 text-center">
             <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-               <span className="material-symbols-outlined text-4xl text-slate-300">person_off</span>
+               <span className="material-symbols-outlined text-4xl text-slate-200">person_off</span>
             </div>
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-300">Nenhum jogador na lista</p>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-300 italic">Lista Vazia</p>
           </div>
         )}
       </section>
 
-      {/* Botões Flutuantes com Visual Home */}
+      {/* Floating Buttons */}
       <div className="fixed bottom-24 left-0 right-0 px-6 py-4 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent z-40 flex gap-4">
         <button 
           onClick={() => setShowAddModal(true)}
           className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 shadow-soft active:scale-95 transition-all"
-          title="Adicionar Atleta"
         >
           <span className="material-symbols-outlined">person_add</span>
         </button>
@@ -181,11 +188,11 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: 
           className={`flex-1 h-16 rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest shadow-xl transition-all disabled:opacity-50 active:scale-95 ${players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-primary text-white shadow-primary/30'}`}
         >
           <span className="material-symbols-outlined fill-1">{players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'check_circle' : 'sports_soccer'}</span>
-          {players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'Presença Confirmada' : 'Vou Jogar'}
+          {players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'CONFIRMADO' : 'EU VOU'}
         </button>
       </div>
 
-      {/* Add Player Modal Padronizado */}
+      {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-navy/20 backdrop-blur-md" onClick={() => setShowAddModal(false)}></div>
