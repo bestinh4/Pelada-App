@@ -13,7 +13,9 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
     location: '',
     date: new Date().toISOString().split('T')[0],
     time: '19:00',
-    price: 35
+    price: 35,
+    fieldSlots: 30,
+    gkSlots: 5
   });
 
   const confirmedPlayers = players.filter(p => p.status === 'presente');
@@ -48,16 +50,14 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
         date: String(matchData.date),
         time: String(matchData.time),
         price: Number(matchData.price) || 0,
+        fieldSlots: Number(matchData.fieldSlots) || 30,
+        gkSlots: Number(matchData.gkSlots) || 5,
         type: 'Society',
-        totalSlots: 20,
         confirmedPlayers: confirmedPlayers.length,
         createdAt: new Date().toISOString()
       };
 
-      console.log("Tentando salvar pelada:", newMatch);
-      const docRef = await addDoc(collection(db, "matches"), newMatch);
-      console.log("Pelada salva com ID:", docRef.id);
-      
+      await addDoc(collection(db, "matches"), newMatch);
       alert("Pelada publicada com sucesso na Arena!");
       onPageChange(Page.Dashboard);
     } catch (err: any) {
@@ -115,6 +115,33 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
                   onChange={e => setMatchData({...matchData, time: e.target.value})}
                   className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm font-bold text-navy" 
                 />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[9px] font-black uppercase text-slate-400 px-1">VAGAS LINHA</label>
+                <div className="relative">
+                  <input 
+                    type="number" 
+                    value={matchData.fieldSlots}
+                    onChange={e => setMatchData({...matchData, fieldSlots: Number(e.target.value)})}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm font-bold text-navy pl-10" 
+                  />
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-lg">sports_soccer</span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black uppercase text-slate-400 px-1">VAGAS GOLEIRO</label>
+                <div className="relative">
+                  <input 
+                    type="number" 
+                    value={matchData.gkSlots}
+                    onChange={e => setMatchData({...matchData, gkSlots: Number(e.target.value)})}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm font-bold text-navy pl-10" 
+                  />
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-300 text-lg">sports_kabaddi</span>
+                </div>
               </div>
             </div>
 

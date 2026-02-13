@@ -18,11 +18,28 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const isConfirmed = currentPlayer?.status === 'presente';
   
   const confirmedPlayers = players.filter(p => p.status === 'presente');
-  const filledSlots = confirmedPlayers.length;
-  const totalSlots = match?.totalSlots || 20;
+  const confirmedGKs = confirmedPlayers.filter(p => p.position === 'Goleiro').length;
+  const confirmedField = confirmedPlayers.filter(p => p.position !== 'Goleiro').length;
+
+  const fieldSlotsLimit = match?.fieldSlots || 30;
+  const gkSlotsLimit = match?.gkSlots || 5;
 
   const togglePresence = async () => {
     if (!user || isUpdating) return;
+
+    // Verificação de vagas ao confirmar
+    if (!isConfirmed) {
+      const isGK = currentPlayer?.position === 'Goleiro';
+      if (isGK && confirmedGKs >= gkSlotsLimit) {
+        alert("Vagas de Goleiro esgotadas!");
+        return;
+      }
+      if (!isGK && confirmedField >= fieldSlotsLimit) {
+        alert("Vagas de Linha esgotadas!");
+        return;
+      }
+    }
+
     setIsUpdating(true);
     try {
       const playerRef = doc(db, "players", user.uid);
@@ -48,11 +65,10 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <section className="px-6 mt-8">
-        {/* Match Card Principal */}
         <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-6">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
           <div className="relative z-10">
-            <div className="flex justify-between items-start mb-10">
+            <div className="flex justify-between items-start mb-8">
               <div>
                 <span className="inline-block px-3 py-1 rounded-md bg-primary text-white text-[8px] font-black uppercase tracking-widest mb-4">PRÓXIMA PELADA</span>
                 <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">{match?.location || "Carregando Arena..."}</h2>
@@ -63,19 +79,31 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
               </div>
             </div>
 
-            <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 mb-8">
-              <div className="flex justify-between items-end mb-4">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">CONVOCADOS</span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-condensed text-navy">{filledSlots}</span>
-                  <span className="text-sm text-slate-300 font-bold">/ {totalSlots}</span>
+            {/* Vagas Detalhadas */}
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[9px] font-black uppercase text-slate-400">LINHA</span>
+                  <span className="text-xs font-black text-navy">{confirmedField}/{fieldSlotsLimit}</span>
+                </div>
+                <div className="h-2 w-full bg-white rounded-full overflow-hidden border border-slate-200">
+                  <div 
+                    className="h-full bg-primary rounded-full transition-all duration-1000" 
+                    style={{ width: `${Math.min(100, (confirmedField / fieldSlotsLimit) * 100)}%` }}
+                  ></div>
                 </div>
               </div>
-              <div className="h-3 w-full bg-white rounded-full overflow-hidden p-0.5 border border-slate-100 shadow-inner">
-                <div 
-                  className="h-full bg-primary rounded-full transition-all duration-1000 shadow-[0_0_20px_rgba(237,29,35,0.4)]" 
-                  style={{ width: `${Math.min(100, (filledSlots / totalSlots) * 100)}%` }}
-                ></div>
+              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-[9px] font-black uppercase text-slate-400">GOLEIROS</span>
+                  <span className="text-xs font-black text-navy">{confirmedGKs}/{gkSlotsLimit}</span>
+                </div>
+                <div className="h-2 w-full bg-white rounded-full overflow-hidden border border-slate-200">
+                  <div 
+                    className="h-full bg-emerald-500 rounded-full transition-all duration-1000" 
+                    style={{ width: `${Math.min(100, (confirmedGKs / gkSlotsLimit) * 100)}%` }}
+                  ></div>
+                </div>
               </div>
             </div>
 
@@ -90,20 +118,18 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
         </div>
 
-        {/* Info Card Simplificado */}
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-navy rounded-apple-xl p-6 text-white shadow-lg">
              <p className="text-[8px] font-black uppercase opacity-40 tracking-widest mb-1">CUSTO/ATLETA</p>
              <p className="text-2xl font-condensed">R$ {match?.price || '0,00'}</p>
           </div>
           <div className="bg-white rounded-apple-xl p-6 border border-slate-100 shadow-soft">
-             <p className="text-[8px] font-black uppercase text-slate-300 tracking-widest mb-1">STATUS ARENA</p>
-             <p className="text-lg font-black italic text-navy">CONFIRMADO</p>
+             <p className="text-[8px] font-black uppercase text-slate-300 tracking-widest mb-1">POSIÇÃO</p>
+             <p className="text-lg font-black italic text-navy uppercase">{currentPlayer?.position || 'CONVOCAÇÃO'}</p>
           </div>
         </div>
       </section>
 
-      {/* Estatísticas Rápidas */}
       <section className="px-6 mt-8 grid grid-cols-2 gap-4 pb-12">
         <div className="bg-white p-6 rounded-apple-xl border border-slate-100 shadow-soft">
            <div className="flex justify-between items-start mb-4">

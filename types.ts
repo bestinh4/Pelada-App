@@ -22,16 +22,12 @@ export interface Match {
   time: string;
   type: 'Futsal' | 'Society' | 'Campo';
   price: number;
+  fieldSlots: number; // Vagas para linha
+  gkSlots: number;    // Vagas para goleiro
   confirmedPlayers: number;
-  totalSlots: number;
-  rules?: {
-    duration: number; // em minutos
-    goalLimit: number;
-    drawRule: 'stays' | 'both_leave';
-  };
+  createdAt: string;
 }
 
-// Added PastMatch interface to fix export error referenced in constants.tsx
 export interface PastMatch {
   id: string;
   opponent: string;

@@ -56,6 +56,7 @@ export const MOCK_PLAYERS: Player[] = [
   }
 ];
 
+// Added fieldSlots, gkSlots, and createdAt to correctly implement the Match interface.
 export const CURRENT_MATCH: Match = {
   id: 'match-1',
   location: 'Elite Arena Pro',
@@ -64,7 +65,9 @@ export const CURRENT_MATCH: Match = {
   type: 'Society',
   price: 35.00,
   confirmedPlayers: 16,
-  totalSlots: 24
+  fieldSlots: 20,
+  gkSlots: 4,
+  createdAt: '2024-12-01T00:00:00Z'
 };
 
 export const MOCK_HISTORY: PastMatch[] = [
