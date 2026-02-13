@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
 import Layout from './components/Layout.tsx';
 import Login from './pages/Login.tsx';
 import Dashboard from './pages/Dashboard.tsx';
@@ -21,7 +21,6 @@ const App: React.FC = () => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
-        // Garantir que o jogador existe no Firestore
         const playerDocRef = doc(db, "players", firebaseUser.uid);
         const playerDoc = await getDoc(playerDocRef);
         
@@ -43,14 +42,12 @@ const App: React.FC = () => {
       setLoading(false);
     });
 
-    // Sync Players from Firestore
     const qPlayers = query(collection(db, "players"), orderBy("goals", "desc"));
     const unsubscribePlayers = onSnapshot(qPlayers, (snapshot) => {
       const playerList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
       setPlayers(playerList);
     });
 
-    // Sync Active Match
     const qMatches = query(collection(db, "matches"), orderBy("date", "desc"));
     const unsubscribeMatches = onSnapshot(qMatches, (snapshot) => {
       if (!snapshot.empty) {
@@ -71,8 +68,8 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-navy-deep flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin shadow-[0_0_20px_rgba(237,29,35,0.3)]"></div>
-          <p className="text-white/50 font-black text-[10px] tracking-[0.3em] uppercase animate-pulse">Iniciando Arena Pro...</p>
+          <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white/50 font-black text-[10px] tracking-[0.3em] uppercase">Iniciando Arena Pro...</p>
         </div>
       </div>
     );

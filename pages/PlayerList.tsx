@@ -1,193 +1,59 @@
 
-import React, { useState } from 'react';
-import { Player } from '../types';
-import { balanceTeams } from '../services/geminiService';
+import React, { useState } from 'https://esm.sh/react@18.2.0';
+import { Player } from '../types.ts';
+import { balanceTeams } from '../services/geminiService.ts';
 import { db, doc, updateDoc } from '../services/firebase.ts';
 
-interface PlayerListProps {
-  players: Player[];
-  currentUser: any;
-}
-
-const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser }) => {
+const PlayerList: React.FC<{ players: Player[], currentUser: any }> = ({ players, currentUser }) => {
   const [isBalancing, setIsBalancing] = useState(false);
-  const [teams, setTeams] = useState<{ teamRed: string[], teamBlue: string[] } | null>(null);
-  const [showResultModal, setShowResultModal] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleShuffle = async () => {
-    const presentPlayers = players.filter(p => p.status === 'presente');
-    if (presentPlayers.length < 2) {
-      alert("É necessário pelo menos 2 jogadores confirmados para balancear.");
-      return;
-    }
-    setIsBalancing(true);
-    try {
-      const result = await balanceTeams(presentPlayers);
-      setTeams(result);
-      setShowResultModal(true);
-    } catch (error) {
-      console.error("Erro ao equilibrar times", error);
-    } finally {
-      setIsBalancing(false);
-    }
-  };
-
-  const toggleMyPresence = async () => {
+  const togglePresence = async () => {
     if (!currentUser) return;
     setIsUpdating(true);
     try {
-      const myPlayer = players.find(p => p.id === currentUser.uid);
-      const newStatus = myPlayer?.status === 'presente' ? 'pendente' : 'presente';
-      const playerDocRef = doc(db, "players", currentUser.uid);
-      await updateDoc(playerDocRef, { status: newStatus });
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-    } finally {
-      setIsUpdating(false);
-    }
+      const p = players.find(x => x.id === currentUser.uid);
+      const nextStatus = p?.status === 'presente' ? 'pendente' : 'presente';
+      await updateDoc(doc(db, "players", currentUser.uid), { status: nextStatus });
+    } catch (e) { console.error(e); } finally { setIsUpdating(false); }
   };
 
-  const confirmedCount = players.filter(p => p.status === 'presente').length;
-  const isMeConfirmed = players.find(p => p.id === currentUser?.uid)?.status === 'presente';
+  const handleShuffle = async () => {
+    const present = players.filter(p => p.status === 'presente');
+    if (present.length < 2) return alert("Mínimo de 2 jogadores!");
+    setIsBalancing(true);
+    try {
+      const teams = await balanceTeams(present);
+      alert(`Times Gerados:\nVermelho: ${teams.teamRed.join(', ')}\nAzul: ${teams.teamBlue.join(', ')}`);
+    } catch (e) { console.error(e); } finally { setIsBalancing(false); }
+  };
 
   return (
-    <div className="flex flex-col animate-in slide-in-from-right duration-500 bg-background min-h-full relative">
-      <header className="px-8 py-8 flex justify-between items-center bg-white/50 backdrop-blur-md sticky top-0 z-30 border-b border-slate-50">
-        <div>
-          <span className="text-[10px] font-black text-primary tracking-[0.3em] uppercase">O&A ELITE PRO</span>
-          <h2 className="text-3xl font-black tracking-tighter">Convocação</h2>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={toggleMyPresence} disabled={isUpdating} className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all active:scale-90 ${isMeConfirmed ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'bg-white border-slate-100 text-slate-300 shadow-sm'}`}>
-            <span className={`material-symbols-outlined ${isUpdating ? 'animate-spin' : ''}`}>{isUpdating ? 'sync' : 'check'}</span>
-          </button>
-        </div>
+    <div className="p-8 pb-32 animate-in slide-in-from-right duration-500">
+      <header className="flex justify-between items-center mb-10">
+        <h2 className="text-3xl font-black tracking-tighter">Convocação</h2>
+        <button onClick={togglePresence} disabled={isUpdating} className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${isUpdating ? 'animate-spin' : ''}`}>
+          <span className="material-symbols-outlined">check</span>
+        </button>
       </header>
 
-      <div className="px-6 py-6">
-        <button 
-          onClick={handleShuffle}
-          disabled={isBalancing}
-          className={`relative group overflow-hidden w-full h-20 rounded-3xl flex items-center justify-center gap-4 transition-all active:scale-[0.97] shadow-2xl ${isBalancing ? 'bg-slate-200 cursor-not-allowed' : 'bg-navy-deep hover:bg-navy shadow-navy/20'}`}
-        >
-          {!isBalancing && (
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
-          )}
-          
-          <span className={`material-symbols-outlined text-[28px] text-white transition-transform ${isBalancing ? 'animate-spin' : 'group-hover:rotate-180 duration-500'}`}>
-            {isBalancing ? 'sync' : 'auto_awesome'}
-          </span>
-          <span className="text-white text-xs font-black tracking-[0.2em] uppercase">
-            {isBalancing ? 'Analisando Scouts...' : 'Gerar Escalação IA'}
-          </span>
-        </button>
+      <button onClick={handleShuffle} disabled={isBalancing} className="w-full h-20 bg-navy-deep text-white rounded-3xl font-black uppercase flex items-center justify-center gap-3 active:scale-95 shadow-xl transition-all">
+        <span className="material-symbols-outlined">auto_awesome</span>
+        {isBalancing ? 'Analisando...' : 'Escalar com IA'}
+      </button>
 
-        {teams && !showResultModal && (
-          <div className="mt-8 animate-in zoom-in-95 duration-500">
-            <div className="bg-white border border-slate-100 rounded-[2rem] shadow-xl overflow-hidden">
-              <div className="bg-navy-deep p-4 flex justify-between items-center">
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Confronto Gerado por IA</p>
-                <button onClick={() => setTeams(null)} className="text-white/40 hover:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-sm">close</span>
-                </button>
-              </div>
-              <div className="grid grid-cols-2 divide-x divide-slate-100">
-                <div className="p-6 space-y-3">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(237,29,35,0.6)]"></div>
-                    <p className="text-[11px] font-black text-navy-deep uppercase tracking-widest">Team Red</p>
-                  </div>
-                  {teams.teamRed.map((name, i) => (
-                    <p key={i} className="text-[13px] font-bold text-slate-500 flex items-center gap-2">
-                      <span className="w-1 h-1 bg-slate-200 rounded-full"></span> {name}
-                    </p>
-                  ))}
-                </div>
-                <div className="p-6 space-y-3 bg-slate-50/30">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full bg-navy shadow-[0_0_8px_rgba(0,56,118,0.4)]"></div>
-                    <p className="text-[11px] font-black text-navy-deep uppercase tracking-widest">Team Blue</p>
-                  </div>
-                  {teams.teamBlue.map((name, i) => (
-                    <p key={i} className="text-[13px] font-bold text-slate-500 flex items-center gap-2">
-                      <span className="w-1 h-1 bg-slate-200 rounded-full"></span> {name}
-                    </p>
-                  ))}
-                </div>
-              </div>
+      <div className="mt-10 space-y-4">
+        {players.map(p => (
+          <div key={p.id} className={`flex items-center gap-4 p-4 bg-white rounded-2xl border ${p.status === 'presente' ? 'border-primary' : 'opacity-40 grayscale border-slate-50'}`}>
+            <img src={p.photoUrl} className="w-12 h-12 rounded-xl object-cover" />
+            <div className="flex-1">
+              <p className="font-black text-navy-deep">{p.name}</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase">{p.position}</p>
             </div>
-          </div>
-        )}
-
-        <div className="mt-10 flex items-end justify-between px-2">
-          <div className="flex flex-col">
-            <span className="text-5xl font-black text-navy-deep leading-none tracking-tighter">{confirmedCount}</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">Elite Atletas</span>
-          </div>
-          <div className="flex flex-col items-end gap-3">
-            <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Capacidade: {players.length}</span>
-            <div className="h-2 w-40 bg-slate-100 rounded-full overflow-hidden p-[1px]">
-              <div className="h-full bg-primary rounded-full transition-all duration-1000 shadow-[0_0_12px_rgba(237,29,35,0.4)]" style={{ width: `${(confirmedCount/Math.max(1, players.length))*100}%` }}></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4 px-6 mt-4 pb-32">
-        <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] ml-2">Lista de Presença</h3>
-        {players.map(player => (
-          <div 
-            key={player.id} 
-            className={`group flex items-center gap-4 bg-white p-5 rounded-[2rem] shadow-sm border border-slate-50 transition-all hover:shadow-md hover:-translate-y-0.5 ${player.status === 'presente' ? 'border-l-4 border-l-primary' : 'opacity-40 grayscale'}`}
-          >
-            <div className="relative shrink-0">
-              <div className="rounded-2xl h-14 w-14 border-2 border-white shadow-md bg-cover bg-center transition-transform group-hover:scale-105" style={{ backgroundImage: `url(${player.photoUrl})` }}></div>
-              {player.id === currentUser?.uid && (
-                <div className="absolute -bottom-1 -left-1 bg-primary text-white text-[8px] px-1.5 py-0.5 flex items-center justify-center rounded-full border border-white font-black uppercase tracking-tighter">EU</div>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-navy-deep text-lg font-black tracking-tight truncate group-hover:text-primary transition-colors">{player.name}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className={`text-[9px] font-black uppercase tracking-widest ${player.status === 'presente' ? 'text-primary' : 'text-slate-400'}`}>
-                  {player.status === 'presente' ? 'CONFIRMADO' : 'PENDENTE'}
-                </span>
-                <span className="text-slate-200 text-[8px]">|</span>
-                <span className="text-[9px] font-bold text-slate-400 uppercase">{player.position}</span>
-              </div>
-            </div>
-            <div className="shrink-0">
-              <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all ${player.status === 'presente' ? 'bg-primary/5 border-primary text-primary shadow-lg shadow-primary/10' : 'border-slate-100 text-slate-100'}`}>
-                {player.status === 'presente' && <span className="material-symbols-outlined text-[18px] font-black">check</span>}
-              </div>
-            </div>
+            {p.status === 'presente' && <span className="material-symbols-outlined text-primary">check_circle</span>}
           </div>
         ))}
       </div>
-
-      {showResultModal && teams && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-navy-deep/60 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="w-full max-w-sm bg-white rounded-[3rem] shadow-2xl p-8 flex flex-col items-center animate-in zoom-in-95 duration-500 relative overflow-hidden">
-            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mb-6 relative">
-               <div className="absolute inset-0 bg-primary/5 rounded-full animate-ping"></div>
-               <span className="material-symbols-outlined text-[56px] text-primary relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-            </div>
-            
-            <h3 className="text-3xl font-black text-navy-deep text-center mb-2 tracking-tighter leading-none">
-              Elite <span className="text-primary italic">Equilibrada!</span>
-            </h3>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8 text-center">A IA montou o cenário perfeito</p>
-
-            <button 
-              onClick={() => setShowResultModal(false)}
-              className="w-full h-16 bg-navy-deep text-white font-black rounded-2xl tracking-[0.2em] uppercase text-xs active:scale-95 transition-all shadow-xl shadow-navy-deep/20"
-            >
-              Visualizar Escalação
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
