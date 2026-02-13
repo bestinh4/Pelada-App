@@ -75,7 +75,7 @@ const Login: React.FC = () => {
                     <ol className="list-decimal ml-4 space-y-1">
                       <li>Vá ao Console do Firebase</li>
                       <li>Clique em <strong>Authentication</strong></li>
-                      <li>Aba <strong>Settings</strong> > <strong>Authorized Domains</strong></li>
+                      <li>Aba <strong>Settings</strong> &gt; <strong>Authorized Domains</strong></li>
                       <li>Adicione: <code className="bg-amber-200 px-1 rounded">{window.location.hostname}</code></li>
                     </ol>
                   </div>
