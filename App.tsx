@@ -80,7 +80,7 @@ const App: React.FC = () => {
 
     switch (currentPage) {
       case Page.Dashboard:
-        return <Dashboard match={currentMatch} />;
+        return <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />;
       case Page.PlayerList:
         return <PlayerList players={players} currentUser={user} />;
       case Page.Ranking:
@@ -99,7 +99,7 @@ const App: React.FC = () => {
         } as Player;
         return <Profile player={currentPlayer} />;
       default:
-        return <Dashboard match={currentMatch} />;
+        return <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />;
     }
   };
 
