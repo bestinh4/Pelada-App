@@ -10,7 +10,8 @@ export interface Player {
   concededGoals: number;
   position: string;
   status: 'presente' | 'pendente';
-  skills: {
+  /* Adding optional skills property to fix known property errors in mock data and support AI balancing */
+  skills?: {
     attack: number;
     defense: number;
     stamina: number;

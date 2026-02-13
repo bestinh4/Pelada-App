@@ -30,12 +30,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         assists: 0,
         concededGoals: 0,
         position: position,
-        status: 'pendente',
-        skills: { 
-          attack: Math.floor(Math.random() * 30) + 50, 
-          defense: Math.floor(Math.random() * 30) + 50, 
-          stamina: Math.floor(Math.random() * 30) + 50 
-        }
+        status: 'pendente'
       });
       onComplete();
     } catch (err) {

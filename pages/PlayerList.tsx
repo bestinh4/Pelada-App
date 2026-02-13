@@ -114,22 +114,30 @@ const Section = ({ title, color, badgeColor, list, countText, isWaitlist, isNotP
     </div>
     <div className={`space-y-4 ${isNotPlaying ? 'opacity-60 grayscale' : ''}`}>
       {list.map((p: Player) => (
-        <div key={p.id} className={`bg-white rounded-[1.8rem] p-4 border border-slate-100 shadow-soft flex items-center gap-4 transition-all group ${isNotPlaying ? 'border-dashed' : 'hover:border-primary/20'}`}>
-          <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-slate-50 flex-shrink-0">
-            <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
+        <div key={p.id} className={`bg-white rounded-[2rem] p-5 border border-slate-100 shadow-soft flex items-center gap-4 transition-all group ${isNotPlaying ? 'border-dashed' : 'hover:border-primary/20'}`}>
+          <div className="relative">
+            <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-slate-50">
+              <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
+            </div>
           </div>
+
           <div className="flex-1 min-w-0">
-            <h4 className="font-black text-navy uppercase italic tracking-tight text-sm leading-none mb-1.5 truncate">{p.name}</h4>
-            <div className="flex items-center gap-2">
-               <span className={`w-1.5 h-1.5 rounded-full ${isWaitlist ? 'bg-amber-500' : isNotPlaying ? 'bg-slate-300' : 'bg-emerald-500'}`}></span>
-               <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">{p.position}</span>
+            <div className="flex justify-between items-center">
+              <div className="truncate">
+                <h4 className="font-black text-navy uppercase italic tracking-tight text-sm leading-none mb-1 truncate">{p.name}</h4>
+                <div className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${isWaitlist ? 'bg-amber-500' : isNotPlaying ? 'bg-slate-300' : 'bg-emerald-500'}`}></div>
+                  <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">{p.position}</span>
+                </div>
+              </div>
+              {!isNotPlaying && (
+                <div className="flex items-center gap-1.5 bg-primary/5 px-2.5 py-1 rounded-lg">
+                  <span className="text-[12px] font-black text-primary">{p.goals}</span>
+                  <span className="material-symbols-outlined text-primary text-[14px] fill-1">sports_soccer</span>
+                </div>
+              )}
             </div>
           </div>
-          {!isNotPlaying && (
-            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-200">
-               <span className="material-symbols-outlined text-lg">check_circle</span>
-            </div>
-          )}
         </div>
       ))}
       {list.length === 0 && <p className="py-6 text-center text-[9px] font-black uppercase tracking-widest text-slate-300 border-2 border-dashed border-slate-50 rounded-[2rem]">Nenhum registro</p>}

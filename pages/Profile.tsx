@@ -86,73 +86,43 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
         <div className="relative mb-8 group">
            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[40px] scale-150"></div>
            <div className="w-40 h-40 rounded-[3rem] border-8 border-white shadow-2xl overflow-hidden relative z-10 transition-transform group-hover:scale-105">
-             {isUploading ? (
-               <div className="absolute inset-0 bg-navy/60 backdrop-blur-sm flex flex-col items-center justify-center z-20">
-                 <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mb-2"></div>
-                 <span className="text-[8px] font-black text-white uppercase tracking-widest">SUBINDO...</span>
-               </div>
-             ) : null}
              <img src={player.photoUrl} className="w-full h-full object-cover" alt={player.name} />
            </div>
-
            <button 
             onClick={handleCameraClick}
             disabled={isUploading}
-            className="absolute -bottom-2 -right-2 w-14 h-14 bg-primary text-white rounded-2xl border-4 border-white flex items-center justify-center z-20 shadow-xl active:scale-90 transition-all hover:bg-navy"
+            className="absolute -bottom-2 -right-2 w-14 h-14 bg-primary text-white rounded-2xl border-4 border-white flex items-center justify-center z-20 shadow-xl active:scale-90 transition-all"
            >
              <span className="material-symbols-outlined text-2xl fill-1">photo_camera</span>
            </button>
-           
            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" capture="user" className="hidden" />
-
-           <div className="absolute -top-4 -left-4 w-12 h-12 bg-navy text-white rounded-2xl border-4 border-white flex items-center justify-center z-20 shadow-xl rotate-[-15deg]">
-             <span className="text-lg font-black italic">PRO</span>
-           </div>
         </div>
         
-        <div className="w-full text-center space-y-2 mb-12">
+        <div className="w-full text-center space-y-2 mb-10">
           <input
             type="text"
             value={editedName}
             onChange={(e) => setEditedName(e.target.value)}
-            className="w-full text-4xl font-condensed text-navy uppercase italic tracking-tighter text-center bg-transparent border-none focus:ring-2 focus:ring-primary/20 rounded-lg p-1 outline-none"
-            placeholder="Nome do Atleta"
+            className="w-full text-4xl font-condensed text-navy uppercase italic tracking-tighter text-center bg-transparent outline-none"
           />
-          <div className="flex items-center justify-center gap-2">
-            <span className="material-symbols-outlined text-primary text-xs">edit</span>
-            <input
-              type="text"
-              value={editedPosition}
-              onChange={(e) => setEditedPosition(e.target.value)}
-              className="text-[10px] font-black uppercase text-primary tracking-[0.4em] italic bg-transparent border-none focus:ring-2 focus:ring-primary/20 rounded-md p-1 outline-none text-center"
-              placeholder="Posição (Ex: Meia-Atacante)"
-            />
-          </div>
+          <p className="text-[10px] font-black uppercase text-primary tracking-[0.4em] italic">{editedPosition}</p>
         </div>
 
-        {isDirty && (
-          <button 
-            onClick={handleSaveChanges}
-            disabled={isSaving}
-            className="w-full h-16 mb-8 bg-emerald-500 text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-emerald-500/30 transition-all active:scale-95 flex items-center justify-center gap-3 animate-in slide-in-from-top-4"
-          >
-            {isSaving ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <span className="material-symbols-outlined">save</span>
-            )}
-            SALVAR ALTERAÇÕES NO PERFIL
-          </button>
-        )}
-
-        <div className="w-full bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft space-y-6">
-           <div className="flex items-center gap-4 py-2 border-b border-slate-50">
-             <span className="material-symbols-outlined text-navy">person</span>
-             <div>
-                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">NOME COMPLETO</p>
-                <p className="text-xs font-bold text-navy uppercase">{player.name}</p>
-             </div>
+        {/* Scouts Grid */}
+        <div className="grid grid-cols-2 gap-4 w-full mb-10">
+           <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-soft text-center">
+              <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] block mb-2">GOLS</span>
+              <span className="text-4xl font-black text-navy italic">{player.goals || 0}</span>
            </div>
+           <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-soft text-center">
+              <span className="text-[9px] font-black text-slate-300 uppercase tracking-[0.2em] block mb-2">ASSISTÊNCIAS</span>
+              <span className="text-4xl font-black text-navy italic">{player.assists || 0}</span>
+           </div>
+        </div>
+
+        {/* Info Section */}
+        <div className="w-full bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft space-y-6 mb-10">
+           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">DADOS DO CONTRATO</h3>
            <div className="flex items-center gap-4 py-2 border-b border-slate-50">
              <span className="material-symbols-outlined text-navy">sports_soccer</span>
              <div>
@@ -161,18 +131,23 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
              </div>
            </div>
            <div className="flex items-center gap-4 py-2">
-             <span className="material-symbols-outlined text-navy">verified</span>
+             <span className="material-symbols-outlined text-emerald-500">verified_user</span>
              <div>
-                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">STATUS NA ARENA</p>
-                <p className="text-xs font-bold text-emerald-500 uppercase">MEMBRO ELITE</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">STATUS DA FILIAÇÃO</p>
+                <p className="text-xs font-bold text-emerald-500 uppercase">MEMBRO ELITE ATIVO</p>
              </div>
            </div>
         </div>
 
-        <p className="mt-10 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300 text-center leading-relaxed">
-          O&A ELITE PRO • VERSÃO 2.0.0 <br/>
-          GESTÃO ESPORTIVA DE ALTA PERFORMANCE
-        </p>
+        {isDirty && (
+          <button 
+            onClick={handleSaveChanges}
+            disabled={isSaving}
+            className="w-full h-18 bg-primary text-white rounded-3xl font-black uppercase text-[11px] tracking-[0.3em] shadow-xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-95 transition-all"
+          >
+            {isSaving ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "ATUALIZAR CADASTRO"}
+          </button>
+        )}
       </section>
     </div>
   );

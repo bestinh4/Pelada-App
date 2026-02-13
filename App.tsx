@@ -91,7 +91,7 @@ const App: React.FC = () => {
       case Page.CreateMatch:
         return <CreateMatch players={players} {...commonProps} />;
       case Page.Profile:
-        const currentPlayer = players.find(p => p.id === user.uid) || { id: user.uid, name: user.displayName, photoUrl: user.photoURL, goals: 0, position: 'A definir', status: 'pendente', skills: { attack: 50, defense: 50, stamina: 50 } } as Player;
+        const currentPlayer = players.find(p => p.id === user.uid) || { id: user.uid, name: user.displayName, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente' } as Player;
         return <Profile player={currentPlayer} {...commonProps} />;
       default:
         return <Dashboard match={currentMatch} players={players} user={user} {...commonProps} />;
