@@ -6,10 +6,12 @@ import { logout } from '../services/firebase.ts';
 
 const Profile: React.FC<{ player: Player }> = ({ player }) => {
   const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Erro ao deslogar:", error);
+    if (confirm("Deseja realmente sair da Arena O&A?")) {
+      try {
+        await logout();
+      } catch (error) {
+        console.error("Erro ao deslogar:", error);
+      }
     }
   };
 
@@ -48,7 +50,7 @@ const Profile: React.FC<{ player: Player }> = ({ player }) => {
 
         {/* Stats Section */}
         <div className="mb-10">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-6">Estatísticas Gerais</h3>
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-6 px-2">Estatísticas Gerais</h3>
           <div className="grid grid-cols-3 gap-4">
             <StatBox label="Gols" value={player.goals.toString()} color="text-primary" />
             <StatBox label="Assist." value="12" />
@@ -57,8 +59,8 @@ const Profile: React.FC<{ player: Player }> = ({ player }) => {
         </div>
 
         {/* History Section */}
-        <div className="pb-40">
-          <div className="flex justify-between items-center mb-6">
+        <div className="mb-10">
+          <div className="flex justify-between items-center mb-6 px-2">
             <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-300">Histórico Recente</h3>
             <button className="text-[10px] font-black uppercase tracking-widest text-primary">Ver Tudo</button>
           </div>
@@ -88,6 +90,34 @@ const Profile: React.FC<{ player: Player }> = ({ player }) => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Account Section / Settings */}
+        <div className="pb-40">
+          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-300 mb-6 px-2">Configurações da Conta</h3>
+          <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
+            <button className="w-full p-6 flex items-center justify-between border-b border-slate-50 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-4 text-navy">
+                <span className="material-symbols-outlined text-slate-300">notifications</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Notificações</span>
+              </div>
+              <span className="material-symbols-outlined text-slate-300">chevron_right</span>
+            </button>
+            <button className="w-full p-6 flex items-center justify-between border-b border-slate-50 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-4 text-navy">
+                <span className="material-symbols-outlined text-slate-300">security</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Privacidade</span>
+              </div>
+              <span className="material-symbols-outlined text-slate-300">chevron_right</span>
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="w-full p-6 flex items-center gap-4 text-primary hover:bg-red-50 transition-colors group"
+            >
+              <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">logout</span>
+              <span className="text-xs font-black uppercase tracking-widest">Sair da Conta</span>
+            </button>
           </div>
         </div>
       </header>
