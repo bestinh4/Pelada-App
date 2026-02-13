@@ -1,5 +1,5 @@
 
-import { Player, Match, PastMatch } from './types';
+import { Player, Match, PastMatch } from './types.ts';
 
 export const MOCK_PLAYERS: Player[] = [
   {

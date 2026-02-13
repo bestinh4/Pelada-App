@@ -17,9 +17,13 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const currentPlayer = players.find(p => p.id === user?.uid);
   const isConfirmed = currentPlayer?.status === 'presente';
   
-  const totalSlots = match?.totalSlots || 20;
   const confirmedPlayers = players.filter(p => p.status === 'presente');
   const filledSlots = confirmedPlayers.length;
+  const totalSlots = match?.totalSlots || 20;
+
+  // Lógica das Regras da Pelada
+  const numTeams = Math.floor(filledSlots / 5);
+  const isBothLeaveMode = numTeams >= 4;
 
   const togglePresence = async () => {
     if (!user || isUpdating) return;
@@ -33,7 +37,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   return (
     <div className="flex flex-col animate-in fade-in duration-700">
-      {/* Premium Header */}
       <header className="px-6 pt-12 pb-6 flex items-center justify-between bg-white/50 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center gap-4">
           <img src={mainLogoUrl} className="w-12 h-12 object-contain" alt="Logo" />
@@ -48,29 +51,25 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         </div>
       </header>
 
-      {/* Main Match Card */}
       <section className="px-6 mt-8">
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8">
+        {/* Match Card Principal */}
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-6">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
-          
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-10">
               <div>
-                <span className="inline-block px-3 py-1 rounded-md bg-primary text-white text-[8px] font-black uppercase tracking-widest mb-4">MATCH DAY</span>
-                <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">Arena Central Society</h2>
+                <span className="inline-block px-3 py-1 rounded-md bg-primary text-white text-[8px] font-black uppercase tracking-widest mb-4">PRÓXIMA PELADA</span>
+                <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">{match?.location || "Arena Central"}</h2>
                 <div className="flex items-center gap-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                   <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  Sábado • 18:00h
+                  {match?.date ? new Date(match.date).toLocaleDateString('pt-BR', { weekday: 'long' }) : 'Sábado'} • {match?.time || '18:00'}h
                 </div>
-              </div>
-              <div className="w-16 h-16 rounded-[1.5rem] bg-navy flex items-center justify-center text-white shadow-xl shadow-navy/20">
-                <span className="material-symbols-outlined text-3xl fill-1">stadium</span>
               </div>
             </div>
 
-            <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 mb-10">
+            <div className="bg-slate-50/50 rounded-3xl p-6 border border-slate-100 mb-8">
               <div className="flex justify-between items-end mb-4">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">LISTA DE CONVOCAÇÃO</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">CONVOCADOS</span>
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-condensed text-navy">{filledSlots}</span>
                   <span className="text-sm text-slate-300 font-bold">/ {totalSlots}</span>
@@ -94,20 +93,56 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
             </button>
           </div>
         </div>
+
+        {/* Card de Regras Dinâmicas - O Diferencial Elite */}
+        <div className="bg-navy rounded-apple-xl p-8 text-white relative overflow-hidden shadow-2xl shadow-navy/20">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <span className="material-symbols-outlined text-8xl">gavel</span>
+          </div>
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-6">REGRAS DA ARENA</h3>
+          
+          <div className="grid grid-cols-2 gap-6 relative z-10">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-primary text-xl">timer</span>
+              </div>
+              <div>
+                <p className="text-[8px] font-bold uppercase opacity-50">TEMPO</p>
+                <p className="font-condensed text-xl leading-none">10 MIN</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-emerald-400 text-xl">sports_soccer</span>
+              </div>
+              <div>
+                <p className="text-[8px] font-bold uppercase opacity-50">LIMITE</p>
+                <p className="font-condensed text-xl leading-none">2 GOLS</p>
+              </div>
+            </div>
+
+            <div className="col-span-2 mt-2 pt-6 border-t border-white/5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className={`material-symbols-outlined ${isBothLeaveMode ? 'text-primary animate-pulse' : 'text-slate-400'}`}>
+                  {isBothLeaveMode ? 'warning' : 'info'}
+                </span>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest leading-none">
+                    {isBothLeaveMode ? 'EMPATE: SAEM OS DOIS' : 'EMPATE: SAI O TIME QUE ENTROU'}
+                  </p>
+                  <p className="text-[8px] opacity-40 uppercase font-bold mt-1">
+                    {numTeams} times completos detectados
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* Stats Summary Section */}
-      <section className="px-6 mt-8 grid grid-cols-2 gap-4">
-        <div className="bg-white p-6 rounded-apple-xl border border-slate-100 shadow-soft">
-           <div className="flex justify-between items-start mb-4">
-             <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">RANKING</span>
-             <span className="material-symbols-outlined text-emerald-500 text-lg">trending_up</span>
-           </div>
-           <div className="flex items-baseline gap-1">
-             <span className="text-4xl font-condensed text-navy tracking-widest">#04</span>
-             <span className="text-[10px] text-slate-400 font-bold">ELITE</span>
-           </div>
-        </div>
+      {/* Estatísticas Rápidas */}
+      <section className="px-6 mt-8 grid grid-cols-2 gap-4 pb-12">
         <div className="bg-white p-6 rounded-apple-xl border border-slate-100 shadow-soft">
            <div className="flex justify-between items-start mb-4">
              <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">ARTILHARIA</span>
@@ -118,21 +153,12 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
              <span className="text-[10px] text-slate-400 font-bold uppercase">GOLS</span>
            </div>
         </div>
-      </section>
-
-      {/* Finance Preview */}
-      <section className="px-6 mt-6 mb-10">
-        <div className="bg-navy rounded-apple-xl p-6 text-white flex items-center justify-between shadow-xl shadow-navy/20">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-md">
-              <span className="material-symbols-outlined text-emerald-400">payments</span>
-            </div>
-            <div>
-              <p className="text-[8px] font-black uppercase opacity-60 tracking-[0.2em]">FINANCEIRO MENSAL</p>
-              <h3 className="text-lg font-black italic uppercase italic tracking-tighter">Mensalidade Paga</h3>
-            </div>
-          </div>
-          <span className="material-symbols-outlined text-emerald-400 text-3xl">verified</span>
+        <div className="bg-white p-6 rounded-apple-xl border border-slate-100 shadow-soft">
+           <div className="flex justify-between items-start mb-4">
+             <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">FINANCEIRO</span>
+             <span className="material-symbols-outlined text-emerald-500 text-lg">check_circle</span>
+           </div>
+           <p className="text-xl font-black italic text-navy leading-none tracking-tighter">EM DIA</p>
         </div>
       </section>
     </div>

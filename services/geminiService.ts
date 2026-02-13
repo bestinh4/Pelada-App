@@ -1,8 +1,9 @@
 
-import { GoogleGenAI, Type } from "https://esm.sh/@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { Player } from "../types.ts";
 
 export const balanceTeams = async (players: Player[]) => {
+  // Initialize AI client with API Key from process.env as per guidelines
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const prompt = `Based on the following list of soccer players, divide them into two balanced teams (Team Red and Team Blue). 
@@ -36,6 +37,7 @@ export const balanceTeams = async (players: Player[]) => {
       }
     });
 
+    // Access the .text property directly (not as a function) per Google GenAI SDK guidelines
     const jsonStr = response.text?.trim();
     if (!jsonStr) {
       throw new Error("Empty response from AI");

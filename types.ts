@@ -24,12 +24,21 @@ export interface Match {
   price: number;
   confirmedPlayers: number;
   totalSlots: number;
+  rules?: {
+    duration: number; // em minutos
+    goalLimit: number;
+    drawRule: 'stays' | 'both_leave';
+  };
 }
 
+// Added PastMatch interface to fix export error referenced in constants.tsx
 export interface PastMatch {
   id: string;
   opponent: string;
-  score: { us: number; them: number };
+  score: {
+    us: number;
+    them: number;
+  };
   date: string;
   type: 'Futsal' | 'Society' | 'Campo';
 }
