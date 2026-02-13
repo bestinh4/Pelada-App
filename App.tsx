@@ -11,6 +11,7 @@ import Profile from './pages/Profile.tsx';
 import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL } from './constants.tsx';
 import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc } from './services/firebase.ts';
+import { requestNotificationPermission } from './services/notificationService.ts';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -23,16 +24,16 @@ const App: React.FC = () => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
+        // Solicita permissão de notificações assim que logar
+        requestNotificationPermission(firebaseUser.uid);
+
         try {
           const playerDocRef = doc(db, "players", firebaseUser.uid);
           const playerDoc = await getDoc(playerDocRef);
           
-          // Se for o MASTER_ADMIN, garante que o role seja admin no banco também
           if (firebaseUser.email === MASTER_ADMIN_EMAIL) {
             if (!playerDoc.exists() || playerDoc.data().role !== 'admin') {
-               await updateDoc(playerDocRef, { role: 'admin' }).catch(async () => {
-                 // Caso o documento não exista (primeiro login)
-               });
+               await updateDoc(playerDocRef, { role: 'admin' }).catch(() => {});
             }
           }
 
@@ -42,7 +43,6 @@ const App: React.FC = () => {
             setCurrentPage(Page.Dashboard);
           }
         } catch (err) { 
-          console.error(err); 
           setCurrentPage(Page.Dashboard);
         }
       } else {
@@ -84,8 +84,6 @@ const App: React.FC = () => {
   }
 
   const currentPlayer = players.find(p => p.id === user?.uid);
-  
-  // Forçar role admin para o Master se o banco ainda não atualizou
   const effectiveRole = user?.email === MASTER_ADMIN_EMAIL ? 'admin' : currentPlayer?.role;
 
   const renderPage = () => {

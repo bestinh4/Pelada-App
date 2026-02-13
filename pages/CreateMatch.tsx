@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Page, Player } from '../types.ts';
 import { balanceTeams } from '../services/geminiService.ts';
 import { db, addDoc, collection } from '../services/firebase.ts';
+import { sendPushNotification } from '../services/notificationService.ts';
 
 const CreateMatch: React.FC<{ players: Player[], currentUser: any, onPageChange: (page: Page) => void }> = ({ players, currentUser, onPageChange }) => {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -79,6 +80,14 @@ const CreateMatch: React.FC<{ players: Player[], currentUser: any, onPageChange:
       };
 
       await addDoc(collection(db, "matches"), newMatch);
+      
+      // DISPARA NOTIFICAÇÃO PUSH PARA TODOS OS JOGADORES
+      // Em um cenário real, isso dispararia via Firebase Cloud Functions
+      sendPushNotification(
+        "🔥 NOVA PELADA PUBLICADA!", 
+        `Agendado na ${newMatch.location} dia ${new Date(newMatch.date).toLocaleDateString()}. Bora pro jogo?`
+      );
+
       alert("Pelada publicada com sucesso na Arena!");
       onPageChange(Page.Dashboard);
     } catch (err: any) {

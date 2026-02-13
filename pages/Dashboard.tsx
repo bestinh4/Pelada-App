@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Match, Player, Page } from '../types.ts';
 import { db, doc, updateDoc } from '../services/firebase.ts';
+import { sendPushNotification } from '../services/notificationService.ts';
 
 interface DashboardProps {
   match: Match | null;
@@ -52,7 +53,21 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     setIsUpdating(true);
     try {
       const playerRef = doc(db, "players", user.uid);
-      await updateDoc(playerRef, { status: isConfirmed ? 'pendente' : 'presente' });
+      const newStatus = isConfirmed ? 'pendente' : 'presente';
+      await updateDoc(playerRef, { status: newStatus });
+      
+      // Envia notificação push de confirmação
+      if (newStatus === 'presente') {
+        sendPushNotification(
+          "✅ Presença Confirmada!", 
+          `Você está na lista para a pelada em ${match?.location || 'Arena Elite'}.`
+        );
+      } else {
+        sendPushNotification(
+          "⚠️ Presença Cancelada", 
+          "Sua vaga foi liberada. Esperamos você na próxima!"
+        );
+      }
     } catch (e) { 
       console.error(e); 
       alert("Erro ao atualizar presença.");
@@ -78,7 +93,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <section className="px-6 mt-8 pb-32">
-        {/* Card Próxima Pelada */}
         <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-6">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
           <div className="relative z-10">
@@ -126,7 +140,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
         </div>
 
-        {/* Líderes da Temporada */}
         <div className="space-y-6">
            <div className="flex items-center gap-3 px-2">
              <div className="w-1.5 h-6 bg-primary rounded-full"></div>
@@ -134,7 +147,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
            </div>
 
            <div className="grid grid-cols-1 gap-4">
-              {/* Artilheiros */}
               <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-soft">
                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
@@ -161,7 +173,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                  </div>
               </div>
 
-              {/* Garçons */}
               <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-soft">
                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
