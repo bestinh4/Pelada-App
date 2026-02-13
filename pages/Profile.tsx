@@ -6,6 +6,7 @@ import { Player, Page } from '../types.ts';
 const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> = ({ player, onPageChange }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isPromoting, setIsPromoting] = useState(false);
   const [editedName, setEditedName] = useState(player.name);
   const [editedPosition, setEditedPosition] = useState(player.position);
   const [editedPlayerType, setEditedPlayerType] = useState(player.playerType || 'mensalista');
@@ -30,6 +31,21 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
     }
   };
 
+  const handleClaimAdmin = async () => {
+    if (confirm("Deseja assumir o controle como ADMINISTRADOR da Arena?")) {
+      setIsPromoting(true);
+      try {
+        const playerDocRef = doc(db, "players", player.id);
+        await updateDoc(playerDocRef, { role: 'admin' });
+        alert("Agora você é um ADMINISTRADOR ELITE!");
+      } catch (e) {
+        alert("Erro ao reivindicar acesso.");
+      } finally {
+        setIsPromoting(false);
+      }
+    }
+  };
+
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
@@ -38,7 +54,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Verificar se é uma imagem
     if (!file.type.startsWith('image/')) {
       alert("Por favor, selecione um arquivo de imagem válido.");
       return;
@@ -96,7 +111,7 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
 
       <section className="px-6 mt-10 flex flex-col items-center">
         {/* Avatar Section */}
-        <div className="relative mb-10 group">
+        <div className="relative mb-6 group">
            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[50px] scale-150 opacity-50"></div>
            <div 
             onClick={handleUploadClick}
@@ -117,12 +132,11 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
            <button 
             onClick={handleUploadClick}
             disabled={isUploading}
-            className="absolute -bottom-2 -right-2 w-16 h-16 bg-primary text-white rounded-[1.5rem] border-4 border-white flex items-center justify-center z-20 shadow-xl active:scale-90 transition-all hover:bg-red-600"
+            className="absolute -bottom-2 -right-2 w-16 h-16 bg-primary text-white rounded-[1.5rem] border-4 border-white flex items-center justify-center z-20 shadow-xl active:scale-95 transition-all hover:bg-red-600"
            >
              <span className="material-symbols-outlined text-2xl fill-1">add_a_photo</span>
            </button>
            
-           {/* Removido o 'capture="user"' para permitir escolha entre galeria e câmera */}
            <input 
             type="file" 
             ref={fileInputRef} 
@@ -131,9 +145,14 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
             className="hidden" 
            />
         </div>
+
+        {/* Cargo Badge */}
+        <div className={`mb-6 px-4 py-1.5 rounded-full flex items-center gap-2 ${player.role === 'admin' ? 'bg-navy text-white shadow-lg shadow-navy/20' : 'bg-slate-100 text-slate-400'}`}>
+          <span className="material-symbols-outlined text-sm fill-1">{player.role === 'admin' ? 'military_tech' : 'person'}</span>
+          <span className="text-[9px] font-black uppercase tracking-[0.2em]">{player.role === 'admin' ? 'DIRETORIA / ADM' : 'ATLETA ELITE'}</span>
+        </div>
         
-        {/* Restante do formulário permanece igual para manter a consistência do design Elite */}
-        <div className="w-full text-center space-y-4 mb-12 px-4">
+        <div className="w-full text-center space-y-4 mb-10 px-4">
           <div className="relative inline-block w-full">
             <input
               type="text"
@@ -158,7 +177,7 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
           </select>
         </div>
 
-        <div className="w-full bg-slate-100 p-1.5 rounded-[2rem] flex mb-12">
+        <div className="w-full bg-slate-100 p-1.5 rounded-[2rem] flex mb-10">
            <button 
             onClick={() => setEditedPlayerType('mensalista')}
             className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-[1.8rem] text-[10px] font-black uppercase tracking-widest transition-all ${editedPlayerType === 'mensalista' ? 'bg-white text-navy shadow-lg' : 'text-slate-400'}`}
@@ -175,7 +194,25 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
            </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 w-full mb-12">
+        {/* Promoção a ADM - Visível se for o dono do perfil e não for admin ainda */}
+        {player.role !== 'admin' && (
+          <button 
+            onClick={handleClaimAdmin}
+            disabled={isPromoting}
+            className="w-full mb-10 py-4 bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] flex items-center justify-center gap-3 text-slate-400 hover:border-navy hover:text-navy transition-all group"
+          >
+            {isPromoting ? (
+              <div className="w-4 h-4 border-2 border-slate-300 border-t-navy rounded-full animate-spin"></div>
+            ) : (
+              <>
+                <span className="material-symbols-outlined group-hover:fill-1">verified_user</span>
+                <span className="text-[9px] font-black uppercase tracking-widest">Reivindicar Acesso ADM</span>
+              </>
+            )}
+          </button>
+        )}
+
+        <div className="grid grid-cols-2 gap-4 w-full mb-10">
            <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft text-center group transition-all hover:border-primary/20">
               <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <span className="material-symbols-outlined text-primary fill-1">sports_soccer</span>

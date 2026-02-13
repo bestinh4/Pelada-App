@@ -33,7 +33,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         position: position,
         playerType: playerType,
         paymentStatus: 'pendente',
-        status: 'pendente'
+        status: 'pendente',
+        role: 'player' // Cargo inicial padrão
       });
       onComplete();
     } catch (err) {

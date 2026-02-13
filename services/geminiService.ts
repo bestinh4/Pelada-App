@@ -2,39 +2,46 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Player } from "../types.ts";
 
+/**
+ * Higieniza a lista de jogadores garantindo que apenas tipos primitivos
+ * (string/number) sejam incluídos, evitando erros de estrutura circular
+ * comuns em objetos vindos de SDKs como Firestore.
+ */
+const sanitizeForAI = (players: Player[]) => {
+  return players.map(p => ({
+    nome: String(p.name || "Jogador"),
+    posicao: String(p.position || "Linha"),
+    ataque: Number(p.skills?.attack || 50),
+    defesa: Number(p.skills?.defense || 50),
+    resistencia: Number(p.skills?.stamina || 50)
+  }));
+};
+
 export const balanceTeams = async (players: Player[]) => {
-  // Always initialize with named parameter and process.env.API_KEY
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
-  const sanitizedPlayers = players.map(p => {
-    return {
-      name: p.name ? String(p.name) : "Jogador",
-      position: p.position ? String(p.position) : "N/A",
-      // Include skills in the data sent to the model for better reasoning
-      skills: p.skills || { attack: 50, defense: 50, stamina: 50 }
-    };
-  });
-
+  const cleanData = sanitizeForAI(players);
   let playersJsonString: string;
+  
   try {
-    playersJsonString = JSON.stringify(sanitizedPlayers);
+    playersJsonString = JSON.stringify(cleanData);
   } catch (e) {
-    console.error("Critical: Failed to stringify player data for IA balancing", e);
+    console.error("Erro ao serializar dados para IA:", e);
     playersJsonString = "[]";
   }
 
-  // System instruction and prompt updated to request skill-based balancing
-  const prompt = `Baseado na lista de jogadores abaixo, divida-os em dois times equilibrados (Time Vermelho e Time Azul). 
-  Considere as POSIÇÕES e os níveis de SKILLS (attack, defense, stamina) para garantir que cada time tenha goleiros e jogadores de linha de forma justa e competitiva.
-  Retorne apenas um objeto JSON com dois arrays: teamRed e teamBlue, contendo os nomes dos jogadores.
+  const promptText = `Aja como um treinador profissional. Divida estes jogadores em dois times (Vermelho e Azul) extremamente equilibrados. 
+  Use as habilidades (ataque, defesa, resistencia) e as posições para garantir que não haja vantagem técnica de um lado.
   
-  Jogadores: ${playersJsonString}`;
+  LISTA DE JOGADORES:
+  ${playersJsonString}
+
+  Retorne APENAS um JSON com dois arrays: "teamRed" e "teamBlue" contendo os nomes originais.`;
 
   try {
-    // Using gemini-3-pro-preview for complex reasoning task (team balancing)
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: prompt,
+      contents: [{ role: 'user', parts: [{ text: promptText }] }],
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -54,14 +61,13 @@ export const balanceTeams = async (players: Player[]) => {
       }
     });
 
-    // Access .text property directly (not a method) as per SDK guidelines
-    const jsonStr = response.text?.trim();
-    if (!jsonStr) throw new Error("Resposta vazia da IA");
+    const text = response.text;
+    if (!text) throw new Error("IA retornou resposta vazia");
     
-    return JSON.parse(jsonStr);
+    return JSON.parse(text.trim());
   } catch (error) {
     console.error("Erro no balanceamento IA:", error);
-    // Graceful fallback: shuffle and split
+    // Fallback seguro: embaralhar e dividir
     const shuffled = [...players].sort(() => 0.5 - Math.random());
     const mid = Math.ceil(shuffled.length / 2);
     return {

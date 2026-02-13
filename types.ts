@@ -10,8 +10,9 @@ export interface Player {
   concededGoals: number;
   position: string;
   status: 'presente' | 'pendente';
-  playerType: 'mensalista' | 'avulso'; // Novo campo
-  paymentStatus?: 'pago' | 'pendente'; // Campo opcional para controle financeiro
+  playerType: 'mensalista' | 'avulso';
+  paymentStatus?: 'pago' | 'pendente';
+  role?: 'admin' | 'player'; // Novo campo de cargo
   skills?: {
     attack: number;
     defense: number;
@@ -32,7 +33,6 @@ export interface Match {
   createdAt: string;
 }
 
-// Added PastMatch interface to fix the import error in constants.tsx
 export interface PastMatch {
   id: string;
   opponent: string;
