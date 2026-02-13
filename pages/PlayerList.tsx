@@ -25,13 +25,6 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const handleToggleAdmin = async (player: Player) => {
     if (!isCurrentUserAdmin || promotingId) return;
     
-    // Bloqueio Master: Ninguém altera o Master
-    // Precisamos de um jeito de saber se o player alvo é o master (pelo e-mail)
-    // Como o e-mail não costuma estar no objeto Player público, usaremos o ID ou um campo fixo se preferir.
-    // Mas aqui vamos assumir que apenas um ADM Master pode existir e ele é inatingível.
-    
-    // Nota: Em uma app real, o e-mail estaria no doc do player. 
-    // Vamos adicionar uma verificação de segurança aqui.
     if (player.id === currentUser?.uid && currentUser?.email === MASTER_ADMIN_EMAIL) {
        alert("Você é o Master Admin. Sua hierarquia é absoluta.");
        return;
@@ -64,10 +57,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     );
 
     const sorted = [...filtered].sort((a, b) => {
-      // Admins primeiro
       if (a.role === 'admin' && b.role !== 'admin') return -1;
       if (a.role !== 'admin' && b.role === 'admin') return 1;
-      
       if (a.status === 'presente' && b.status === 'pendente') return -1;
       if (a.status === 'pendente' && b.status === 'presente') return 1;
       return 0;
@@ -99,6 +90,42 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     return { confirmed, waitlist, notPlaying };
   }, [players, searchQuery, fieldSlots, gkSlots]);
 
+  // FUNÇÃO DE COMPARTILHAMENTO WHATSAPP
+  const handleShareList = () => {
+    if (!match) {
+      alert("Nenhuma partida agendada para compartilhar.");
+      return;
+    }
+
+    const dateStr = new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { 
+      weekday: 'long', 
+      day: '2-digit', 
+      month: 'long' 
+    });
+
+    let message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n`;
+    message += `📍 *Local:* ${match.location}\n`;
+    message += `📅 *Data:* ${dateStr}\n`;
+    message += `⏰ *Hora:* ${match.time}h\n\n`;
+
+    message += `✅ *CONFIRMADOS (${groupedPlayers.confirmed.length}):*\n`;
+    groupedPlayers.confirmed.forEach((p, index) => {
+      message += `${index + 1}. ${p.name} (${p.position})${p.role === 'admin' ? ' ⭐' : ''}\n`;
+    });
+
+    if (groupedPlayers.waitlist.length > 0) {
+      message += `\n⏳ *LISTA DE ESPERA:* \n`;
+      groupedPlayers.waitlist.forEach((p, index) => {
+        message += `${index + 1}. ${p.name} (${p.position})\n`;
+      });
+    }
+
+    message += `\n_Bora pro jogo! Ousadia & Alegria_ 🔥`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  };
+
   return (
     <div className="flex flex-col animate-in fade-in duration-500 pb-40">
       <header className="px-6 pt-12 pb-6 bg-white/80 backdrop-blur-2xl border-b border-slate-100 sticky top-0 z-40">
@@ -110,7 +137,11 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">SITUAÇÃO DOS ATLETAS</p>
             </div>
           </div>
-          <button className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-sm active:scale-90 transition-all">
+          <button 
+            onClick={handleShareList}
+            className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-sm active:scale-90 transition-all hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-100"
+            title="Compartilhar no WhatsApp"
+          >
             <span className="material-symbols-outlined text-xl">ios_share</span>
           </button>
         </div>
