@@ -5,8 +5,8 @@ import { Player, Page } from '../types.ts';
 const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void }> = ({ players, onPageChange }) => {
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
   
-  const current = 840;
-  const goal = 1200;
+  const current = 1580;
+  const goal = 3000;
   const percentage = (current / goal) * 100;
 
   return (
@@ -41,7 +41,7 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
             <div className="space-y-4">
               <div className="flex justify-between text-[10px] font-black uppercase tracking-widest mb-2">
                 <span className="text-emerald-400 italic">{Math.round(percentage)}% DA META</span>
-                <span className="text-white/40">FUNDO DE RESERVA</span>
+                <span className="text-white/40">FUNDO DE RESERVA 2026</span>
               </div>
               <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
                  <div className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] transition-all duration-1000" style={{ width: `${percentage}%` }}></div>
@@ -54,7 +54,7 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
         <div className="space-y-4">
           <div className="flex justify-between items-center mb-6 px-2">
             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">HISTÓRICO DE PAGAMENTOS</h3>
-            <span className="text-[10px] font-black text-primary italic">SETEMBRO</span>
+            <span className="text-[10px] font-black text-primary italic">FEVEREIRO / 2026</span>
           </div>
 
           {players.slice(0, 8).map((p, idx) => (
@@ -65,14 +65,14 @@ const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void 
                   </div>
                   <div>
                     <h4 className="text-xs font-black text-navy uppercase italic tracking-tight">{p.name}</h4>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">VIA PIX • 12 SET</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">VIA PIX • 12 FEV</p>
                   </div>
                </div>
                <div className="text-right">
                  <span className={`text-[9px] font-black px-3 py-1 rounded-md mb-2 inline-block ${idx % 2 === 0 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-100 text-slate-400'}`}>
                    {idx % 2 === 0 ? 'PAGO' : 'PENDENTE'}
                  </span>
-                 <p className="text-sm font-black text-navy tracking-widest">R$ 40,00</p>
+                 <p className="text-sm font-black text-navy tracking-widest">R$ 45,00</p>
                </div>
             </div>
           ))}

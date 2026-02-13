@@ -9,9 +9,7 @@ export const MOCK_PLAYERS: Player[] = [
     number: 10,
     team: 'Real Madrid',
     goals: 15,
-    // Fix: Added missing assists property
     assists: 8,
-    // Fix: Added missing concededGoals property
     concededGoals: 0,
     position: 'Central Midfield',
     status: 'presente',
@@ -24,9 +22,7 @@ export const MOCK_PLAYERS: Player[] = [
     number: 4,
     team: 'Hajduk Split',
     goals: 12,
-    // Fix: Added missing assists property
     assists: 10,
-    // Fix: Added missing concededGoals property
     concededGoals: 0,
     position: 'Winger',
     status: 'presente',
@@ -38,9 +34,7 @@ export const MOCK_PLAYERS: Player[] = [
     photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBP2qy9SHdlb6SvUqp7RN1Hca-YHopQkmbCnJyoacr0U6NG4OL4mbfkNjgN47nR1eofSv-FYH8OEPgjE55NcHWNz2HvQ0kWP5z81YaglKRopyaLcEW6Io9ul0Ixyh47KiU-0SSMuhtr0Xo2-egvFVi3hONkPXgOkFUnN0pmYgJGDkCP5RrJ_5cGaFsdwWoS9MddIO3T9HMn99GvZptQ-lAaRTKVMUMvjXlkS6rwG3Q23R9oedUS3_Rr7hpIpQFkVRNHDUMeoGGpQAE',
     team: 'Manchester City',
     goals: 8,
-    // Fix: Added missing assists property
     assists: 6,
-    // Fix: Added missing concededGoals property
     concededGoals: 0,
     position: 'Midfielder',
     status: 'presente',
@@ -52,9 +46,7 @@ export const MOCK_PLAYERS: Player[] = [
     photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDLkBa64rjjAdkDd7p8d53DwbTVtJ_flR0AKKcoDKqHc8bR4JxgdVnsbuhIuCUDScxDW9MlFOUPBNpb-hu7R-29VE_6Npn_cN5RbqpAlQz4DnZv9R3SM1Zdmi-sZwY59_pCmFy6sRh_xOwZnb8P_Pa8BRMkqdkY1UqyyMtEW0MXitJ2T-dc6CroWHogFLAuQ2H7GAZ7xSjFxrdZ8nNSWl-cPv8kW64ggcmPKX4QRMcuqQQSH8-WltPKagRi-5okFrCUGCReWAPUVi4',
     team: 'Manchester City',
     goals: 2,
-    // Fix: Added missing assists property
     assists: 2,
-    // Fix: Added missing concededGoals property
     concededGoals: 0,
     position: 'Defender',
     status: 'pendente',
@@ -66,9 +58,7 @@ export const MOCK_PLAYERS: Player[] = [
     photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNmn0mKfjEZd4TzdbCQdnL8JBiv0e7wnyFijlNbYeeHu1jVuzOQmKRKzRJsV_pJ-x_9SPKensU_HYZFEGTGpbH5FjtrncKeyKiOPrOhZS1hjtEtgrKuSqz4tD8dewo8wWwMPjpcCm4DKrdYL9POzn45KDiOWzFG5bunOLw7Sygb51ufhs8gtalRVafKCp-A2RBu4fzRea42DdZEwnfiPYYqMQel_g7aeY63Ry3RUrh4UDwb4F_O651kLdvdZgqpZ9S33w92LmZeW8',
     team: 'Hoffenheim',
     goals: 10,
-    // Fix: Added missing assists property
     assists: 3,
-    // Fix: Added missing concededGoals property
     concededGoals: 0,
     position: 'Forward',
     status: 'presente',
@@ -76,24 +66,21 @@ export const MOCK_PLAYERS: Player[] = [
   }
 ];
 
-// Added fieldSlots, gkSlots, and createdAt to correctly implement the Match interface.
 export const CURRENT_MATCH: Match = {
-  id: 'match-1',
+  id: 'match-2026-feb',
   location: 'Elite Arena Pro',
-  date: '2024-12-25',
+  date: '2026-02-15',
   time: '20:00',
   type: 'Society',
-  price: 35.00,
-  confirmedPlayers: 16,
-  fieldSlots: 20,
+  price: 40.00,
+  confirmedPlayers: 18,
+  fieldSlots: 30,
   gkSlots: 4,
-  createdAt: '2024-12-01T00:00:00Z'
+  createdAt: '2026-02-01T10:00:00Z'
 };
 
 export const MOCK_HISTORY: PastMatch[] = [
-  { id: 'h1', opponent: 'Fúria FC', score: { us: 5, them: 2 }, date: '2024-12-10', type: 'Society' },
-  { id: 'h2', opponent: 'Amigos do Pelé', score: { us: 3, them: 3 }, date: '2024-12-05', type: 'Futsal' },
-  { id: 'h3', opponent: 'Ajax Elite', score: { us: 1, them: 4 }, date: '2024-11-28', type: 'Campo' },
-  { id: 'h4', opponent: 'Red Bull B', score: { us: 6, them: 1 }, date: '2024-11-20', type: 'Society' },
-  { id: 'h5', opponent: 'Dream Team', score: { us: 4, them: 2 }, date: '2024-11-15', type: 'Society' },
+  { id: 'h2026-1', opponent: 'Fúria FC', score: { us: 4, them: 2 }, date: '2026-02-10', type: 'Society' },
+  { id: 'h2026-2', opponent: 'Amigos do Pelé', score: { us: 2, them: 2 }, date: '2026-02-05', type: 'Futsal' },
+  { id: 'h2026-3', opponent: 'Ajax Elite', score: { us: 3, them: 1 }, date: '2026-01-28', type: 'Campo' },
 ];

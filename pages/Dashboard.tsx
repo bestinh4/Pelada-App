@@ -80,7 +80,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                 <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">{match?.location || "Carregando Arena..."}</h2>
                 <div className="flex items-center gap-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                   <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  {match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) : '---'} • {match?.time || '--:--'}h
+                  {match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '---'} • {match?.time || '--:--'}h
                 </div>
               </div>
             </div>
@@ -125,16 +125,16 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
            </div>
            <div className="flex items-center gap-2 bg-navy/5 px-4 py-2 rounded-xl">
               <span className="material-symbols-outlined text-navy text-lg">workspace_premium</span>
-              <span className="text-[10px] font-black text-navy uppercase">RANK #4</span>
+              <span className="text-[10px] font-black text-navy uppercase">RANK #1</span>
            </div>
         </div>
       </section>
 
-      {/* Estatísticas da Temporada - Nova Seção */}
+      {/* Estatísticas da Temporada - Seção Sincronizada com 2026 */}
       <section className="px-6 pb-20 space-y-8">
         <div className="flex items-center justify-between px-2">
           <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">ESTATÍSTICAS DA ARENA</h3>
-          <span className="text-[9px] font-black text-primary uppercase italic">TEMPORADA 2024</span>
+          <span className="text-[9px] font-black text-primary uppercase italic">TEMPORADA 2026</span>
         </div>
 
         <div className="grid grid-cols-1 gap-6">
