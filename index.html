@@ -83,16 +83,12 @@
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
     <script>
+      // Registro do Service Worker de forma segura e local
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          // Usando caminho relativo explícito para o arquivo na mesma pasta
           navigator.serviceWorker.register('./sw.js')
-            .then(reg => {
-              console.log('O&A Elite Pro: Service Worker registrado com sucesso!');
-            })
-            .catch(err => {
-              console.warn('O&A Elite Pro: Falha ao registrar Service Worker:', err);
-            });
+            .then(reg => console.log('O&A Elite Pro: PWA pronto para uso.'))
+            .catch(err => console.warn('O&A Elite Pro: Falha no SW.', err));
         });
       }
     </script>

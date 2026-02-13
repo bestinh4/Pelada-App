@@ -1,15 +1,40 @@
-const CACHE_NAME = 'oa-elite-v1';
+
+const CACHE_NAME = 'oa-elite-pro-v2';
+const ASSETS_TO_CACHE = [
+  './',
+  './index.html',
+  './manifest.json',
+  './index.tsx'
+];
 
 self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
+  );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  // Estratégia Network First para garantir que os dados do Firebase estejam sempre frescos
+  // Estratégia: Network First
+  // Tentamos sempre buscar os dados mais recentes do Firebase e da rede.
+  // Se falhar (offline), recorremos ao cache para manter o app funcional.
   event.respondWith(
     fetch(event.request).catch(() => {
       return caches.match(event.request);

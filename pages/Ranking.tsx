@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
 import { db, doc, updateDoc, setDoc, onSnapshot } from '../services/firebase.ts';
@@ -25,7 +26,8 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
     return () => unsub();
   }, [isAdmin]);
 
-  // CRÍTICO: Filtra apenas jogadores que confirmaram presença na pelada atual
+  // LÓGICA CORRIGIDA E REFORÇADA: Filtra estritamente apenas jogadores que confirmaram presença ('presente')
+  // Isso garante que jogadores que não clicaram em "Confirmar Presença" não entrem na conta do financeiro.
   const activePlayers = players.filter(p => p.status === 'presente');
 
   const totals = activePlayers.reduce((acc, p) => {
