@@ -82,11 +82,11 @@ const App: React.FC = () => {
       case Page.Dashboard:
         return <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />;
       case Page.PlayerList:
-        return <PlayerList players={players} currentUser={user} />;
+        return <PlayerList players={players} currentUser={user} onPageChange={setCurrentPage} />;
       case Page.Ranking:
-        return <Ranking players={players} />;
+        return <Ranking players={players} onPageChange={setCurrentPage} />;
       case Page.CreateMatch:
-        return <CreateMatch onMatchCreated={() => setCurrentPage(Page.Dashboard)} />;
+        return <CreateMatch onMatchCreated={() => setCurrentPage(Page.Dashboard)} onPageChange={setCurrentPage} />;
       case Page.Profile:
         const currentPlayer = players.find(p => p.id === user.uid) || {
           id: user.uid,
@@ -97,7 +97,7 @@ const App: React.FC = () => {
           status: 'pendente',
           skills: { attack: 50, defense: 50, stamina: 50 }
         } as Player;
-        return <Profile player={currentPlayer} />;
+        return <Profile player={currentPlayer} onPageChange={setCurrentPage} />;
       default:
         return <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />;
     }

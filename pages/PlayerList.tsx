@@ -1,9 +1,9 @@
 
 import React, { useState } from 'https://esm.sh/react@18.2.0';
-import { Player } from '../types.ts';
+import { Player, Page } from '../types.ts';
 import { db, doc, updateDoc, addDoc, collection } from '../services/firebase.ts';
 
-const PlayerList: React.FC<{ players: Player[], currentUser: any }> = ({ players, currentUser }) => {
+const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: (page: Page) => void }> = ({ players, currentUser, onPageChange }) => {
   const [activeTab, setActiveTab] = useState<'confirmados' | 'espera' | 'nao_vao'>('confirmados');
   const [isUpdating, setIsUpdating] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -39,11 +39,10 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any }> = ({ players
     try {
       await addDoc(collection(db, "players"), {
         ...formData,
-        id: crypto.randomUUID(), // Generates a unique ID if needed
+        id: crypto.randomUUID(),
         createdAt: new Date().toISOString()
       });
       setShowAddModal(false);
-      // Reset form
       setFormData({
         name: '',
         photoUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop',
@@ -61,13 +60,23 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any }> = ({ players
     }
   };
 
+  const handleShare = () => {
+    const text = `Lista de Chamada O&A ELITE PRO\nConfirmados: ${confirmed.length}\nEspera: ${waiting.length}`;
+    if (navigator.share) {
+      navigator.share({ title: 'O&A ELITE PRO', text, url: window.location.href });
+    } else {
+      navigator.clipboard.writeText(text + '\n' + window.location.href);
+      alert('Informações da lista copiadas para o clipboard!');
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-full bg-navy-deep text-white animate-in fade-in duration-500">
       <header className="px-6 pt-12 pb-6">
         <div className="flex items-center justify-between mb-8">
-          <button className="material-symbols-outlined text-white/60">arrow_back</button>
+          <button onClick={() => onPageChange(Page.Dashboard)} className="material-symbols-outlined text-white/60 active:scale-90 transition-transform">arrow_back</button>
           <h2 className="text-lg font-bold">Lista de Chamada</h2>
-          <button className="material-symbols-outlined text-white/60">share</button>
+          <button onClick={handleShare} className="material-symbols-outlined text-white/60 active:scale-90 transition-transform">share</button>
         </div>
 
         <div className="flex items-center justify-between mb-8">
@@ -126,7 +135,7 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any }> = ({ players
         </div>
 
         <div className="space-y-4">
-          {(activeTab === 'confirmados' ? confirmed : waiting).map((p) => (
+          {(activeTab === 'confirmados' ? confirmed : (activeTab === 'espera' ? waiting : [])).map((p) => (
             <div key={p.id} className="flex items-center justify-between group">
               <div className="flex items-center gap-4">
                 <div className="relative">
@@ -149,6 +158,12 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any }> = ({ players
               </div>
             </div>
           ))}
+          {(activeTab === 'nao_vao' || (activeTab === 'confirmados' && confirmed.length === 0) || (activeTab === 'espera' && waiting.length === 0)) && (
+            <div className="py-20 text-center opacity-20">
+              <span className="material-symbols-outlined text-6xl mb-4">person_off</span>
+              <p className="text-xs font-bold uppercase tracking-[0.2em]">Nenhum jogador encontrado</p>
+            </div>
+          )}
         </div>
       </section>
 

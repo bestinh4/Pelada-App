@@ -1,16 +1,17 @@
 
 import React, { useState } from 'https://esm.sh/react@18.2.0';
+import { Page } from '../types.ts';
 
-const CreateMatch: React.FC<{ onMatchCreated: () => void }> = ({ onMatchCreated }) => {
+const CreateMatch: React.FC<{ onMatchCreated: () => void, onPageChange: (page: Page) => void }> = ({ onMatchCreated, onPageChange }) => {
   const [numTeams, setNumTeams] = useState(2);
   const [randomDraw, setRandomDraw] = useState(true);
 
   return (
     <div className="flex flex-col min-h-full bg-navy-deep text-white animate-in fade-in duration-500 px-6 pt-12">
       <header className="flex items-center justify-between mb-10">
-        <button className="material-symbols-outlined text-white/60">arrow_back</button>
+        <button onClick={() => onPageChange(Page.Dashboard)} className="material-symbols-outlined text-white/60 active:scale-90 transition-transform">arrow_back</button>
         <h2 className="text-lg font-bold">Sorteio de Times</h2>
-        <button className="material-symbols-outlined text-white/60">settings</button>
+        <button onClick={() => alert("Configurações avançadas em breve.")} className="material-symbols-outlined text-white/60 active:scale-90 transition-transform">settings</button>
       </header>
 
       <section className="mb-10">
@@ -26,9 +27,9 @@ const CreateMatch: React.FC<{ onMatchCreated: () => void }> = ({ onMatchCreated 
               <p className="text-[10px] text-white/20">7 jogadores por time</p>
             </div>
             <div className="flex items-center gap-4 bg-white/5 rounded-2xl p-2">
-              <button onClick={() => setNumTeams(Math.max(2, numTeams - 1))} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center"><span className="material-symbols-outlined text-sm">remove</span></button>
+              <button onClick={() => setNumTeams(Math.max(2, numTeams - 1))} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center active:scale-90 transition-transform"><span className="material-symbols-outlined text-sm">remove</span></button>
               <span className="text-xl font-black">{numTeams}</span>
-              <button onClick={() => setNumTeams(numTeams + 1)} className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center"><span className="material-symbols-outlined text-sm">add</span></button>
+              <button onClick={() => setNumTeams(numTeams + 1)} className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center active:scale-90 transition-transform"><span className="material-symbols-outlined text-sm">add</span></button>
             </div>
           </div>
 
@@ -48,7 +49,7 @@ const CreateMatch: React.FC<{ onMatchCreated: () => void }> = ({ onMatchCreated 
       <section>
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-[10px] font-black uppercase tracking-widest text-primary">Times Sorteados</h3>
-          <button className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-white/30">
+          <button onClick={() => alert("Sorteie os times para compartilhar!")} className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-white/30 active:scale-95 transition-transform">
             <span className="material-symbols-outlined text-sm">share</span> Compartilhar
           </button>
         </div>

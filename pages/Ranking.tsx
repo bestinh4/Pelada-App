@@ -1,19 +1,30 @@
 
-import React from 'https://esm.sh/react@18.2.0';
-import { Player } from '../types.ts';
+import React, { useState } from 'https://esm.sh/react@18.2.0';
+import { Player, Page } from '../types.ts';
 
-const Ranking: React.FC<{ players: Player[] }> = ({ players }) => {
+const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void }> = ({ players, onPageChange }) => {
+  const [searchTerm, setSearchTerm] = useState('');
   const goal = 800;
   const current = 650;
   const percentage = (current / goal) * 100;
+
+  const filteredPlayers = players.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const handleRegisterPayment = () => {
+    alert("Função de registrar pagamento será liberada em breve para tesouraria.");
+  };
+
+  const handleAddGoal = () => {
+    alert("Para adicionar uma nova meta financeira, contate o administrador.");
+  };
 
   return (
     <div className="flex flex-col min-h-full bg-navy-deep text-white animate-in fade-in duration-500">
       <header className="px-6 pt-12 pb-6">
         <div className="flex items-center justify-between mb-8">
-          <button className="material-symbols-outlined text-white/60">arrow_back</button>
+          <button onClick={() => onPageChange(Page.Dashboard)} className="material-symbols-outlined text-white/60 active:scale-90 transition-transform">arrow_back</button>
           <h2 className="text-lg font-bold">Gestão Financeira</h2>
-          <button className="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center border border-primary/20">
+          <button onClick={handleAddGoal} className="w-10 h-10 rounded-xl bg-primary/20 text-primary flex items-center justify-center border border-primary/20 active:scale-90 transition-transform">
             <span className="material-symbols-outlined">add</span>
           </button>
         </div>
@@ -36,11 +47,11 @@ const Ranking: React.FC<{ players: Player[] }> = ({ players }) => {
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] font-black uppercase tracking-widest">
               <span className="text-emerald-500">{Math.round(percentage)}% Concluído</span>
-              <span className="text-white/20">Outubro 2023</span>
+              <span className="text-white/20">Outubro 2024</span>
             </div>
             <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden p-0.5">
               <div 
-                className="h-full bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)]" 
+                className="h-full bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.4)] transition-all duration-1000" 
                 style={{ width: `${percentage}%` }}
               ></div>
             </div>
@@ -53,20 +64,22 @@ const Ranking: React.FC<{ players: Player[] }> = ({ players }) => {
           <input 
             type="text" 
             placeholder="Buscar por nome..." 
-            className="w-full h-14 bg-[#0E1324] border border-white/5 rounded-2xl pl-12 pr-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full h-14 bg-[#0E1324] border border-white/5 rounded-2xl pl-12 pr-6 text-sm text-white focus:ring-1 focus:ring-primary outline-none transition-all"
           />
         </div>
 
-        <div className="flex gap-2 mb-8">
-          <FilterChip label="Todos (20)" active />
-          <FilterChip label="Pagos (16)" />
-          <FilterChip label="Pendentes (4)" />
+        <div className="flex gap-2 mb-8 overflow-x-auto hide-scrollbar">
+          <FilterChip label={`Todos (${filteredPlayers.length})`} active />
+          <FilterChip label="Pagos" />
+          <FilterChip label="Pendentes" />
         </div>
 
         {/* Lista de Transações */}
         <div className="space-y-4 pb-40">
-          {players.map((p, idx) => (
-            <div key={p.id} className="bg-[#0E1324] rounded-3xl p-5 border border-white/5 flex items-center justify-between">
+          {filteredPlayers.length > 0 ? filteredPlayers.map((p, idx) => (
+            <div key={p.id} className="bg-[#0E1324] rounded-3xl p-5 border border-white/5 flex items-center justify-between animate-in slide-in-from-bottom-2 duration-300" style={{ animationDelay: `${idx * 50}ms` }}>
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <img src={p.photoUrl} className="w-12 h-12 rounded-full object-cover grayscale opacity-50" alt={p.name} />
@@ -78,7 +91,7 @@ const Ranking: React.FC<{ players: Player[] }> = ({ players }) => {
                 </div>
                 <div>
                   <h4 className="font-bold text-sm">{p.name}</h4>
-                  <p className="text-[10px] text-white/20 font-medium">Via Pix • 05/10/2023</p>
+                  <p className="text-[10px] text-white/20 font-medium">Via Pix • 15/10/2024</p>
                 </div>
               </div>
               <div className="text-right">
@@ -88,13 +101,18 @@ const Ranking: React.FC<{ players: Player[] }> = ({ players }) => {
                 <p className="text-sm font-black">R$ 40,00</p>
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="py-20 text-center opacity-20">
+              <span className="material-symbols-outlined text-6xl mb-4">search_off</span>
+              <p className="text-xs font-bold uppercase tracking-[0.2em]">Nenhum jogador encontrado</p>
+            </div>
+          )}
         </div>
       </header>
 
       {/* Botão Flutuante */}
       <div className="fixed bottom-24 left-0 right-0 px-6 py-4 bg-gradient-to-t from-navy-deep via-navy-deep to-transparent z-50">
-        <button className="w-full h-16 bg-primary rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/30 active:scale-95 transition-all">
+        <button onClick={handleRegisterPayment} className="w-full h-16 bg-primary rounded-2xl flex items-center justify-center gap-3 font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/30 active:scale-95 transition-all">
           <span className="material-symbols-outlined">payments</span>
           Registrar Pagamento
         </button>
@@ -104,7 +122,7 @@ const Ranking: React.FC<{ players: Player[] }> = ({ players }) => {
 };
 
 const FilterChip = ({ label, active }: any) => (
-  <button className={`px-4 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${active ? 'bg-primary text-white' : 'bg-white/5 text-white/30 border border-white/5'}`}>
+  <button className={`px-4 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${active ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white/5 text-white/30 border border-white/5'}`}>
     {label}
   </button>
 );
