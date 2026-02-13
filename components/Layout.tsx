@@ -16,8 +16,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
       <div className="relative w-full max-w-[430px] h-[932px] sm:max-h-[92vh] bg-slate-50 shadow-2xl overflow-hidden flex flex-col rounded-none sm:rounded-[3rem] border-0 sm:border-[10px] border-white ring-1 ring-slate-200">
         
         {/* Scrollable Main Content */}
-        <main className="flex-1 overflow-y-auto hide-scrollbar relative">
-          <div className="pb-48 pt-4"> {/* Padding bottom maior para acomodar Nav e Botões flutuantes */}
+        <main className="flex-1 overflow-y-auto hide-scrollbar relative z-10">
+          <div className="pb-48 pt-4">
             {children}
           </div>
         </main>
@@ -29,13 +29,13 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
           
           <div className="relative -mt-16">
             <button 
+              type="button"
               onClick={() => onPageChange(Page.CreateMatch)} 
               className={`w-18 h-18 rounded-3xl flex items-center justify-center shadow-2xl transition-all active:scale-90 border-4 border-slate-50 ${currentPage === Page.CreateMatch ? 'bg-primary text-white scale-110 rotate-12' : 'bg-navy text-white'}`}
               style={{ width: '4.5rem', height: '4.5rem' }}
             >
               <span className="material-symbols-outlined text-4xl fill-1">bolt</span>
             </button>
-            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-primary rounded-full opacity-0 peer-active:opacity-100"></div>
           </div>
           
           <NavItem icon="account_balance_wallet" active={currentPage === Page.Ranking} onClick={() => onPageChange(Page.Ranking)} />
@@ -48,8 +48,9 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
 
 const NavItem = ({ icon, active, onClick }: { icon: string, active: boolean, onClick: () => void }) => (
   <button 
+    type="button"
     onClick={onClick}
-    className={`flex flex-col items-center justify-center transition-all duration-300 ${active ? 'scale-110' : 'opacity-40 hover:opacity-100'}`}
+    className={`flex flex-col items-center justify-center transition-all duration-300 z-50 ${active ? 'scale-110' : 'opacity-40 hover:opacity-100'}`}
   >
     <span 
       className={`material-symbols-outlined text-[30px] ${active ? 'text-primary' : 'text-navy'}`} 

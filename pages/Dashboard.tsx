@@ -24,7 +24,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const fieldSlotsLimit = match?.fieldSlots || 30;
   const gkSlotsLimit = match?.gkSlots || 5;
 
-  // Cálculo dos Rankings
   const topScorers = [...players]
     .filter(p => p.goals > 0)
     .sort((a, b) => b.goals - a.goals)
@@ -54,8 +53,12 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     try {
       const playerRef = doc(db, "players", user.uid);
       await updateDoc(playerRef, { status: isConfirmed ? 'pendente' : 'presente' });
-    } catch (e) { console.error(e); }
-    finally { setIsUpdating(false); }
+    } catch (e) { 
+      console.error(e); 
+      alert("Erro ao atualizar presença.");
+    } finally { 
+      setIsUpdating(false); 
+    }
   };
 
   return (
@@ -75,17 +78,16 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <section className="px-6 mt-8 pb-32">
-        {/* Card de Próxima Pelada */}
         <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-6">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-8">
               <div>
                 <span className="inline-block px-3 py-1 rounded-md bg-primary text-white text-[8px] font-black uppercase tracking-widest mb-4">PRÓXIMA PELADA</span>
-                <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">{match?.location || "Carregando Arena..."}</h2>
+                <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">{match?.location || "O&A Arena Elite"}</h2>
                 <div className="flex items-center gap-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                   <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  {match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) : '---'} • {match?.time || '--:--'}h
+                  {match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) : '---'} • {match?.time || '--:--'}h
                 </div>
               </div>
             </div>
@@ -97,24 +99,25 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                   <span className="text-xs font-black text-navy">{confirmedField}/{fieldSlotsLimit}</span>
                 </div>
                 <div className="h-2 w-full bg-white rounded-full overflow-hidden border border-slate-200">
-                  <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (confirmedField / fieldSlotsLimit) * 100)}%` }}></div>
+                  <div className="h-full bg-primary rounded-full" style={{ width: `${Math.min(100, (confirmedField / fieldSlotsLimit) * 100)}%` }}></div>
                 </div>
               </div>
               <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-[9px] font-black uppercase text-slate-400">GOLEIROS</span>
+                  <span className="text-[9px] font-black uppercase text-slate-400">GKs</span>
                   <span className="text-xs font-black text-navy">{confirmedGKs}/{gkSlotsLimit}</span>
                 </div>
                 <div className="h-2 w-full bg-white rounded-full overflow-hidden border border-slate-200">
-                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min(100, (confirmedGKs / gkSlotsLimit) * 100)}%` }}></div>
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(100, (confirmedGKs / gkSlotsLimit) * 100)}%` }}></div>
                 </div>
               </div>
             </div>
 
             <button 
+              type="button"
               onClick={togglePresence}
               disabled={isUpdating}
-              className={`w-full h-18 rounded-[1.5rem] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-xl active:scale-95 ${isConfirmed ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-primary text-white shadow-primary/30'}`}
+              className={`w-full h-18 rounded-[1.5rem] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-xl active:scale-95 z-30 relative ${isConfirmed ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-primary text-white shadow-primary/30'}`}
             >
               <span className="material-symbols-outlined text-2xl">{isConfirmed ? 'check_circle' : 'person_add'}</span>
               {isConfirmed ? 'CONFIRMADO NA LISTA' : 'CONFIRMAR PRESENÇA'}
@@ -122,7 +125,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
         </div>
 
-        {/* Sua Convocação */}
         <div className="bg-white rounded-apple-xl p-6 border border-slate-100 shadow-soft flex items-center justify-between mb-10">
            <div>
               <p className="text-[9px] font-black uppercase text-slate-300 tracking-[0.3em] mb-1.5">SUA CONVOCAÇÃO</p>
@@ -133,7 +135,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
            </div>
         </div>
 
-        {/* TOP LEADERS SECTION */}
         <div className="space-y-8">
            <div className="flex items-center gap-3 px-2">
              <div className="w-1.5 h-6 bg-primary rounded-full"></div>
@@ -141,27 +142,20 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
            </div>
 
            <div className="grid grid-cols-1 gap-6">
-              {/* Artilharia */}
               <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft">
                  <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                        <span className="material-symbols-outlined text-primary">emoji_events</span>
                        <span className="text-[10px] font-black uppercase tracking-widest text-navy">TOP ARTILHEIROS</span>
                     </div>
-                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">GOLS</span>
                  </div>
                  
                  <div className="space-y-4">
                     {topScorers.length > 0 ? topScorers.map((p, i) => (
-                      <div key={p.id} className="flex items-center justify-between group">
+                      <div key={p.id} className="flex items-center justify-between">
                          <div className="flex items-center gap-4">
-                            <div className="relative">
-                               <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100">
-                                  <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
-                               </div>
-                               <span className={`absolute -top-2 -left-2 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black italic border-2 border-white shadow-sm ${i === 0 ? 'bg-amber-400 text-white' : i === 1 ? 'bg-slate-300 text-white' : 'bg-orange-400 text-white'}`}>
-                                 {i + 1}º
-                               </span>
+                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100">
+                               <img src={p.photoUrl} className="w-full h-full object-cover" />
                             </div>
                             <div>
                                <h4 className="text-xs font-black text-navy uppercase italic">{p.name}</h4>
@@ -170,50 +164,9 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                          </div>
                          <div className="flex items-center gap-1.5">
                             <span className="text-lg font-black text-primary italic">{p.goals}</span>
-                            <span className="material-symbols-outlined text-primary text-xs fill-1">sports_soccer</span>
                          </div>
                       </div>
-                    )) : (
-                      <p className="text-center py-4 text-[9px] font-bold text-slate-300 uppercase tracking-widest">Aguardando dados...</p>
-                    )}
-                 </div>
-              </div>
-
-              {/* Garçons */}
-              <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft">
-                 <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                       <span className="material-symbols-outlined text-navy">volunteer_activism</span>
-                       <span className="text-[10px] font-black uppercase tracking-widest text-navy">TOP GARÇONS</span>
-                    </div>
-                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">AST</span>
-                 </div>
-                 
-                 <div className="space-y-4">
-                    {topAssistants.length > 0 ? topAssistants.map((p, i) => (
-                      <div key={p.id} className="flex items-center justify-between group">
-                         <div className="flex items-center gap-4">
-                            <div className="relative">
-                               <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100">
-                                  <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
-                               </div>
-                               <span className="absolute -top-2 -left-2 w-6 h-6 rounded-lg bg-navy flex items-center justify-center text-[10px] font-black italic text-white border-2 border-white shadow-sm">
-                                 {i + 1}º
-                               </span>
-                            </div>
-                            <div>
-                               <h4 className="text-xs font-black text-navy uppercase italic">{p.name}</h4>
-                               <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{p.position}</p>
-                            </div>
-                         </div>
-                         <div className="flex items-center gap-1.5">
-                            <span className="text-lg font-black text-navy italic">{p.assists}</span>
-                            <span className="material-symbols-outlined text-navy text-xs">local_cafe</span>
-                         </div>
-                      </div>
-                    )) : (
-                      <p className="text-center py-4 text-[9px] font-bold text-slate-300 uppercase tracking-widest">Aguardando dados...</p>
-                    )}
+                    )) : <p className="text-center py-4 text-[9px] font-bold text-slate-300 uppercase italic">Aguardando dados...</p>}
                  </div>
               </div>
            </div>
