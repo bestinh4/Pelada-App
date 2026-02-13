@@ -24,6 +24,17 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const fieldSlotsLimit = match?.fieldSlots || 30;
   const gkSlotsLimit = match?.gkSlots || 5;
 
+  // Cálculo dos Rankings
+  const topScorers = [...players]
+    .filter(p => p.goals > 0)
+    .sort((a, b) => b.goals - a.goals)
+    .slice(0, 3);
+
+  const topAssistants = [...players]
+    .filter(p => p.assists > 0)
+    .sort((a, b) => b.assists - a.assists)
+    .slice(0, 3);
+
   const togglePresence = async () => {
     if (!user || isUpdating) return;
 
@@ -63,7 +74,8 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         </div>
       </header>
 
-      <section className="px-6 mt-8 pb-20">
+      <section className="px-6 mt-8 pb-32">
+        {/* Card de Próxima Pelada */}
         <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-6">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
           <div className="relative z-10">
@@ -110,22 +122,101 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
         </div>
 
-        {/* Card Único de Perfil Atual - Sem Rank */}
-        <div className="bg-white rounded-apple-xl p-8 border border-slate-100 shadow-soft flex items-center justify-between">
+        {/* Sua Convocação */}
+        <div className="bg-white rounded-apple-xl p-6 border border-slate-100 shadow-soft flex items-center justify-between mb-10">
            <div>
-              <p className="text-[9px] font-black uppercase text-slate-300 tracking-[0.3em] mb-2">SUA CONVOCAÇÃO</p>
-              <p className="text-2xl font-condensed tracking-widest text-navy uppercase italic">{currentPlayer?.position || 'RESERVA'}</p>
+              <p className="text-[9px] font-black uppercase text-slate-300 tracking-[0.3em] mb-1.5">SUA CONVOCAÇÃO</p>
+              <p className="text-xl font-condensed tracking-widest text-navy uppercase italic leading-none">{currentPlayer?.position || 'RESERVA'}</p>
            </div>
-           <div className="w-14 h-14 rounded-2xl bg-navy/5 flex items-center justify-center">
-              <span className="material-symbols-outlined text-navy text-3xl">sports_soccer</span>
+           <div className="w-12 h-12 rounded-xl bg-navy/5 flex items-center justify-center">
+              <span className="material-symbols-outlined text-navy text-2xl">sports_soccer</span>
            </div>
         </div>
 
-        <div className="mt-10 p-6 border-2 border-dashed border-slate-200 rounded-[2.5rem] flex flex-col items-center text-center">
-           <span className="material-symbols-outlined text-slate-200 text-5xl mb-4">info</span>
-           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 leading-relaxed">
-             Acompanhe a lista de convocados e o <br/> financeiro nas abas inferiores.
-           </p>
+        {/* TOP LEADERS SECTION */}
+        <div className="space-y-8">
+           <div className="flex items-center gap-3 px-2">
+             <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-navy italic">LÍDERES DA TEMPORADA</h3>
+           </div>
+
+           <div className="grid grid-cols-1 gap-6">
+              {/* Artilharia */}
+              <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft">
+                 <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                       <span className="material-symbols-outlined text-primary">emoji_events</span>
+                       <span className="text-[10px] font-black uppercase tracking-widest text-navy">TOP ARTILHEIROS</span>
+                    </div>
+                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">GOLS</span>
+                 </div>
+                 
+                 <div className="space-y-4">
+                    {topScorers.length > 0 ? topScorers.map((p, i) => (
+                      <div key={p.id} className="flex items-center justify-between group">
+                         <div className="flex items-center gap-4">
+                            <div className="relative">
+                               <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100">
+                                  <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
+                               </div>
+                               <span className={`absolute -top-2 -left-2 w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black italic border-2 border-white shadow-sm ${i === 0 ? 'bg-amber-400 text-white' : i === 1 ? 'bg-slate-300 text-white' : 'bg-orange-400 text-white'}`}>
+                                 {i + 1}º
+                               </span>
+                            </div>
+                            <div>
+                               <h4 className="text-xs font-black text-navy uppercase italic">{p.name}</h4>
+                               <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{p.position}</p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-1.5">
+                            <span className="text-lg font-black text-primary italic">{p.goals}</span>
+                            <span className="material-symbols-outlined text-primary text-xs fill-1">sports_soccer</span>
+                         </div>
+                      </div>
+                    )) : (
+                      <p className="text-center py-4 text-[9px] font-bold text-slate-300 uppercase tracking-widest">Aguardando dados...</p>
+                    )}
+                 </div>
+              </div>
+
+              {/* Garçons */}
+              <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft">
+                 <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                       <span className="material-symbols-outlined text-navy">volunteer_activism</span>
+                       <span className="text-[10px] font-black uppercase tracking-widest text-navy">TOP GARÇONS</span>
+                    </div>
+                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">AST</span>
+                 </div>
+                 
+                 <div className="space-y-4">
+                    {topAssistants.length > 0 ? topAssistants.map((p, i) => (
+                      <div key={p.id} className="flex items-center justify-between group">
+                         <div className="flex items-center gap-4">
+                            <div className="relative">
+                               <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100">
+                                  <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
+                               </div>
+                               <span className="absolute -top-2 -left-2 w-6 h-6 rounded-lg bg-navy flex items-center justify-center text-[10px] font-black italic text-white border-2 border-white shadow-sm">
+                                 {i + 1}º
+                               </span>
+                            </div>
+                            <div>
+                               <h4 className="text-xs font-black text-navy uppercase italic">{p.name}</h4>
+                               <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{p.position}</p>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-1.5">
+                            <span className="text-lg font-black text-navy italic">{p.assists}</span>
+                            <span className="material-symbols-outlined text-navy text-xs">local_cafe</span>
+                         </div>
+                      </div>
+                    )) : (
+                      <p className="text-center py-4 text-[9px] font-bold text-slate-300 uppercase tracking-widest">Aguardando dados...</p>
+                    )}
+                 </div>
+              </div>
+           </div>
         </div>
       </section>
     </div>
