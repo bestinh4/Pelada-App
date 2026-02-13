@@ -36,9 +36,7 @@ const App: React.FC = () => {
               skills: { attack: 50, defense: 50, stamina: 50 }
             });
           }
-        } catch (err) {
-          console.error("Erro ao verificar/criar perfil do jogador:", err);
-        }
+        } catch (err) { console.error(err); }
         setCurrentPage(Page.Dashboard);
       } else {
         setCurrentPage(Page.Login);
@@ -50,19 +48,13 @@ const App: React.FC = () => {
     const unsubscribePlayers = onSnapshot(qPlayers, (snapshot) => {
       const playerList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
       setPlayers(playerList);
-    }, (error) => {
-      console.error("Erro ao escutar jogadores:", error);
     });
 
     const qMatches = query(collection(db, "matches"), orderBy("date", "desc"));
     const unsubscribeMatches = onSnapshot(qMatches, (snapshot) => {
       if (!snapshot.empty) {
         setCurrentMatch({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Match);
-      } else {
-        setCurrentMatch(null);
       }
-    }, (error) => {
-      console.error("Erro ao escutar partidas:", error);
     });
 
     return () => {
@@ -77,7 +69,7 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-navy font-black text-[10px] tracking-[0.3em] uppercase">CARREGANDO ARENA...</p>
+          <p className="text-navy font-black text-[10px] tracking-[0.4em] uppercase">CARREGANDO ARENA...</p>
         </div>
       </div>
     );
@@ -85,7 +77,6 @@ const App: React.FC = () => {
 
   const renderPage = () => {
     if (!user) return <Login />;
-
     const commonProps = { onPageChange: setCurrentPage };
 
     switch (currentPage) {
@@ -96,17 +87,9 @@ const App: React.FC = () => {
       case Page.Ranking:
         return <Ranking players={players} {...commonProps} />;
       case Page.CreateMatch:
-        return <CreateMatch onMatchCreated={() => setCurrentPage(Page.Dashboard)} {...commonProps} />;
+        return <CreateMatch players={players} {...commonProps} />;
       case Page.Profile:
-        const currentPlayer = players.find(p => p.id === user.uid) || {
-          id: user.uid,
-          name: user.displayName,
-          photoUrl: user.photoURL,
-          goals: 0,
-          position: 'A definir',
-          status: 'pendente',
-          skills: { attack: 50, defense: 50, stamina: 50 }
-        } as Player;
+        const currentPlayer = players.find(p => p.id === user.uid) || { id: user.uid, name: user.displayName, photoUrl: user.photoURL, goals: 0, position: 'A definir', status: 'pendente', skills: { attack: 50, defense: 50, stamina: 50 } } as Player;
         return <Profile player={currentPlayer} {...commonProps} />;
       default:
         return <Dashboard match={currentMatch} players={players} user={user} {...commonProps} />;
