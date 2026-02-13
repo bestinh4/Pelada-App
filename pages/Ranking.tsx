@@ -5,137 +5,101 @@ import { Player, Page } from '../types.ts';
 const Ranking: React.FC<{ players: Player[], onPageChange: (page: Page) => void }> = ({ players, onPageChange }) => {
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
   
-  const totalBalance = 2450.00;
-  const goalBalance = 5000.00;
-  const monthlyGoal = 1500.00;
-  const currentMonthly = 950.00;
-  
-  const percentageMonthly = (currentMonthly / monthlyGoal) * 100;
-
-  const recentExpenses = [
-    { id: 1, title: 'Aluguel da Quadra', value: 850, date: '05 FEV', type: 'Locação' },
-    { id: 2, title: 'Nova Bola Penalty', value: 220, date: '02 FEV', type: 'Equipamento' },
-  ];
+  // Exemplo de saldo simplificado
+  const currentBalance = 1250.00;
 
   return (
-    <div className="flex flex-col animate-in fade-in duration-500 pb-56 relative min-h-full">
-      <header className="px-6 pt-12 pb-6 bg-white/80 backdrop-blur-2xl border-b border-slate-100 sticky top-0 z-40">
+    <div className="flex flex-col animate-in fade-in duration-500 pb-20 relative">
+      <header className="px-6 pt-12 pb-6 bg-white border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img src={mainLogoUrl} className="w-10 h-10 object-contain" />
+            <img src={mainLogoUrl} className="w-10 h-10 object-contain" alt="Logo" />
             <div>
-              <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">TESOURARIA PRO</h2>
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">GESTÃO FINANCEIRA ELITE</p>
+              <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">CAIXA DA ARENA</h2>
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">CONTROLE DE PAGAMENTOS</p>
             </div>
           </div>
-          <button type="button" onClick={() => alert('Recurso em desenvolvimento')} className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-navy active:scale-90 transition-all z-50 cursor-pointer">
-            <span className="material-symbols-outlined text-xl">ios_share</span>
-          </button>
         </div>
       </header>
 
-      <section className="px-6 mt-8">
-        <div className="bg-navy-deep rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl mb-8">
+      <section className="px-6 mt-6">
+        {/* Card de Saldo Ultra Simples */}
+        <div className="bg-navy rounded-[2rem] p-6 text-white shadow-xl mb-8 flex items-center justify-between overflow-hidden relative">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
-          <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-[80px] -mr-10 -mt-10"></div>
-          
           <div className="relative z-10">
-            <div className="flex justify-between items-start mb-10">
-              <div>
-                <span className="text-[9px] font-black uppercase text-white/40 tracking-[0.4em] block mb-2">FUNDO DE RESERVA TOTAL</span>
-                <h2 className="text-5xl font-condensed tracking-tighter leading-none italic">R$ {totalBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h2>
-              </div>
-              <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center">
-                 <span className="material-symbols-outlined text-primary text-3xl fill-1">account_balance</span>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              <div className="flex justify-between items-end">
-                <div className="space-y-1">
-                  <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest">PROJEÇÃO DO MÊS</p>
-                  <p className="text-xl font-condensed tracking-widest text-emerald-400">R$ {currentMonthly.toLocaleString('pt-BR')} / R$ {monthlyGoal.toLocaleString('pt-BR')}</p>
-                </div>
-                <span className="text-2xl font-black italic text-emerald-400">{Math.round(percentageMonthly)}%</span>
-              </div>
-              
-              <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden p-0.5 border border-white/5">
-                 <div className="h-full bg-emerald-500 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all duration-[1.5s]" style={{ width: `${percentageMonthly}%` }}></div>
-              </div>
-            </div>
+            <span className="text-[9px] font-black uppercase text-white/40 tracking-widest block mb-1">SALDO ATUAL</span>
+            <h2 className="text-3xl font-condensed italic">R$ {currentBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h2>
+          </div>
+          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center relative z-10">
+            <span className="material-symbols-outlined text-primary text-2xl">account_balance_wallet</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 mb-10 relative z-10">
-           <QuickAction icon="qr_code_2" label="MEU PIX" color="text-primary" onClick={() => alert('Pix da Arena: elite@arena.com')} />
-           <QuickAction icon="list_alt" label="EXTRATO" color="text-navy" onClick={() => alert('Abrindo extrato...')} />
-           <QuickAction icon="shield_with_heart" label="REGRAS" color="text-emerald-500" onClick={() => alert('Regras Financeiras:\n1. Mensalidade até dia 10\n2. Valor R$ 50,00')} />
+        {/* Legenda Simples */}
+        <div className="flex gap-4 mb-6 px-2">
+           <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-navy text-sm">calendar_month</span>
+              <span className="text-[8px] font-black text-slate-400 uppercase">Mensalista</span>
+           </div>
+           <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-amber-500 text-sm">confirmation_number</span>
+              <span className="text-[8px] font-black text-slate-400 uppercase">Avulso</span>
+           </div>
         </div>
 
-        <div className="space-y-6 mb-12 relative z-10">
-          <div className="flex justify-between items-center px-2">
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-navy italic">MENSALIDADES</h3>
-              <p className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">FEVEREIRO / 2026</p>
-            </div>
-          </div>
+        {/* Lista de Jogadores para Cobrança */}
+        <div className="space-y-3">
+          {players.map((p, idx) => {
+            // Mock de tipo de jogador baseado no index para exemplo visual
+            const isMensalista = idx % 2 === 0;
+            const isPaid = idx % 3 === 0;
 
-          <div className="space-y-4">
-            {players.slice(0, 8).map((p, idx) => {
-              const status = idx % 3 === 0 ? 'pago' : 'pendente';
-              return (
-                <div key={p.id} className="bg-white rounded-[2rem] p-4 border border-slate-100 shadow-soft flex items-center justify-between group transition-all">
-                   <div className="flex items-center gap-4">
-                      <div className="relative">
-                        <div className={`w-14 h-14 rounded-2xl overflow-hidden border-2 ${status === 'pago' ? 'border-emerald-500/20' : 'border-slate-50'}`}>
-                          <img src={p.photoUrl} className="w-full h-full object-cover" />
-                        </div>
-                      </div>
-                      <div>
-                        <h4 className="text-[13px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</h4>
-                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">R$ 50,00 • {status === 'pago' ? 'PAGO' : 'PENDENTE'}</p>
-                      </div>
-                   </div>
-                   <button 
-                    type="button" 
-                    onClick={() => alert(`Cobrar ${p.name}`)}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center active:scale-90 transition-all z-30 cursor-pointer ${status === 'pago' ? 'bg-emerald-50 text-emerald-600' : 'bg-primary/5 text-primary'}`}
-                   >
-                      <span className="material-symbols-outlined text-lg">{status === 'pago' ? 'receipt' : 'chat'}</span>
-                   </button>
+            return (
+              <div key={p.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center justify-between group">
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100">
+                      <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
+                    </div>
+                    <div className={`absolute -top-1 -right-1 w-5 h-5 rounded-full border-2 border-white flex items-center justify-center ${isMensalista ? 'bg-navy text-white' : 'bg-amber-500 text-white'}`}>
+                       <span className="material-symbols-outlined text-[10px]">
+                         {isMensalista ? 'calendar_month' : 'confirmation_number'}
+                       </span>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-[12px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase">
+                      {isMensalista ? 'R$ 50,00' : 'R$ 35,00'}
+                    </p>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+
+                <button 
+                  type="button"
+                  onClick={() => alert(`Pagamento de ${p.name} confirmado!`)}
+                  className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${isPaid ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-primary text-white shadow-lg shadow-primary/20'}`}
+                >
+                  {isPaid ? 'PAGO' : 'CONFIRMAR'}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </section>
 
-      {/* Botão Flutuante Reativo */}
-      <div className="absolute bottom-36 left-0 right-0 px-6 z-40">
+      {/* Botão para Gerar Relatório Simples */}
+      <div className="px-6 mt-10 mb-20">
         <button 
-          type="button" 
-          onClick={() => alert('Selecione o arquivo do comprovante')}
-          className="w-full h-18 bg-white border-2 border-slate-100 text-navy rounded-[2.2rem] shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all cursor-pointer group pointer-events-auto"
+          type="button"
+          className="w-full py-4 bg-slate-100 text-navy rounded-2xl border border-slate-200 text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-2 active:scale-95 transition-all"
         >
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 transition-transform group-hover:rotate-12">
-            <span className="material-symbols-outlined">cloud_upload</span>
-          </div>
-          <span className="text-[11px] font-black uppercase tracking-[0.3em]">ANEXAR COMPROVANTE PIX</span>
+          <span className="material-symbols-outlined text-lg">download</span>
+          Baixar Relatório do Mês
         </button>
       </div>
     </div>
   );
 };
-
-const QuickAction = ({ icon, label, color, onClick }: { icon: string, label: string, color: string, onClick: () => void }) => (
-  <button 
-    type="button" 
-    onClick={onClick}
-    className="bg-white p-4 rounded-3xl border border-slate-100 shadow-soft flex flex-col items-center gap-2 active:scale-95 transition-all group cursor-pointer z-30"
-  >
-    <span className={`material-symbols-outlined ${color} text-2xl transition-transform group-hover:scale-110`}>{icon}</span>
-    <span className="text-[8px] font-black uppercase tracking-widest text-navy text-center">{label}</span>
-  </button>
-);
 
 export default Ranking;

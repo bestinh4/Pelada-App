@@ -13,6 +13,8 @@ export const MOCK_PLAYERS: Player[] = [
     concededGoals: 0,
     position: 'Central Midfield',
     status: 'presente',
+    // Added required playerType property
+    playerType: 'mensalista',
     skills: { attack: 85, defense: 75, stamina: 90 }
   },
   {
@@ -26,6 +28,8 @@ export const MOCK_PLAYERS: Player[] = [
     concededGoals: 0,
     position: 'Winger',
     status: 'presente',
+    // Added required playerType property
+    playerType: 'mensalista',
     skills: { attack: 88, defense: 60, stamina: 85 }
   },
   {
@@ -38,6 +42,8 @@ export const MOCK_PLAYERS: Player[] = [
     concededGoals: 0,
     position: 'Midfielder',
     status: 'presente',
+    // Added required playerType property
+    playerType: 'mensalista',
     skills: { attack: 75, defense: 80, stamina: 92 }
   },
   {
@@ -50,6 +56,8 @@ export const MOCK_PLAYERS: Player[] = [
     concededGoals: 0,
     position: 'Defender',
     status: 'pendente',
+    // Added required playerType property
+    playerType: 'mensalista',
     skills: { attack: 65, defense: 95, stamina: 88 }
   },
   {
@@ -62,6 +70,8 @@ export const MOCK_PLAYERS: Player[] = [
     concededGoals: 0,
     position: 'Forward',
     status: 'presente',
+    // Added required playerType property
+    playerType: 'avulso',
     skills: { attack: 92, defense: 40, stamina: 80 }
   }
 ];

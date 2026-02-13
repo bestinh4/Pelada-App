@@ -10,7 +10,8 @@ export interface Player {
   concededGoals: number;
   position: string;
   status: 'presente' | 'pendente';
-  /* Adding optional skills property to fix known property errors in mock data and support AI balancing */
+  playerType: 'mensalista' | 'avulso'; // Novo campo
+  paymentStatus?: 'pago' | 'pendente'; // Campo opcional para controle financeiro
   skills?: {
     attack: number;
     defense: number;
@@ -31,6 +32,7 @@ export interface Match {
   createdAt: string;
 }
 
+// Added PastMatch interface to fix the import error in constants.tsx
 export interface PastMatch {
   id: string;
   opponent: string;
