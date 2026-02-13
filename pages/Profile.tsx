@@ -69,12 +69,12 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
   };
 
   return (
-    <div className="flex flex-col animate-in fade-in duration-500">
+    <div className="flex flex-col animate-in fade-in duration-500 pb-40">
       <header className="px-6 pt-12 pb-6 bg-white/70 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <img src={mainLogoUrl} className="w-10 h-10 object-contain" />
-            <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">MEU SCOUT</h2>
+            <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">MEU PERFIL</h2>
           </div>
           <button onClick={handleLogout} className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary active:scale-90">
              <span className="material-symbols-outlined text-xl">logout</span>
@@ -110,7 +110,7 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
            </div>
         </div>
         
-        <div className="w-full text-center space-y-2 mb-8">
+        <div className="w-full text-center space-y-2 mb-12">
           <input
             type="text"
             value={editedName}
@@ -141,51 +141,41 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
             ) : (
               <span className="material-symbols-outlined">save</span>
             )}
-            SALVAR ALTERAÇÕES
+            SALVAR ALTERAÇÕES NO PERFIL
           </button>
         )}
 
-        <div className="w-full grid grid-cols-2 gap-4 mb-10">
-           <StatCard label="GOLS" value={player.goals.toString()} icon="sports_soccer" color="text-primary" />
-           <StatCard label="ASSIST" value={player.assists.toString()} icon="handshake" color="text-navy" />
-        </div>
-
-        <div className="w-full bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft space-y-6 mb-12">
-           <div className="flex justify-between items-center mb-2 px-1">
-             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">ATRIBUTOS TÉCNICOS</h3>
-             <span className="material-symbols-outlined text-slate-200 text-sm">analytics</span>
+        <div className="w-full bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft space-y-6">
+           <div className="flex items-center gap-4 py-2 border-b border-slate-50">
+             <span className="material-symbols-outlined text-navy">person</span>
+             <div>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">NOME COMPLETO</p>
+                <p className="text-xs font-bold text-navy uppercase">{player.name}</p>
+             </div>
            </div>
-           <SkillProgress label="Ataque" value={player.skills?.attack || 85} color="bg-primary" />
-           <SkillProgress label="Defesa" value={player.skills?.defense || 70} color="bg-navy" />
-           <SkillProgress label="Stamina" value={player.skills?.stamina || 92} color="bg-emerald-500" />
+           <div className="flex items-center gap-4 py-2 border-b border-slate-50">
+             <span className="material-symbols-outlined text-navy">sports_soccer</span>
+             <div>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">POSIÇÃO REGISTRADA</p>
+                <p className="text-xs font-bold text-navy uppercase">{player.position}</p>
+             </div>
+           </div>
+           <div className="flex items-center gap-4 py-2">
+             <span className="material-symbols-outlined text-navy">verified</span>
+             <div>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">STATUS NA ARENA</p>
+                <p className="text-xs font-bold text-emerald-500 uppercase">MEMBRO ELITE</p>
+             </div>
+           </div>
         </div>
 
-        <button className="w-full h-18 bg-slate-100 text-navy rounded-3xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all mb-4 border border-slate-200">
-           EDITAR PERFIL TÉCNICO
-        </button>
+        <p className="mt-10 text-[9px] font-black uppercase tracking-[0.3em] text-slate-300 text-center leading-relaxed">
+          O&A ELITE PRO • VERSÃO 2.0.0 <br/>
+          GESTÃO ESPORTIVA DE ALTA PERFORMANCE
+        </p>
       </section>
     </div>
   );
 };
-
-const StatCard = ({ label, value, icon, color }: any) => (
-  <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-soft text-center group hover:border-primary/20 transition-colors">
-     <span className={`material-symbols-outlined ${color} mb-3 group-hover:scale-125 transition-transform`}>{icon}</span>
-     <p className="text-4xl font-condensed text-navy mb-1 tracking-widest">{value}</p>
-     <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{label}</p>
-  </div>
-);
-
-const SkillProgress = ({ label, value, color }: any) => (
-  <div className="space-y-2">
-     <div className="flex justify-between text-[10px] font-black uppercase italic tracking-widest text-navy">
-        <span>{label}</span>
-        <span className="text-slate-300">{value}%</span>
-     </div>
-     <div className="h-2.5 w-full bg-slate-50 rounded-full overflow-hidden p-0.5 border border-slate-100">
-        <div className={`h-full ${color} rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(0,0,0,0.05)]`} style={{ width: `${value}%` }}></div>
-     </div>
-  </div>
-);
 
 export default Profile;

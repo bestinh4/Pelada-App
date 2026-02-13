@@ -24,13 +24,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const fieldSlotsLimit = match?.fieldSlots || 30;
   const gkSlotsLimit = match?.gkSlots || 5;
 
-  // Calculando Estatísticas da Arena
-  const topArtilheiros = [...players].sort((a, b) => b.goals - a.goals).slice(0, 3);
-  const topGarcons = [...players].sort((a, b) => b.assists - a.assists).slice(0, 3);
-  const goleiroDestaque = [...players]
-    .filter(p => p.position === 'Goleiro')
-    .sort((a, b) => (a.concededGoals || 0) - (b.concededGoals || 0))[0];
-
   const togglePresence = async () => {
     if (!user || isUpdating) return;
 
@@ -66,11 +59,11 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         </div>
         <div className="flex items-center gap-2 bg-slate-100 rounded-full px-4 py-2 border border-slate-200">
           <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-          <span className="text-[9px] font-black text-navy uppercase tracking-widest">LIVE</span>
+          <span className="text-[9px] font-black text-navy uppercase tracking-widest">AO VIVO</span>
         </div>
       </header>
 
-      <section className="px-6 mt-8">
+      <section className="px-6 mt-8 pb-20">
         <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-6">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
           <div className="relative z-10">
@@ -112,100 +105,27 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
               className={`w-full h-18 rounded-[1.5rem] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-xl active:scale-95 ${isConfirmed ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-primary text-white shadow-primary/30'}`}
             >
               <span className="material-symbols-outlined text-2xl">{isConfirmed ? 'check_circle' : 'person_add'}</span>
-              {isConfirmed ? 'VOCÊ ESTÁ NA LISTA' : 'QUERO JOGAR'}
+              {isConfirmed ? 'CONFIRMADO NA LISTA' : 'CONFIRMAR PRESENÇA'}
             </button>
           </div>
         </div>
 
-        {/* Card Único de Perfil Atual */}
-        <div className="bg-white rounded-apple-xl p-6 border border-slate-100 shadow-soft flex items-center justify-between mb-8">
+        {/* Card Único de Perfil Atual - Sem Rank */}
+        <div className="bg-white rounded-apple-xl p-8 border border-slate-100 shadow-soft flex items-center justify-between">
            <div>
-              <p className="text-[8px] font-black uppercase text-slate-300 tracking-widest mb-1">SUA CONVOCAÇÃO</p>
-              <p className="text-lg font-black italic text-navy uppercase">{currentPlayer?.position || 'RESERVA'}</p>
+              <p className="text-[9px] font-black uppercase text-slate-300 tracking-[0.3em] mb-2">SUA CONVOCAÇÃO</p>
+              <p className="text-2xl font-condensed tracking-widest text-navy uppercase italic">{currentPlayer?.position || 'RESERVA'}</p>
            </div>
-           <div className="flex items-center gap-2 bg-navy/5 px-4 py-2 rounded-xl">
-              <span className="material-symbols-outlined text-navy text-lg">workspace_premium</span>
-              <span className="text-[10px] font-black text-navy uppercase">RANK #1</span>
+           <div className="w-14 h-14 rounded-2xl bg-navy/5 flex items-center justify-center">
+              <span className="material-symbols-outlined text-navy text-3xl">sports_soccer</span>
            </div>
         </div>
-      </section>
 
-      {/* Estatísticas da Temporada - Seção Sincronizada com 2026 */}
-      <section className="px-6 pb-20 space-y-8">
-        <div className="flex items-center justify-between px-2">
-          <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">ESTATÍSTICAS DA ARENA</h3>
-          <span className="text-[9px] font-black text-primary uppercase italic">TEMPORADA 2026</span>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6">
-          {/* Artilheiros */}
-          <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-5">
-              <span className="material-symbols-outlined text-6xl">local_fire_department</span>
-            </div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-primary mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">sports_soccer</span>
-              TOP 3 ARTILHEIROS
-            </h4>
-            <div className="space-y-4">
-              {topArtilheiros.map((p, i) => (
-                <div key={p.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <span className={`text-xs font-black italic ${i === 0 ? 'text-amber-500' : 'text-slate-300'}`}>{i + 1}º</span>
-                    <img src={p.photoUrl} className="w-10 h-10 rounded-lg object-cover border border-slate-100" />
-                    <span className="text-xs font-black text-navy uppercase italic">{p.name}</span>
-                  </div>
-                  <span className="text-sm font-black text-navy tracking-tighter">{p.goals} GOLS</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Garçons */}
-          <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-6 opacity-5">
-              <span className="material-symbols-outlined text-6xl">handshake</span>
-            </div>
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-navy mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">assistant</span>
-              TOP 3 GARÇONS
-            </h4>
-            <div className="space-y-4">
-              {topGarcons.map((p, i) => (
-                <div key={p.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <span className={`text-xs font-black italic ${i === 0 ? 'text-slate-400' : 'text-slate-300'}`}>{i + 1}º</span>
-                    <img src={p.photoUrl} className="w-10 h-10 rounded-lg object-cover border border-slate-100" />
-                    <span className="text-xs font-black text-navy uppercase italic">{p.name}</span>
-                  </div>
-                  <span className="text-sm font-black text-navy tracking-tighter">{p.assists} ASSIST</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Goleiro Menos Vazado */}
-          {goleiroDestaque && (
-            <div className="bg-navy rounded-[2.5rem] p-8 text-white shadow-2xl shadow-navy/20 relative overflow-hidden">
-              <div className="absolute inset-0 bg-croatia opacity-10"></div>
-              <div className="relative z-10 flex items-center justify-between">
-                <div>
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50 mb-4">GOLEIRO MENOS VAZADO</h4>
-                  <div className="flex items-center gap-4">
-                    <img src={goleiroDestaque.photoUrl} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/20" />
-                    <div>
-                      <p className="text-xl font-black uppercase italic tracking-tighter leading-none">{goleiroDestaque.name}</p>
-                      <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em] mt-2">Muralha da Arena</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-right">
-                   <p className="text-3xl font-condensed tracking-widest">{goleiroDestaque.concededGoals}</p>
-                   <p className="text-[8px] font-black uppercase opacity-40">GOLS SOFRIDOS</p>
-                </div>
-              </div>
-            </div>
-          )}
+        <div className="mt-10 p-6 border-2 border-dashed border-slate-200 rounded-[2.5rem] flex flex-col items-center text-center">
+           <span className="material-symbols-outlined text-slate-200 text-5xl mb-4">info</span>
+           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 leading-relaxed">
+             Acompanhe a lista de convocados e o <br/> financeiro nas abas inferiores.
+           </p>
         </div>
       </section>
     </div>
