@@ -7,7 +7,6 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
   const [isConfirmed, setIsConfirmed] = useState(false);
   
   // Logos
-  const iconUrl = "https://i.postimg.cc/vH5m6v5q/Design-sem-nome-1.png"; // Ícone redondo
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png"; // Logo principal transparente
 
   const totalSlots = 18;
@@ -26,15 +25,19 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
 
   return (
     <div className="flex flex-col min-h-full bg-slate-50 text-slate-900 animate-in fade-in duration-500">
-      {/* Header */}
-      <header className="px-8 pt-12 pb-6 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-30 border-b border-slate-100">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-2xl shadow-soft border border-slate-100 p-1.5 flex items-center justify-center">
-            <img src={iconUrl} alt="Logo Icon" className="w-full h-full object-contain" />
+      {/* Header com Logo no Canto Superior Esquerdo */}
+      <header className="px-6 pt-12 pb-6 flex justify-between items-center bg-white/50 backdrop-blur-sm sticky top-0 z-30 border-b border-slate-100">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 flex items-center justify-center">
+            <img 
+              src={mainLogoUrl} 
+              alt="O&A Elite Pro Logo" 
+              className="w-full h-full object-contain drop-shadow-lg" 
+            />
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] font-black uppercase text-primary tracking-[0.3em] leading-none mb-1">ARENA</span>
-            <h1 className="text-lg font-black tracking-tighter text-navy uppercase italic leading-none">O&A ELITE PRO</h1>
+            <span className="text-[10px] font-black uppercase text-primary tracking-[0.3em] leading-none mb-1">ARENA</span>
+            <h1 className="text-xl font-black tracking-tighter text-navy uppercase italic leading-none">O&A ELITE</h1>
           </div>
         </div>
         <button 
@@ -62,11 +65,11 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
              <div className="absolute inset-0 bg-croatia opacity-[0.3]"></div>
              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-24 -mt-24 blur-3xl transition-transform group-hover:scale-110 duration-700"></div>
              
-             {/* Logo da Pelada no Fundo do Card */}
+             {/* Marca d'água de fundo */}
              <img 
                src={mainLogoUrl} 
-               alt="Logo Pelada" 
-               className="absolute -right-12 top-1/2 -translate-y-1/2 w-64 h-64 object-contain opacity-[0.07] pointer-events-none rotate-12" 
+               alt="" 
+               className="absolute -right-12 top-1/2 -translate-y-1/2 w-64 h-64 object-contain opacity-[0.05] pointer-events-none rotate-12" 
              />
           </div>
 
@@ -85,11 +88,6 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
               <div className="flex flex-col">
                 <span className="text-5xl font-condensed tracking-tighter text-primary">18:00</span>
                 <span className="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Início</span>
-              </div>
-              
-              {/* Logo Flutuante Lateral */}
-              <div className="ml-auto hidden sm:block">
-                 <img src={mainLogoUrl} className="w-20 h-20 object-contain drop-shadow-xl opacity-80" alt="Logo" />
               </div>
             </div>
 
@@ -122,10 +120,6 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
                   className="h-full bg-primary rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(237,29,35,0.4)]" 
                   style={{ width: `${(filledSlots / totalSlots) * 100}%` }}
                 ></div>
-              </div>
-              <div className="flex items-center gap-2 bg-primary/5 p-3 rounded-xl border border-primary/10">
-                <span className="material-symbols-outlined text-primary text-base">info</span>
-                <p className="text-[10px] font-black text-primary uppercase tracking-wider italic">Faltam {remainingSlots} jogadores para fechar a lista!</p>
               </div>
             </div>
           </div>
