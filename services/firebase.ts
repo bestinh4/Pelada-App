@@ -19,12 +19,15 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const googleProvider = new GoogleAuthProvider();
 
-// Configurações extras para melhorar a UX de Login
+// Configurações para garantir o redirecionamento correto em ambientes de preview
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
-export const loginWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const loginWithGoogle = () => {
+  return signInWithPopup(auth, googleProvider);
+};
+
 export const logout = () => signOut(auth);
 
 export { 

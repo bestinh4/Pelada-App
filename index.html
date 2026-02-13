@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>O&A ELITE PRO</title>
+    <link rel="icon" type="image/png" href="https://i.ibb.co/457WhWm/Gemini-Generated-Image-xrrv8axrrv8axrrv.png">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Bebas+Neue&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
@@ -56,33 +57,43 @@
       @layer utilities {
         .bg-croatia {
           background-image: 
-            linear-gradient(45deg, rgba(237, 29, 35, 0.015) 25%, transparent 25%), 
-            linear-gradient(-45deg, rgba(237, 29, 35, 0.015) 25%, transparent 25%), 
-            linear-gradient(45deg, transparent 75%, rgba(237, 29, 35, 0.015) 75%), 
-            linear-gradient(-45deg, transparent 75%, rgba(237, 29, 35, 0.015) 75%);
+            linear-gradient(45deg, rgba(237, 29, 35, 0.01) 25%, transparent 25%), 
+            linear-gradient(-45deg, rgba(237, 29, 35, 0.01) 25%, transparent 25%), 
+            linear-gradient(45deg, transparent 75%, rgba(237, 29, 35, 0.01) 75%), 
+            linear-gradient(-45deg, transparent 75%, rgba(237, 29, 35, 0.01) 75%);
           background-size: 40px 40px;
-          background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
         }
         .croatia-pattern {
            background-image: 
-            linear-gradient(45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), 
-            linear-gradient(-45deg, rgba(255, 255, 255, 0.03) 25%, transparent 25%), 
-            linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%), 
-            linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.03) 75%);
+            linear-gradient(45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%), 
+            linear-gradient(-45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%), 
+            linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%), 
+            linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.04) 75%);
           background-size: 20px 20px;
-        }
-        .glass-button {
-          background: linear-gradient(135deg, #003876 0%, #002147 100%);
-          backdrop-filter: blur(8px);
-          box-shadow: 0 8px 32px 0 rgba(0, 56, 118, 0.3);
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .heavy-italic { font-family: 'Inter', sans-serif; font-weight: 900; font-style: italic; }
+        
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+        .animate-float { animation: float 3s ease-in-out infinite; }
+        
+        @keyframes shimmer {
+          0% { background-position: -200% 0; }
+          100% { background-position: 200% 0; }
+        }
+        .shimmer {
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+          background-size: 200% 100%;
+          animation: shimmer 2s infinite;
+        }
       }
     </style>
   </head>
-  <body class="bg-slate-100 font-display text-slate-900">
+  <body class="bg-slate-50 font-display text-slate-900 overflow-x-hidden">
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
   </body>
