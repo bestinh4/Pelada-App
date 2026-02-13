@@ -21,10 +21,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const filledSlots = confirmedPlayers.length;
   const totalSlots = match?.totalSlots || 20;
 
-  // Lógica das Regras da Pelada
-  const numTeams = Math.floor(filledSlots / 5);
-  const isBothLeaveMode = numTeams >= 4;
-
   const togglePresence = async () => {
     if (!user || isUpdating) return;
     setIsUpdating(true);
@@ -59,10 +55,10 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
             <div className="flex justify-between items-start mb-10">
               <div>
                 <span className="inline-block px-3 py-1 rounded-md bg-primary text-white text-[8px] font-black uppercase tracking-widest mb-4">PRÓXIMA PELADA</span>
-                <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">{match?.location || "Arena Central"}</h2>
+                <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">{match?.location || "Carregando Arena..."}</h2>
                 <div className="flex items-center gap-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
                   <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  {match?.date ? new Date(match.date).toLocaleDateString('pt-BR', { weekday: 'long' }) : 'Sábado'} • {match?.time || '18:00'}h
+                  {match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) : '---'} • {match?.time || '--:--'}h
                 </div>
               </div>
             </div>
@@ -89,54 +85,20 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
               className={`w-full h-18 rounded-[1.5rem] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-xl active:scale-95 ${isConfirmed ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-primary text-white shadow-primary/30'}`}
             >
               <span className="material-symbols-outlined text-2xl">{isConfirmed ? 'check_circle' : 'person_add'}</span>
-              {isConfirmed ? 'ESTOU CONVOCADO' : 'CONFIRMAR PRESENÇA'}
+              {isConfirmed ? 'VOCÊ ESTÁ NA LISTA' : 'QUERO JOGAR'}
             </button>
           </div>
         </div>
 
-        {/* Card de Regras Dinâmicas - O Diferencial Elite */}
-        <div className="bg-navy rounded-apple-xl p-8 text-white relative overflow-hidden shadow-2xl shadow-navy/20">
-          <div className="absolute top-0 right-0 p-4 opacity-10">
-            <span className="material-symbols-outlined text-8xl">gavel</span>
+        {/* Info Card Simplificado */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-navy rounded-apple-xl p-6 text-white shadow-lg">
+             <p className="text-[8px] font-black uppercase opacity-40 tracking-widest mb-1">CUSTO/ATLETA</p>
+             <p className="text-2xl font-condensed">R$ {match?.price || '0,00'}</p>
           </div>
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 mb-6">REGRAS DA ARENA</h3>
-          
-          <div className="grid grid-cols-2 gap-6 relative z-10">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-primary text-xl">timer</span>
-              </div>
-              <div>
-                <p className="text-[8px] font-bold uppercase opacity-50">TEMPO</p>
-                <p className="font-condensed text-xl leading-none">10 MIN</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-emerald-400 text-xl">sports_soccer</span>
-              </div>
-              <div>
-                <p className="text-[8px] font-bold uppercase opacity-50">LIMITE</p>
-                <p className="font-condensed text-xl leading-none">2 GOLS</p>
-              </div>
-            </div>
-
-            <div className="col-span-2 mt-2 pt-6 border-t border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className={`material-symbols-outlined ${isBothLeaveMode ? 'text-primary animate-pulse' : 'text-slate-400'}`}>
-                  {isBothLeaveMode ? 'warning' : 'info'}
-                </span>
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest leading-none">
-                    {isBothLeaveMode ? 'EMPATE: SAEM OS DOIS' : 'EMPATE: SAI O TIME QUE ENTROU'}
-                  </p>
-                  <p className="text-[8px] opacity-40 uppercase font-bold mt-1">
-                    {numTeams} times completos detectados
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="bg-white rounded-apple-xl p-6 border border-slate-100 shadow-soft">
+             <p className="text-[8px] font-black uppercase text-slate-300 tracking-widest mb-1">STATUS ARENA</p>
+             <p className="text-lg font-black italic text-navy">CONFIRMADO</p>
           </div>
         </div>
       </section>
@@ -155,10 +117,10 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         </div>
         <div className="bg-white p-6 rounded-apple-xl border border-slate-100 shadow-soft">
            <div className="flex justify-between items-start mb-4">
-             <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">FINANCEIRO</span>
-             <span className="material-symbols-outlined text-emerald-500 text-lg">check_circle</span>
+             <span className="text-[9px] font-black uppercase text-slate-300 tracking-widest">RANKING</span>
+             <span className="material-symbols-outlined text-amber-500 text-lg">workspace_premium</span>
            </div>
-           <p className="text-xl font-black italic text-navy leading-none tracking-tighter">EM DIA</p>
+           <p className="text-xl font-black italic text-navy leading-none tracking-tighter">TOP 10</p>
         </div>
       </section>
     </div>

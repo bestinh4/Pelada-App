@@ -9,17 +9,14 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
   const [isSavingMatch, setIsSavingMatch] = useState(false);
   const [teams, setTeams] = useState<{ teamRed: string[], teamBlue: string[] } | null>(null);
   
-  // States para novos dados da pelada
   const [matchData, setMatchData] = useState({
-    location: 'Arena Central Society',
+    location: '',
     date: new Date().toISOString().split('T')[0],
     time: '19:00',
     price: 35
   });
 
   const confirmedPlayers = players.filter(p => p.status === 'presente');
-  const numPossibleTeams = Math.floor(confirmedPlayers.length / 5);
-  const drawRule = numPossibleTeams >= 4 ? "SAEM OS DOIS EM CASO DE EMPATE" : "SAI O TIME QUE ENTROU EM CASO DE EMPATE";
 
   const handleGenerateTeams = async () => {
     if (confirmedPlayers.length < 4) {
@@ -32,26 +29,37 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
       setTeams(result);
     } catch (e) {
       console.error(e);
+      alert("Erro ao balancear times com IA. Tente novamente.");
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleCreateNewMatch = async () => {
+    if (!matchData.location || !matchData.date || !matchData.time) {
+      alert("Preencha todos os campos da pelada.");
+      return;
+    }
+
     setIsSavingMatch(true);
     try {
+      // Salvando explicitamente com createdAt para ordenação correta no Dashboard
       await addDoc(collection(db, "matches"), {
-        ...matchData,
+        location: matchData.location,
+        date: matchData.date,
+        time: matchData.time,
+        price: Number(matchData.price),
         type: 'Society',
         totalSlots: 20,
         confirmedPlayers: confirmedPlayers.length,
         createdAt: new Date().toISOString()
       });
-      alert("Nova pelada agendada com sucesso!");
+      
+      alert("Pelada salva e publicada na Arena!");
       onPageChange(Page.Dashboard);
     } catch (err) {
-      console.error(err);
-      alert("Erro ao salvar pelada.");
+      console.error("Erro ao salvar pelada:", err);
+      alert("Erro ao conectar com a Arena O&A. Verifique sua rede.");
     } finally {
       setIsSavingMatch(false);
     }
@@ -63,94 +71,99 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => onPageChange(Page.Dashboard)} className="material-symbols-outlined text-slate-300">arrow_back</button>
-            <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">GESTÃO DA PELADA</h2>
+            <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">NOVO AGENDAMENTO</h2>
           </div>
           <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
-            <span className="material-symbols-outlined fill-1">settings</span>
+            <span className="material-symbols-outlined fill-1">event_available</span>
           </div>
         </div>
       </header>
 
       <section className="px-6 mt-8 space-y-6">
-        {/* Configuração da Pelada */}
-        <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-soft">
-          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-6">DADOS DO CONFRONTO</h3>
+        {/* Formulário de Criação */}
+        <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-6">CONFIGURAR CONFRONTO</h3>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[9px] font-black uppercase text-slate-400 px-1">LOCAL DA ARENA</label>
               <input 
-                type="date" 
-                value={matchData.date}
-                onChange={e => setMatchData({...matchData, date: e.target.value})}
-                className="bg-slate-50 border-none rounded-xl p-4 text-xs font-bold text-navy" 
-              />
-              <input 
-                type="time" 
-                value={matchData.time}
-                onChange={e => setMatchData({...matchData, time: e.target.value})}
-                className="bg-slate-50 border-none rounded-xl p-4 text-xs font-bold text-navy" 
+                type="text" 
+                placeholder="Ex: Arena Central" 
+                value={matchData.location}
+                onChange={e => setMatchData({...matchData, location: e.target.value})}
+                className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm font-bold text-navy outline-none focus:ring-2 focus:ring-primary/10" 
               />
             </div>
-            <input 
-              type="text" 
-              placeholder="Local da Pelada" 
-              value={matchData.location}
-              onChange={e => setMatchData({...matchData, location: e.target.value})}
-              className="w-full bg-slate-50 border-none rounded-xl p-4 text-xs font-bold text-navy" 
-            />
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[9px] font-black uppercase text-slate-400 px-1">DATA</label>
+                <input 
+                  type="date" 
+                  value={matchData.date}
+                  onChange={e => setMatchData({...matchData, date: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm font-bold text-navy" 
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[9px] font-black uppercase text-slate-400 px-1">HORA</label>
+                <input 
+                  type="time" 
+                  value={matchData.time}
+                  onChange={e => setMatchData({...matchData, time: e.target.value})}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm font-bold text-navy" 
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[9px] font-black uppercase text-slate-400 px-1">VALOR POR CABEÇA (R$)</label>
+              <input 
+                type="number" 
+                value={matchData.price}
+                onChange={e => setMatchData({...matchData, price: Number(e.target.value)})}
+                className="w-full bg-slate-50 border border-slate-100 rounded-xl p-4 text-sm font-bold text-navy" 
+              />
+            </div>
+
             <button 
               onClick={handleCreateNewMatch}
               disabled={isSavingMatch}
-              className="w-full h-14 bg-navy text-white rounded-xl font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-2"
+              className="w-full h-16 bg-navy text-white rounded-2xl font-black uppercase text-[11px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-3 shadow-lg shadow-navy/20"
             >
-              {isSavingMatch ? 'SALVANDO...' : 'PUBLICAR NOVA PELADA'}
+              {isSavingMatch ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined">publish</span>
+                  SALVAR E PUBLICAR
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Status de Rotação Baseado em Times */}
-        <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden">
-          <div className="relative z-10">
-            <div className="flex justify-between items-center mb-6">
-              <span className="text-[9px] font-black uppercase tracking-widest text-white/40">PROJEÇÃO DE RODADA</span>
-              <span className="px-2 py-1 bg-primary rounded text-[8px] font-black uppercase tracking-widest">SISTEMA 10 MIN / 2 GOLS</span>
-            </div>
-            <div className="flex items-center gap-6 mb-6">
-               <div className="text-center">
-                 <p className="text-3xl font-condensed text-white">{confirmedPlayers.length}</p>
-                 <p className="text-[8px] font-black uppercase text-white/30">ATLETAS</p>
-               </div>
-               <div className="w-px h-8 bg-white/10"></div>
-               <div className="text-center">
-                 <p className="text-3xl font-condensed text-white">{numPossibleTeams}</p>
-                 <p className="text-[8px] font-black uppercase text-white/30">TIMES</p>
-               </div>
-            </div>
-            <div className="p-4 bg-white/5 rounded-xl border border-white/10">
-              <p className="text-[10px] font-black uppercase tracking-widest text-primary italic leading-tight">
-                {drawRule}
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Botão de Sorteio IA */}
-        <button 
-          onClick={handleGenerateTeams}
-          disabled={isGenerating}
-          className="w-full h-18 bg-primary text-white rounded-3xl font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-        >
-          {isGenerating ? (
-            <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>IA EQUILIBRANDO SKILLS...</span>
-            </div>
-          ) : (
-            <>
-              <span className="material-symbols-outlined text-2xl">shuffle</span>
-              SORTEAR TIMES EQUILIBRADOS
-            </>
-          )}
-        </button>
+        <div className="pt-4">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-4 px-2">TIME MANAGEMENT</h3>
+          <button 
+            onClick={handleGenerateTeams}
+            disabled={isGenerating}
+            className="w-full h-18 bg-primary text-white rounded-3xl font-black uppercase text-[11px] tracking-[0.3em] shadow-2xl shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+          >
+            {isGenerating ? (
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>IA EQUILIBRANDO SKILLS...</span>
+              </div>
+            ) : (
+              <>
+                <span className="material-symbols-outlined text-2xl">shuffle</span>
+                SORTEAR TIMES EQUILIBRADOS
+              </>
+            )}
+          </button>
+        </div>
 
         {teams && (
           <div className="space-y-8 animate-in slide-in-from-bottom-10 duration-700 pb-10">
@@ -182,10 +195,6 @@ const TeamResultCard = ({ title, color, players, allPlayers }: any) => (
                     <h5 className="text-xs font-black text-navy uppercase italic">{pName}</h5>
                     <p className="text-[9px] font-bold text-slate-300 uppercase">{p?.position || 'Jogador'}</p>
                  </div>
-              </div>
-              <div className="flex items-center gap-1">
-                 <span className="text-[10px] font-black text-navy">{p?.skills?.attack || 70}</span>
-                 <div className="w-1 h-1 bg-slate-200 rounded-full"></div>
               </div>
            </div>
          );
