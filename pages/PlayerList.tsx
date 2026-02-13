@@ -1,5 +1,5 @@
 
-import React, { useState } from 'https://esm.sh/react@18.2.0';
+import React, { useState } from 'react';
 import { Player, Page } from '../types.ts';
 import { db, doc, updateDoc, addDoc, collection } from '../services/firebase.ts';
 
@@ -71,207 +71,198 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: 
   };
 
   return (
-    <div className="flex flex-col min-h-full bg-navy-deep text-white animate-in fade-in duration-500">
-      <header className="px-6 pt-12 pb-6">
-        <div className="flex items-center justify-between mb-8">
-          <button onClick={() => onPageChange(Page.Dashboard)} className="material-symbols-outlined text-white/60 active:scale-90 transition-transform">arrow_back</button>
-          <h2 className="text-lg font-bold">Lista de Chamada</h2>
-          <button onClick={handleShare} className="material-symbols-outlined text-white/60 active:scale-90 transition-transform">share</button>
+    <div className="flex flex-col min-h-full bg-slate-50 text-slate-900 animate-in fade-in duration-500">
+      {/* Header Fixo */}
+      <header className="px-6 pt-12 pb-4 bg-white/70 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
+        <div className="flex items-center justify-between mb-6">
+          <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-transform">
+            <span className="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h2 className="text-sm font-black text-navy uppercase tracking-widest italic">Escalação Oficial</h2>
+          <button onClick={handleShare} className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-90 transition-transform">
+            <span className="material-symbols-outlined">share</span>
+          </button>
         </div>
 
-        <div className="flex items-center justify-between mb-8">
+        {/* Resumo da Partida no Topo */}
+        <div className="flex items-center justify-between mb-4 px-2">
           <div>
-            <h1 className="text-3xl font-black tracking-tight">Pelada dos Amigos</h1>
-            <div className="flex items-center gap-4 mt-2 text-white/40 text-xs font-bold">
-              <div className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">calendar_today</span>
-                Sábado, 18:00h
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-sm">location_on</span>
-                Arena Central
-              </div>
+            <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter">Pelada dos Amigos</h1>
+            <div className="flex items-center gap-3 mt-1">
+               <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-600 text-[9px] font-black uppercase tracking-wider">Confirmados: {confirmed.length}</span>
+               <span className="text-[10px] text-slate-400 font-bold uppercase">Sábado • 18:00h</span>
             </div>
           </div>
-          <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary border border-primary/20">
+          <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
             <span className="material-symbols-outlined fill-1">sports_soccer</span>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex justify-between items-center border-b border-white/5">
-          <TabItem 
-            active={activeTab === 'confirmados'} 
-            label="Confirmados" 
-            count={confirmed.length} 
-            icon="check_circle" 
-            onClick={() => setActiveTab('confirmados')} 
-          />
-          <TabItem 
-            active={activeTab === 'espera'} 
-            label="Espera" 
-            count={waiting.length} 
-            icon="schedule" 
-            color="text-amber-500"
-            onClick={() => setActiveTab('espera')} 
-          />
-          <TabItem 
-            active={activeTab === 'nao_vao'} 
-            label="Não Vão" 
-            count={0} 
-            icon="cancel" 
-            color="text-red-500"
-            onClick={() => setActiveTab('nao_vao')} 
-          />
+        {/* Tabs Estilo Apple */}
+        <div className="flex bg-slate-100/50 p-1 rounded-2xl">
+          <button 
+            onClick={() => setActiveTab('confirmados')}
+            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'confirmados' ? 'bg-white text-navy shadow-sm' : 'text-slate-400'}`}
+          >
+            Confirmados
+          </button>
+          <button 
+            onClick={() => setActiveTab('espera')}
+            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'espera' ? 'bg-white text-navy shadow-sm' : 'text-slate-400'}`}
+          >
+            Lista de Espera
+          </button>
         </div>
       </header>
 
-      <section className="px-6 pb-40">
-        <div className="flex items-center justify-between py-4">
-          <span className="text-[10px] font-black uppercase tracking-widest text-white/30">Jogadores</span>
-          <button className="flex items-center gap-1 text-primary text-[10px] font-black uppercase tracking-widest">
-            <span className="material-symbols-outlined text-sm">swap_vert</span> Ordenar A-Z
-          </button>
-        </div>
+      <section className="px-6 py-6 pb-40 space-y-3">
+        {/* Jogadores Renderizados como Cards */}
+        {(activeTab === 'confirmados' ? confirmed : (activeTab === 'espera' ? waiting : [])).map((p, idx) => (
+          <div 
+            key={p.id} 
+            className="bg-white rounded-apple p-4 border border-slate-100 shadow-soft flex items-center justify-between animate-in slide-in-from-bottom-2 duration-300"
+            style={{ animationDelay: `${idx * 50}ms` }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="w-14 h-14 rounded-2xl p-0.5 border border-slate-100 overflow-hidden bg-slate-50">
+                  <img src={p.photoUrl} className="w-full h-full object-cover rounded-xl" alt={p.name} />
+                </div>
+                <div className="absolute -top-2 -left-2 w-6 h-6 bg-navy text-white rounded-full border-2 border-white flex items-center justify-center text-[10px] font-black italic">
+                  {idx + 1}
+                </div>
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h4 className="font-black text-navy uppercase italic tracking-tight">{p.name}</h4>
+                  {p.goals > 10 && <span className="material-symbols-outlined text-amber-500 text-[14px] fill-1">verified</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                   <span className="text-[9px] font-black text-primary uppercase tracking-widest">{p.position}</span>
+                   <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{p.team || 'Sem Clube'}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-end border-l border-slate-50 pl-4 shrink-0">
+               <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-0.5">ESTADO</span>
+               <div className={`flex items-center gap-1 ${activeTab === 'confirmados' ? 'text-emerald-500' : 'text-amber-500'}`}>
+                 <span className="material-symbols-outlined text-[14px] font-black">{activeTab === 'confirmados' ? 'check' : 'schedule'}</span>
+                 <span className="text-[9px] font-black uppercase tracking-widest">{activeTab === 'confirmados' ? 'Pronto' : 'Aguardando'}</span>
+               </div>
+            </div>
+          </div>
+        ))}
 
-        <div className="space-y-4">
-          {(activeTab === 'confirmados' ? confirmed : (activeTab === 'espera' ? waiting : [])).map((p) => (
-            <div key={p.id} className="flex items-center justify-between group">
-              <div className="flex items-center gap-4">
-                <div className="relative">
-                  <img src={p.photoUrl} className="w-14 h-14 rounded-full object-cover border-2 border-white/10" alt={p.name} />
-                  {p.number && (
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full border-2 border-navy-deep flex items-center justify-center text-[10px] font-black">{p.number}</div>
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-base">{p.name}</h4>
-                    {p.goals > 10 && <span className="material-symbols-outlined text-amber-500 text-sm fill-1">verified</span>}
-                  </div>
-                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-wider">{p.position} • {p.team || 'Sem Clube'}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-xs font-black text-primary">{p.goals} GOLS</p>
-                <button className="material-symbols-outlined text-white/20">more_vert</button>
-              </div>
+        {/* Estado Vazio */}
+        {((activeTab === 'confirmados' && confirmed.length === 0) || (activeTab === 'espera' && waiting.length === 0)) && (
+          <div className="py-20 text-center">
+            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+               <span className="material-symbols-outlined text-4xl text-slate-300">person_off</span>
             </div>
-          ))}
-          {(activeTab === 'nao_vao' || (activeTab === 'confirmados' && confirmed.length === 0) || (activeTab === 'espera' && waiting.length === 0)) && (
-            <div className="py-20 text-center opacity-20">
-              <span className="material-symbols-outlined text-6xl mb-4">person_off</span>
-              <p className="text-xs font-bold uppercase tracking-[0.2em]">Nenhum jogador encontrado</p>
-            </div>
-          )}
-        </div>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-300">Nenhum jogador na lista</p>
+          </div>
+        )}
       </section>
 
-      {/* Footer Buttons */}
-      <div className="fixed bottom-24 left-0 right-0 px-6 py-4 bg-gradient-to-t from-navy-deep via-navy-deep to-transparent z-40 flex gap-4">
+      {/* Botões Flutuantes com Visual Home */}
+      <div className="fixed bottom-24 left-0 right-0 px-6 py-4 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent z-40 flex gap-4">
         <button 
           onClick={() => setShowAddModal(true)}
-          className="flex-1 h-16 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest text-white/60 active:scale-95 transition-all"
+          className="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400 shadow-soft active:scale-95 transition-all"
+          title="Adicionar Atleta"
         >
-          <span className="material-symbols-outlined">person_add</span> Adicionar Atleta
+          <span className="material-symbols-outlined">person_add</span>
         </button>
         <button 
           onClick={togglePresence}
           disabled={isUpdating}
-          className="flex-[1.5] h-16 bg-primary rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 active:scale-95 transition-all disabled:opacity-50"
+          className={`flex-1 h-16 rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest shadow-xl transition-all disabled:opacity-50 active:scale-95 ${players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-primary text-white shadow-primary/30'}`}
         >
-          <span className="material-symbols-outlined">{players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'check' : 'login'}</span>
-          {players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'Presença Confirmada' : 'Confirmar Presença'}
+          <span className="material-symbols-outlined fill-1">{players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'check_circle' : 'sports_soccer'}</span>
+          {players.find(x => x.id === currentUser?.uid)?.status === 'presente' ? 'Presença Confirmada' : 'Vou Jogar'}
         </button>
       </div>
 
-      {/* Add Player Modal */}
+      {/* Add Player Modal Padronizado */}
       {showAddModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-navy-deep/90 backdrop-blur-sm" onClick={() => setShowAddModal(false)}></div>
-          <div className="relative w-full max-w-md bg-[#0E1324] border border-white/10 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
-            <div className="p-8 border-b border-white/5 flex justify-between items-center">
+          <div className="absolute inset-0 bg-navy/20 backdrop-blur-md" onClick={() => setShowAddModal(false)}></div>
+          <div className="relative w-full max-w-md bg-white border border-slate-100 rounded-apple-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
+            <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <div>
-                <h3 className="text-xl font-black uppercase italic text-primary">Novo Atleta</h3>
-                <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Cadastro de Elite</p>
+                <h3 className="text-xl font-black uppercase italic text-navy tracking-tight">Novo Atleta</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inscrição na Elite O&A</p>
               </div>
-              <button onClick={() => setShowAddModal(false)} className="material-symbols-outlined text-white/40">close</button>
+              <button onClick={() => setShowAddModal(false)} className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-slate-300 hover:text-primary transition-all">
+                <span className="material-symbols-outlined">close</span>
+              </button>
             </div>
             
             <form onSubmit={handleAddPlayer} className="p-8 space-y-6 overflow-y-auto hide-scrollbar">
-              <div className="grid grid-cols-1 gap-6">
+              <div className="space-y-6">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-2">Nome Completo</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Nome do Craque</label>
                   <input 
                     required
                     type="text" 
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     placeholder="Ex: Luka Modrić"
-                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none" 
+                    className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 text-sm font-bold text-navy placeholder:text-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" 
                   />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-2">Posição</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Posição</label>
                     <select 
                       value={formData.position}
                       onChange={(e) => setFormData({...formData, position: e.target.value})}
-                      className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none appearance-none"
+                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 text-sm font-bold text-navy outline-none appearance-none cursor-pointer"
                     >
-                      <option className="bg-[#0E1324]">Atacante</option>
-                      <option className="bg-[#0E1324]">Meio-Campo</option>
-                      <option className="bg-[#0E1324]">Defensor</option>
-                      <option className="bg-[#0E1324]">Goleiro</option>
+                      <option>Atacante</option>
+                      <option>Meio-Campo</option>
+                      <option>Defensor</option>
+                      <option>Goleiro</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-2">Número</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Número</label>
                     <input 
                       type="number" 
                       value={formData.number}
                       onChange={(e) => setFormData({...formData, number: parseInt(e.target.value) || 0})}
-                      className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none" 
+                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 text-sm font-bold text-navy outline-none" 
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-2">Time/Clube</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Clube Atual</label>
                     <input 
                       type="text" 
                       value={formData.team}
                       onChange={(e) => setFormData({...formData, team: e.target.value})}
                       placeholder="Real Madrid"
-                      className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none" 
+                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 text-sm font-bold text-navy outline-none" 
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-2">Gols</label>
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block mb-2 px-1">Total de Gols</label>
                     <input 
                       type="number" 
                       value={formData.goals}
                       onChange={(e) => setFormData({...formData, goals: parseInt(e.target.value) || 0})}
-                      className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none" 
+                      className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-5 text-sm font-bold text-navy outline-none" 
                     />
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-widest text-white/40 block mb-2">URL da Foto</label>
-                  <input 
-                    type="url" 
-                    value={formData.photoUrl}
-                    onChange={(e) => setFormData({...formData, photoUrl: e.target.value})}
-                    placeholder="https://..."
-                    className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none text-white/40" 
-                  />
-                </div>
-
-                <div className="space-y-4 pt-4 border-t border-white/5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary block">Skills & Habilidades</label>
+                <div className="space-y-4 pt-4 border-t border-slate-50">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary block px-1">Atributos de Elite (0-100)</label>
                   
                   <SkillRange 
                     label="Ataque" 
@@ -284,7 +275,7 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: 
                     onChange={(v) => setFormData({...formData, skills: {...formData.skills, defense: v}})} 
                   />
                   <SkillRange 
-                    label="Stamina" 
+                    label="Fôlego" 
                     value={formData.skills.stamina} 
                     onChange={(v) => setFormData({...formData, skills: {...formData.skills, stamina: v}})} 
                   />
@@ -293,18 +284,11 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: 
 
               <div className="pt-4 flex gap-4">
                 <button 
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="flex-1 h-14 bg-white/5 border border-white/5 rounded-2xl font-black uppercase text-[10px] tracking-widest"
-                >
-                  Cancelar
-                </button>
-                <button 
                   type="submit"
                   disabled={isUpdating}
-                  className="flex-1 h-14 bg-primary rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-primary/20 disabled:opacity-50"
+                  className="w-full h-16 bg-primary text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-xl shadow-primary/20 disabled:opacity-50 active:scale-95 transition-all"
                 >
-                  {isUpdating ? 'Salvando...' : 'Cadastrar'}
+                  {isUpdating ? 'Cadastrando Atleta...' : 'Finalizar Cadastro'}
                 </button>
               </div>
             </form>
@@ -316,31 +300,25 @@ const PlayerList: React.FC<{ players: Player[], currentUser: any, onPageChange: 
 };
 
 const SkillRange = ({ label, value, onChange }: { label: string, value: number, onChange: (v: number) => void }) => (
-  <div className="space-y-2">
-    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-white/30">
+  <div className="space-y-2 px-1">
+    <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-300">
       <span>{label}</span>
-      <span className="text-white">{value}</span>
+      <span className="text-navy">{value}</span>
     </div>
-    <input 
-      type="range" 
-      min="0" 
-      max="100" 
-      value={value}
-      onChange={(e) => onChange(parseInt(e.target.value))}
-      className="w-full h-1 bg-white/10 rounded-full appearance-none accent-primary cursor-pointer"
-    />
-  </div>
-);
-
-const TabItem = ({ active, label, count, icon, color = "text-emerald-500", onClick }: any) => (
-  <div 
-    onClick={onClick}
-    className={`flex-1 flex flex-col items-center py-4 relative cursor-pointer transition-all ${active ? 'opacity-100' : 'opacity-30'}`}
-  >
-    <span className={`material-symbols-outlined mb-1 ${active ? color : 'text-white'} ${active ? 'fill-1' : ''}`}>{icon}</span>
-    <span className="text-[10px] font-black uppercase tracking-widest mb-1">{label}</span>
-    <div className={`px-2 py-0.5 rounded-md text-[10px] font-black ${active ? 'bg-white/10 text-white' : 'bg-transparent text-transparent'}`}>{count}</div>
-    {active && <div className="absolute bottom-0 w-full h-1 bg-primary rounded-full"></div>}
+    <div className="relative h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+       <div 
+         className="absolute top-0 left-0 h-full bg-primary transition-all duration-500"
+         style={{ width: `${value}%` }}
+       ></div>
+       <input 
+         type="range" 
+         min="0" 
+         max="100" 
+         value={value}
+         onChange={(e) => onChange(parseInt(e.target.value))}
+         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+       />
+    </div>
   </div>
 );
 
