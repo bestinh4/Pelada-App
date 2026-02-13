@@ -48,7 +48,6 @@ const App: React.FC = () => {
       setPlayers(playerList);
     });
 
-    // Ajuste na ordenação para pegar o registro mais recente criado
     const qMatches = query(collection(db, "matches"), orderBy("createdAt", "desc"));
     const unsubscribeMatches = onSnapshot(qMatches, (snapshot) => {
       if (!snapshot.empty) {
@@ -86,7 +85,7 @@ const App: React.FC = () => {
       case Page.Dashboard:
         return <Dashboard match={currentMatch} players={players} user={user} {...commonProps} />;
       case Page.PlayerList:
-        return <PlayerList players={players} currentUser={user} {...commonProps} />;
+        return <PlayerList players={players} currentUser={user} match={currentMatch} {...commonProps} />;
       case Page.Ranking:
         return <Ranking players={players} {...commonProps} />;
       case Page.CreateMatch:
