@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Page, Player, Match } from '../types.ts';
+import { Page, Player } from '../types.ts';
 import { balanceTeams } from '../services/geminiService.ts';
 import { db, addDoc, collection } from '../services/firebase.ts';
 
@@ -29,37 +29,40 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
       setTeams(result);
     } catch (e) {
       console.error(e);
-      alert("Erro ao balancear times com IA. Tente novamente.");
+      alert("Erro ao balancear times com IA.");
     } finally {
       setIsGenerating(false);
     }
   };
 
   const handleCreateNewMatch = async () => {
-    if (!matchData.location || !matchData.date || !matchData.time) {
-      alert("Preencha todos os campos da pelada.");
+    if (!matchData.location.trim() || !matchData.date || !matchData.time) {
+      alert("Por favor, preencha o local, data e hora da pelada.");
       return;
     }
 
     setIsSavingMatch(true);
     try {
-      // Salvando explicitamente com createdAt para ordenação correta no Dashboard
-      await addDoc(collection(db, "matches"), {
-        location: matchData.location,
-        date: matchData.date,
-        time: matchData.time,
-        price: Number(matchData.price),
+      const newMatch = {
+        location: String(matchData.location).trim(),
+        date: String(matchData.date),
+        time: String(matchData.time),
+        price: Number(matchData.price) || 0,
         type: 'Society',
         totalSlots: 20,
         confirmedPlayers: confirmedPlayers.length,
         createdAt: new Date().toISOString()
-      });
+      };
+
+      console.log("Tentando salvar pelada:", newMatch);
+      const docRef = await addDoc(collection(db, "matches"), newMatch);
+      console.log("Pelada salva com ID:", docRef.id);
       
-      alert("Pelada salva e publicada na Arena!");
+      alert("Pelada publicada com sucesso na Arena!");
       onPageChange(Page.Dashboard);
-    } catch (err) {
-      console.error("Erro ao salvar pelada:", err);
-      alert("Erro ao conectar com a Arena O&A. Verifique sua rede.");
+    } catch (err: any) {
+      console.error("Erro crítico ao salvar no Firebase:", err);
+      alert("Erro ao salvar: " + (err.message || "Verifique sua conexão."));
     } finally {
       setIsSavingMatch(false);
     }
@@ -80,7 +83,6 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
       </header>
 
       <section className="px-6 mt-8 space-y-6">
-        {/* Formulário de Criação */}
         <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft">
           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-6">CONFIGURAR CONFRONTO</h3>
           <div className="space-y-4">
@@ -143,7 +145,6 @@ const CreateMatch: React.FC<{ players: Player[], onPageChange: (page: Page) => v
           </div>
         </div>
 
-        {/* Botão de Sorteio IA */}
         <div className="pt-4">
           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-4 px-2">TIME MANAGEMENT</h3>
           <button 
