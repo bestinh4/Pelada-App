@@ -6,6 +6,8 @@ export interface Player {
   number?: number;
   team?: string;
   goals: number;
+  assists: number;
+  concededGoals: number;
   position: string;
   status: 'presente' | 'pendente';
   skills: {
@@ -22,8 +24,8 @@ export interface Match {
   time: string;
   type: 'Futsal' | 'Society' | 'Campo';
   price: number;
-  fieldSlots: number; // Vagas para linha
-  gkSlots: number;    // Vagas para goleiro
+  fieldSlots: number;
+  gkSlots: number;
   confirmedPlayers: number;
   createdAt: string;
 }

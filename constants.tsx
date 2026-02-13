@@ -9,6 +9,10 @@ export const MOCK_PLAYERS: Player[] = [
     number: 10,
     team: 'Real Madrid',
     goals: 15,
+    // Fix: Added missing assists property
+    assists: 8,
+    // Fix: Added missing concededGoals property
+    concededGoals: 0,
     position: 'Central Midfield',
     status: 'presente',
     skills: { attack: 85, defense: 75, stamina: 90 }
@@ -20,6 +24,10 @@ export const MOCK_PLAYERS: Player[] = [
     number: 4,
     team: 'Hajduk Split',
     goals: 12,
+    // Fix: Added missing assists property
+    assists: 10,
+    // Fix: Added missing concededGoals property
+    concededGoals: 0,
     position: 'Winger',
     status: 'presente',
     skills: { attack: 88, defense: 60, stamina: 85 }
@@ -30,6 +38,10 @@ export const MOCK_PLAYERS: Player[] = [
     photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBP2qy9SHdlb6SvUqp7RN1Hca-YHopQkmbCnJyoacr0U6NG4OL4mbfkNjgN47nR1eofSv-FYH8OEPgjE55NcHWNz2HvQ0kWP5z81YaglKRopyaLcEW6Io9ul0Ixyh47KiU-0SSMuhtr0Xo2-egvFVi3hONkPXgOkFUnN0pmYgJGDkCP5RrJ_5cGaFsdwWoS9MddIO3T9HMn99GvZptQ-lAaRTKVMUMvjXlkS6rwG3Q23R9oedUS3_Rr7hpIpQFkVRNHDUMeoGGpQAE',
     team: 'Manchester City',
     goals: 8,
+    // Fix: Added missing assists property
+    assists: 6,
+    // Fix: Added missing concededGoals property
+    concededGoals: 0,
     position: 'Midfielder',
     status: 'presente',
     skills: { attack: 75, defense: 80, stamina: 92 }
@@ -40,6 +52,10 @@ export const MOCK_PLAYERS: Player[] = [
     photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDLkBa64rjjAdkDd7p8d53DwbTVtJ_flR0AKKcoDKqHc8bR4JxgdVnsbuhIuCUDScxDW9MlFOUPBNpb-hu7R-29VE_6Npn_cN5RbqpAlQz4DnZv9R3SM1Zdmi-sZwY59_pCmFy6sRh_xOwZnb8P_Pa8BRMkqdkY1UqyyMtEW0MXitJ2T-dc6CroWHogFLAuQ2H7GAZ7xSjFxrdZ8nNSWl-cPv8kW64ggcmPKX4QRMcuqQQSH8-WltPKagRi-5okFrCUGCReWAPUVi4',
     team: 'Manchester City',
     goals: 2,
+    // Fix: Added missing assists property
+    assists: 2,
+    // Fix: Added missing concededGoals property
+    concededGoals: 0,
     position: 'Defender',
     status: 'pendente',
     skills: { attack: 65, defense: 95, stamina: 88 }
@@ -50,6 +66,10 @@ export const MOCK_PLAYERS: Player[] = [
     photoUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBNmn0mKfjEZd4TzdbCQdnL8JBiv0e7wnyFijlNbYeeHu1jVuzOQmKRKzRJsV_pJ-x_9SPKensU_HYZFEGTGpbH5FjtrncKeyKiOPrOhZS1hjtEtgrKuSqz4tD8dewo8wWwMPjpcCm4DKrdYL9POzn45KDiOWzFG5bunOLw7Sygb51ufhs8gtalRVafKCp-A2RBu4fzRea42DdZEwnfiPYYqMQel_g7aeY63Ry3RUrh4UDwb4F_O651kLdvdZgqpZ9S33w92LmZeW8',
     team: 'Hoffenheim',
     goals: 10,
+    // Fix: Added missing assists property
+    assists: 3,
+    // Fix: Added missing concededGoals property
+    concededGoals: 0,
     position: 'Forward',
     status: 'presente',
     skills: { attack: 92, defense: 40, stamina: 80 }

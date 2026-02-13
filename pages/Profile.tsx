@@ -12,7 +12,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
-  // Sincroniza estado local se as props mudarem (ex: após salvamento ou carregamento inicial)
   useEffect(() => {
     setEditedName(player.name);
     setEditedPosition(player.position);
@@ -84,7 +83,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
       </header>
 
       <section className="px-6 mt-10 flex flex-col items-center">
-        {/* Avatar Section */}
         <div className="relative mb-8 group">
            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[40px] scale-150"></div>
            <div className="w-40 h-40 rounded-[3rem] border-8 border-white shadow-2xl overflow-hidden relative z-10 transition-transform group-hover:scale-105">
@@ -105,21 +103,13 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
              <span className="material-symbols-outlined text-2xl fill-1">photo_camera</span>
            </button>
            
-           <input 
-            type="file" 
-            ref={fileInputRef} 
-            onChange={handleFileChange} 
-            accept="image/*" 
-            capture="user" 
-            className="hidden" 
-           />
+           <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" capture="user" className="hidden" />
 
            <div className="absolute -top-4 -left-4 w-12 h-12 bg-navy text-white rounded-2xl border-4 border-white flex items-center justify-center z-20 shadow-xl rotate-[-15deg]">
              <span className="text-lg font-black italic">PRO</span>
            </div>
         </div>
         
-        {/* Editable Name and Position */}
         <div className="w-full text-center space-y-2 mb-8">
           <input
             type="text"
@@ -140,7 +130,6 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
           </div>
         </div>
 
-        {/* Save Changes Button (Visible only when dirty) */}
         {isDirty && (
           <button 
             onClick={handleSaveChanges}
@@ -156,13 +145,11 @@ const Profile: React.FC<{ player: Player, onPageChange: (page: Page) => void }> 
           </button>
         )}
 
-        {/* Stats Grid */}
         <div className="w-full grid grid-cols-2 gap-4 mb-10">
            <StatCard label="GOLS" value={player.goals.toString()} icon="sports_soccer" color="text-primary" />
-           <StatCard label="ASSIST" value="12" icon="handshake" color="text-navy" />
+           <StatCard label="ASSIST" value={player.assists.toString()} icon="handshake" color="text-navy" />
         </div>
 
-        {/* Skills Section */}
         <div className="w-full bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft space-y-6 mb-12">
            <div className="flex justify-between items-center mb-2 px-1">
              <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300">ATRIBUTOS TÉCNICOS</h3>

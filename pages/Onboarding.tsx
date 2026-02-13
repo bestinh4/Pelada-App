@@ -27,6 +27,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         name: name,
         photoUrl: user.photoURL || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
         goals: 0,
+        assists: 0,
+        concededGoals: 0,
         position: position,
         status: 'pendente',
         skills: { 
