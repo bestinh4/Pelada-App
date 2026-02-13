@@ -66,17 +66,17 @@ const App: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-navy-deep flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-white/50 font-black text-[10px] tracking-[0.3em] uppercase">Iniciando Arena Pro...</p>
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-navy font-black text-[10px] tracking-[0.3em] uppercase">CARREGANDO ARENA...</p>
         </div>
       </div>
     );
   }
 
   const renderPage = () => {
-    if (!user) return <Login onLogin={() => {}} />;
+    if (!user) return <Login />;
 
     switch (currentPage) {
       case Page.Dashboard:
