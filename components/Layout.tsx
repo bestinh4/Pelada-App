@@ -9,7 +9,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
-  if (currentPage === Page.Login) return <>{children}</>;
+  if (currentPage === Page.Login || currentPage === Page.Onboarding) return <>{children}</>;
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-slate-100 p-0 sm:p-4 font-display">

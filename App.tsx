@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import Layout from './components/Layout.tsx';
 import Login from './pages/Login.tsx';
+import Onboarding from './pages/Onboarding.tsx';
 import Dashboard from './pages/Dashboard.tsx';
 import PlayerList from './pages/PlayerList.tsx';
 import Ranking from './pages/Ranking.tsx';
 import CreateMatch from './pages/CreateMatch.tsx';
 import Profile from './pages/Profile.tsx';
 import { Page, Player, Match } from './types.ts';
-import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, setDoc, getDoc } from './services/firebase.ts';
+import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc } from './services/firebase.ts';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -19,26 +20,23 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
       if (firebaseUser) {
+        setUser(firebaseUser);
         try {
           const playerDocRef = doc(db, "players", firebaseUser.uid);
           const playerDoc = await getDoc(playerDocRef);
           
           if (!playerDoc.exists()) {
-            await setDoc(playerDocRef, {
-              id: firebaseUser.uid,
-              name: firebaseUser.displayName || "Jogador Anônimo",
-              photoUrl: firebaseUser.photoURL || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-              goals: 0,
-              position: 'A definir',
-              status: 'pendente',
-              skills: { attack: 50, defense: 50, stamina: 50 }
-            });
+            setCurrentPage(Page.Onboarding);
+          } else {
+            setCurrentPage(Page.Dashboard);
           }
-        } catch (err) { console.error(err); }
-        setCurrentPage(Page.Dashboard);
+        } catch (err) { 
+          console.error(err); 
+          setCurrentPage(Page.Dashboard);
+        }
       } else {
+        setUser(null);
         setCurrentPage(Page.Login);
       }
       setLoading(false);
@@ -77,6 +75,10 @@ const App: React.FC = () => {
 
   const renderPage = () => {
     if (!user) return <Login />;
+    if (currentPage === Page.Onboarding) {
+      return <Onboarding user={user} onComplete={() => setCurrentPage(Page.Dashboard)} />;
+    }
+
     const commonProps = { onPageChange: setCurrentPage };
 
     switch (currentPage) {

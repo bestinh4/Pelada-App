@@ -36,6 +36,7 @@ export interface PastMatch {
 
 export enum Page {
   Login = 'login',
+  Onboarding = 'onboarding',
   Dashboard = 'dashboard',
   PlayerList = 'players',
   Ranking = 'ranking',
