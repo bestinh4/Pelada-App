@@ -5,8 +5,10 @@ import { logout } from '../services/firebase.ts';
 
 const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
   const [isConfirmed, setIsConfirmed] = useState(false);
-  // Ícone redondo oficial
-  const iconUrl = "https://i.postimg.cc/vH5m6v5q/Design-sem-nome-1.png";
+  
+  // Logos
+  const iconUrl = "https://i.postimg.cc/vH5m6v5q/Design-sem-nome-1.png"; // Ícone redondo
+  const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png"; // Logo principal transparente
 
   const totalSlots = 18;
   const filledSlots = 14;
@@ -32,7 +34,7 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
           </div>
           <div className="flex flex-col">
             <span className="text-[9px] font-black uppercase text-primary tracking-[0.3em] leading-none mb-1">ARENA</span>
-            <h1 className="text-lg font-black tracking-tighter text-navy uppercase italic leading-none">O&A ELITE</h1>
+            <h1 className="text-lg font-black tracking-tighter text-navy uppercase italic leading-none">O&A ELITE PRO</h1>
           </div>
         </div>
         <button 
@@ -54,10 +56,18 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
            </div>
         </div>
         
-        <div className="relative overflow-hidden rounded-apple-xl bg-white border border-slate-100 shadow-soft group">
+        <div className="relative overflow-hidden rounded-apple-xl bg-white border border-slate-100 shadow-soft group min-h-[320px]">
+          {/* Background Elements */}
           <div className="absolute inset-0 z-0">
-             <div className="absolute inset-0 bg-croatia opacity-[0.4]"></div>
-             <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -mr-20 -mt-20 blur-3xl transition-transform group-hover:scale-150 duration-700"></div>
+             <div className="absolute inset-0 bg-croatia opacity-[0.3]"></div>
+             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-24 -mt-24 blur-3xl transition-transform group-hover:scale-110 duration-700"></div>
+             
+             {/* Logo da Pelada no Fundo do Card */}
+             <img 
+               src={mainLogoUrl} 
+               alt="Logo Pelada" 
+               className="absolute -right-12 top-1/2 -translate-y-1/2 w-64 h-64 object-contain opacity-[0.07] pointer-events-none rotate-12" 
+             />
           </div>
 
           <div className="relative z-10 p-8">
@@ -66,24 +76,35 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
               <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-[9px] font-black uppercase tracking-wider">Sábado</span>
             </div>
 
-            <div className="flex items-center gap-4 mb-8">
-              <span className="text-5xl font-condensed tracking-tighter text-navy">24 Out</span>
-              <div className="w-px h-10 bg-slate-200"></div>
-              <span className="text-5xl font-condensed tracking-tighter text-primary">18:00</span>
+            <div className="flex items-center gap-6 mb-8">
+              <div className="flex flex-col">
+                <span className="text-5xl font-condensed tracking-tighter text-navy">24 Out</span>
+                <span className="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Data do Jogo</span>
+              </div>
+              <div className="w-px h-12 bg-slate-200"></div>
+              <div className="flex flex-col">
+                <span className="text-5xl font-condensed tracking-tighter text-primary">18:00</span>
+                <span className="text-[10px] font-black uppercase text-slate-300 tracking-[0.2em]">Início</span>
+              </div>
+              
+              {/* Logo Flutuante Lateral */}
+              <div className="ml-auto hidden sm:block">
+                 <img src={mainLogoUrl} className="w-20 h-20 object-contain drop-shadow-xl opacity-80" alt="Logo" />
+              </div>
             </div>
 
             {/* Location Card */}
-            <div className="bg-slate-50/90 backdrop-blur rounded-2xl p-5 mb-8 flex items-center justify-between border border-slate-100">
+            <div className="bg-slate-50/90 backdrop-blur rounded-2xl p-5 mb-8 flex items-center justify-between border border-slate-100 shadow-sm">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-primary">
+                <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center text-primary border border-slate-50">
                   <span className="material-symbols-outlined fill-1 text-2xl">location_on</span>
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-navy">Arena Central</h4>
+                  <h4 className="font-bold text-sm text-navy uppercase italic">Arena Central</h4>
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider italic">Campo 03 • Gramado Elite</p>
                 </div>
               </div>
-              <button className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-300">
+              <button className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-slate-300 hover:text-primary transition-colors">
                 <span className="material-symbols-outlined text-[20px]">map</span>
               </button>
             </div>
@@ -120,7 +141,7 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
           <span className="material-symbols-outlined fill-1 text-3xl">{isConfirmed ? 'check_circle' : 'sports_soccer'}</span>
           {isConfirmed ? 'PRESENÇA CONFIRMADA' : 'EU VOU PRO JOGO'}
         </button>
-        <button className="w-full h-16 rounded-apple bg-white border border-slate-200 text-slate-400 flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] shadow-sm active:scale-95 transition-all">
+        <button className="w-full h-16 rounded-apple bg-white border border-slate-200 text-slate-400 flex items-center justify-center gap-3 font-black uppercase tracking-widest text-[10px] shadow-sm active:scale-95 transition-all hover:bg-slate-50">
           <span className="material-symbols-outlined">close</span>
           NÃO POSSO IR
         </button>
@@ -128,7 +149,8 @@ const Dashboard: React.FC<{ match: Match | null }> = ({ match }) => {
 
       {/* User Status Card */}
       <section className="px-6 grid grid-cols-1 gap-4 mb-32">
-        <div className="bg-white rounded-apple-xl p-7 border border-slate-100 flex items-center gap-5 shadow-soft hover:shadow-lg transition-shadow">
+        <div className="bg-white rounded-apple-xl p-7 border border-slate-100 flex items-center gap-5 shadow-soft hover:shadow-lg transition-shadow relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-navy/5 rounded-full -mr-12 -mt-12 blur-2xl"></div>
           <div className="relative">
             <div className="w-16 h-16 rounded-2xl bg-slate-100 p-1 border-2 border-slate-50">
               <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" className="w-full h-full object-cover rounded-xl" alt="Perfil" />
