@@ -32,8 +32,16 @@ const App: React.FC = () => {
           const playerDoc = await getDoc(playerDocRef);
           
           if (firebaseUser.email === MASTER_ADMIN_EMAIL) {
+            // Garante que o Master Admin tenha o cargo de admin e o e-mail salvos
+            const updates: any = {};
             if (!playerDoc.exists() || playerDoc.data().role !== 'admin') {
-               await updateDoc(playerDocRef, { role: 'admin' }).catch(() => {});
+               updates.role = 'admin';
+            }
+            if (playerDoc.exists() && playerDoc.data().email !== MASTER_ADMIN_EMAIL) {
+               updates.email = MASTER_ADMIN_EMAIL;
+            }
+            if (Object.keys(updates).length > 0) {
+               await updateDoc(playerDocRef, updates).catch(() => {});
             }
           }
 
@@ -104,7 +112,7 @@ const App: React.FC = () => {
       case Page.CreateMatch:
         return <CreateMatch players={players} currentUser={user} {...commonProps} />;
       case Page.Profile:
-        const playerProfile = currentPlayer || { id: user.uid, name: user.displayName, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente', role: effectiveRole } as Player;
+        const playerProfile = currentPlayer || { id: user.uid, name: user.displayName, email: user.email, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente', role: effectiveRole } as Player;
         return <Profile player={playerProfile} currentUserEmail={user?.email} {...commonProps} />;
       default:
         return <Dashboard match={currentMatch} players={players} user={user} {...commonProps} />;

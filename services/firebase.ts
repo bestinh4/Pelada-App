@@ -1,3 +1,4 @@
+
 /**
  * ⚠️ ARQUIVO CRÍTICO: Inicialização do Firebase SDK v10.
  * Centraliza a configuração e garante que os serviços sejam registrados corretamente.
@@ -16,6 +17,7 @@ import {
   updateDoc, 
   setDoc, 
   addDoc, 
+  deleteDoc,
   collection, 
   query, 
   orderBy, 
@@ -36,11 +38,9 @@ const firebaseConfig = {
 };
 
 // 1. Inicializar o Firebase App antes de qualquer outro serviço (Singleton)
-// A ordem de execução aqui é vital para o registro de componentes no registry interno.
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // 2. Inicializar e exportar as instâncias dos serviços vinculadas ao 'app'
-// Passar o 'app' explicitamente resolve o erro "Component not registered".
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
@@ -49,7 +49,7 @@ let messagingInstance = null;
 try {
   messagingInstance = getMessaging(app);
 } catch (e) {
-  // Falha silenciosa se o ambiente não suportar (ex: SSR, InPrivate)
+  // Falha silenciosa se o ambiente não suportar
 }
 export const messaging = messagingInstance;
 
@@ -57,17 +57,11 @@ export const messaging = messagingInstance;
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-/**
- * Realiza o login via popup do Google
- */
 export const loginWithGoogle = async () => {
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
 };
 
-/**
- * Realiza o logout da aplicação
- */
 export const logout = async () => {
   await signOut(auth);
 };
@@ -80,6 +74,7 @@ export {
   updateDoc, 
   setDoc, 
   addDoc, 
+  deleteDoc,
   collection, 
   query, 
   orderBy, 

@@ -2,6 +2,7 @@
 export interface Player {
   id: string;
   name: string;
+  email?: string | null;
   photoUrl: string;
   number?: number;
   team?: string;
@@ -12,7 +13,8 @@ export interface Player {
   status: 'presente' | 'pendente';
   playerType: 'mensalista' | 'avulso';
   paymentStatus?: 'pago' | 'pendente';
-  role?: 'admin' | 'player'; // Novo campo de cargo
+  role?: 'admin' | 'player';
+  pushEnabled?: boolean;
   skills?: {
     attack: number;
     defense: number;
@@ -31,17 +33,6 @@ export interface Match {
   gkSlots: number;
   confirmedPlayers: number;
   createdAt: string;
-}
-
-export interface PastMatch {
-  id: string;
-  opponent: string;
-  score: {
-    us: number;
-    them: number;
-  };
-  date: string;
-  type: 'Futsal' | 'Society' | 'Campo';
 }
 
 export enum Page {

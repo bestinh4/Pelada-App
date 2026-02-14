@@ -1,5 +1,6 @@
 
-import { Player, Match, PastMatch } from './types.ts';
+// Fix: Removing unused and invalid import 'PastMatch' to resolve compilation error
+import { Player, Match } from './types.ts';
 
 export const MASTER_ADMIN_EMAIL = 'diiogo49@gmail.com';
 

@@ -26,6 +26,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
       await setDoc(playerDocRef, {
         id: user.uid,
         name: name,
+        email: user.email, // Salva o e-mail para verificação de Master Admin
         photoUrl: user.photoURL || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
         goals: 0,
         assists: 0,
