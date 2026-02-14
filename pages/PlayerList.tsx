@@ -17,8 +17,6 @@ interface SectionProps {
   badgeColor: string;
   list: Player[];
   countText: string;
-  isWaitlist?: boolean;
-  isNotPlaying?: boolean;
   isAdmin: boolean;
   onToggleAdmin: (p: Player) => void;
   onDelete: (p: Player) => void;
@@ -37,17 +35,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const [isAdding, setIsAdding] = useState(false);
   const [isSavingStats, setIsSavingStats] = useState(false);
   
-  const [newPlayerData, setNewPlayerData] = useState({
-    name: '',
-    position: 'Atacante',
-    playerType: 'avulso' as 'mensalista' | 'avulso'
-  });
-
-  const [statsData, setStatsData] = useState({
-    goals: 0,
-    assists: 0,
-    concededGoals: 0
-  });
+  const [newPlayerData, setNewPlayerData] = useState({ name: '', position: 'Atacante', playerType: 'avulso' as 'mensalista' | 'avulso' });
+  const [statsData, setStatsData] = useState({ goals: 0, assists: 0, concededGoals: 0 });
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
@@ -59,60 +48,35 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
 
   const handleOpenStats = (player: Player) => {
     setSelectedPlayerForStats(player);
-    setStatsData({
-      goals: player.goals || 0,
-      assists: player.assists || 0,
-      concededGoals: player.concededGoals || 0
-    });
+    setStatsData({ goals: player.goals || 0, assists: player.assists || 0, concededGoals: player.concededGoals || 0 });
   };
 
   const handleSaveStats = async () => {
     if (!selectedPlayerForStats || isSavingStats) return;
     setIsSavingStats(true);
     try {
-      const playerRef = doc(db, "players", selectedPlayerForStats.id);
-      await updateDoc(playerRef, {
+      await updateDoc(doc(db, "players", selectedPlayerForStats.id), {
         goals: Number(statsData.goals),
         assists: Number(statsData.assists),
         concededGoals: Number(statsData.concededGoals)
       });
       setSelectedPlayerForStats(null);
-    } catch (e) {
-      alert("Erro ao atualizar estatísticas.");
-    } finally {
-      setIsSavingStats(false);
-    }
+    } catch (e) { alert("Erro ao atualizar."); } finally { setIsSavingStats(false); }
   };
 
   const handleToggleAdmin = async (player: Player) => {
-    if (!isCurrentUserAdmin || promotingId) return;
-    if (player.email === MASTER_ADMIN_EMAIL) return;
-
+    if (!isCurrentUserAdmin || promotingId || player.email === MASTER_ADMIN_EMAIL) return;
     setPromotingId(player.id);
     try {
-      const playerRef = doc(db, "players", player.id);
-      await updateDoc(playerRef, { role: player.role === 'admin' ? 'player' : 'admin' });
-    } catch (e) {
-      alert("Erro ao alterar cargo.");
-    } finally {
-      setPromotingId(null);
-    }
+      await updateDoc(doc(db, "players", player.id), { role: player.role === 'admin' ? 'player' : 'admin' });
+    } catch (e) { alert("Erro ao alterar cargo."); } finally { setPromotingId(null); }
   };
 
   const handleDeletePlayer = async (player: Player) => {
-    if (!isCurrentUserAdmin || isDeletingId) return;
-    if (player.id === currentUser?.uid || player.email === MASTER_ADMIN_EMAIL) return;
-
-    if (!confirm(`⚠️ Deseja excluir permanentemente ${player.name}?`)) return;
-
+    if (!isCurrentUserAdmin || isDeletingId || player.id === currentUser?.uid || player.email === MASTER_ADMIN_EMAIL) return;
+    if (!confirm(`⚠️ Excluir permanentemente ${player.name}?`)) return;
     setIsDeletingId(player.id);
-    try {
-      await deleteDoc(doc(db, "players", player.id));
-    } catch (e) {
-      alert("Erro ao excluir jogador.");
-    } finally {
-      setIsDeletingId(null);
-    }
+    try { await deleteDoc(doc(db, "players", player.id)); } catch (e) { alert("Erro ao excluir."); } finally { setIsDeletingId(null); }
   };
 
   const handleManualAdd = async (e: React.FormEvent) => {
@@ -121,59 +85,37 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     setIsAdding(true);
     try {
       await addDoc(collection(db, "players"), {
+        ...newPlayerData,
         name: newPlayerData.name.trim(),
-        position: newPlayerData.position,
-        playerType: newPlayerData.playerType,
         photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(newPlayerData.name)}&background=random&color=fff`,
-        goals: 0,
-        assists: 0,
-        concededGoals: 0,
-        status: 'pendente',
-        paymentStatus: 'pendente',
-        role: 'player'
+        goals: 0, assists: 0, concededGoals: 0, status: 'pendente', paymentStatus: 'pendente', role: 'player'
       });
       setShowAddModal(false);
       setNewPlayerData({ name: '', position: 'Atacante', playerType: 'avulso' });
-    } catch (e) {
-      alert("Erro ao adicionar jogador.");
-    } finally {
-      setIsAdding(false);
-    }
+    } catch (e) { alert("Erro ao adicionar."); } finally { setIsAdding(false); }
   };
 
   const groupedPlayers = useMemo(() => {
     const confirmed: Player[] = [];
     const waitlist: Player[] = [];
     const notPlaying: Player[] = [];
-    let currentGKs = 0;
-    let currentField = 0;
+    let curGKs = 0, curField = 0;
 
     const filtered = players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    const sorted = [...filtered].sort((a, b) => {
-      if (a.role === 'admin' && b.role !== 'admin') return -1;
-      if (a.role !== 'admin' && b.role === 'admin') return 1;
-      return 0;
-    });
+    const sorted = [...filtered].sort((a, b) => (a.role === 'admin' && b.role !== 'admin') ? -1 : 0);
 
     sorted.forEach(p => {
       if (p.status === 'presente') {
         const isGK = p.position === 'Goleiro';
-        if (isGK) {
-          if (currentGKs < gkSlots) { confirmed.push(p); currentGKs++; }
-          else waitlist.push(p);
-        } else {
-          if (currentField < fieldSlots) { confirmed.push(p); currentField++; }
-          else waitlist.push(p);
-        }
-      } else {
-        notPlaying.push(p);
-      }
+        if (isGK) { if (curGKs < gkSlots) { confirmed.push(p); curGKs++; } else waitlist.push(p); }
+        else { if (curField < fieldSlots) { confirmed.push(p); curField++; } else waitlist.push(p); }
+      } else notPlaying.push(p);
     });
-    return { confirmed, waitlist, notPlaying, currentGKs, currentField };
+    return { confirmed, waitlist, notPlaying };
   }, [players, searchQuery, fieldSlots, gkSlots]);
 
   return (
-    <div className="flex flex-col animate-in fade-in duration-500 pb-40 relative">
+    <div className="flex flex-col pb-40 relative animate-fade-in">
       <header className="px-6 pt-12 pb-6 bg-white/80 backdrop-blur-2xl border-b border-slate-100 sticky top-0 z-40">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
@@ -183,83 +125,45 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 text-primary">🇭🇷 OUSADIA & ALEGRIA</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {isCurrentUserAdmin && (
-              <button onClick={() => setShowAddModal(true)} className="w-10 h-10 rounded-xl bg-navy text-white flex items-center justify-center shadow-lg active:scale-90 transition-all">
-                <span className="material-symbols-outlined text-xl">person_add</span>
-              </button>
-            )}
-          </div>
+          {isCurrentUserAdmin && (
+            <button onClick={() => setShowAddModal(true)} className="w-10 h-10 rounded-xl bg-navy text-white flex items-center justify-center shadow-lg active:scale-90 transition-all">
+              <span className="material-symbols-outlined text-xl">person_add</span>
+            </button>
+          )}
         </div>
-
         <div className="relative">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xl">search</span>
-          <input 
-            type="text" placeholder="Filtrar por nome..." value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold text-navy outline-none"
-          />
+          <input type="text" placeholder="Filtrar por nome..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold text-navy outline-none" />
         </div>
       </header>
 
       <main className="px-6 mt-8 space-y-12">
-        <Section 
-          title="CONFIRMADOS" color="bg-emerald-500" badgeColor="bg-emerald-50 text-emerald-600" 
-          list={groupedPlayers.confirmed} countText="ATLETAS" isAdmin={isCurrentUserAdmin}
-          onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats}
-          promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser}
-        />
-        <Section 
-          title="FILA DE ESPERA" color="bg-amber-500" badgeColor="bg-amber-50 text-amber-600" 
-          list={groupedPlayers.waitlist} countText="EM ESPERA" isWaitlist isAdmin={isCurrentUserAdmin}
-          onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats}
-          promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser}
-        />
-        <Section 
-          title="FORA DA PELADA" color="bg-slate-300" badgeColor="bg-slate-100 text-slate-400" 
-          list={groupedPlayers.notPlaying} countText="AUSENTES" isNotPlaying isAdmin={isCurrentUserAdmin}
-          onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats}
-          promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser}
-        />
+        <Section title="CONFIRMADOS" color="bg-emerald-500" badgeColor="bg-emerald-50 text-emerald-600" list={groupedPlayers.confirmed} countText="ATLETAS" isAdmin={isCurrentUserAdmin} onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats} promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser} />
+        <Section title="FILA DE ESPERA" color="bg-amber-500" badgeColor="bg-amber-50 text-amber-600" list={groupedPlayers.waitlist} countText="EM ESPERA" isAdmin={isCurrentUserAdmin} onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats} promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser} />
+        <Section title="FORA DA PELADA" color="bg-slate-300" badgeColor="bg-slate-100 text-slate-400" list={groupedPlayers.notPlaying} countText="AUSENTES" isAdmin={isCurrentUserAdmin} onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats} promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser} />
       </main>
 
       {/* Modal de Estatísticas */}
       {selectedPlayerForStats && (
-        <div className="fixed inset-0 bg-navy/60 backdrop-blur-md z-[110] flex items-center justify-center p-6 animate-in fade-in duration-300">
-           <div className="w-full max-w-[400px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 bg-navy/60 backdrop-blur-md z-[110] flex items-center justify-center p-6 animate-fade-in">
+           <div className="w-full max-w-[400px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-scale-in">
               <div className="p-8 bg-navy text-white flex items-center justify-between">
                  <div className="flex items-center gap-3">
                     <img src={selectedPlayerForStats.photoUrl} className="w-12 h-12 rounded-xl object-cover border-2 border-white/20" alt="" />
-                    <div>
-                       <h3 className="text-sm font-black uppercase italic leading-none mb-1">{selectedPlayerForStats.name}</h3>
-                       <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{selectedPlayerForStats.position}</span>
-                    </div>
+                    <div><h3 className="text-sm font-black uppercase italic leading-none mb-1">{selectedPlayerForStats.name}</h3><span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{selectedPlayerForStats.position}</span></div>
                  </div>
-                 <button onClick={() => setSelectedPlayerForStats(null)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-sm">close</span>
-                 </button>
+                 <button onClick={() => setSelectedPlayerForStats(null)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><span className="material-symbols-outlined text-sm">close</span></button>
               </div>
-
               <div className="p-8 space-y-6">
                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">⚽ GOLS</label>
-                       <input type="number" value={statsData.goals} onChange={e => setStatsData({...statsData, goals: Number(e.target.value)})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-black text-navy text-xl" />
-                    </div>
-                    <div className="space-y-1">
-                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">👟 ASSIST.</label>
-                       <input type="number" value={statsData.assists} onChange={e => setStatsData({...statsData, assists: Number(e.target.value)})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-black text-navy text-xl" />
-                    </div>
+                    <div className="space-y-1"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">⚽ GOLS</label><input type="number" value={statsData.goals} onChange={e => setStatsData({...statsData, goals: Number(e.target.value)})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-black text-navy text-xl" /></div>
+                    <div className="space-y-1"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">👟 ASSIST.</label><input type="number" value={statsData.assists} onChange={e => setStatsData({...statsData, assists: Number(e.target.value)})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-black text-navy text-xl" /></div>
                  </div>
-
                  <div className={`space-y-1 p-5 rounded-2xl transition-all ${selectedPlayerForStats.position === 'Goleiro' ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50 opacity-40'}`}>
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between items-center">
-                       <span>🧤 GOLS SOFRIDOS</span>
-                       {selectedPlayerForStats.position === 'Goleiro' && <span className="text-amber-600 bg-amber-100 px-2 py-0.5 rounded text-[8px]">GOLEIRO</span>}
-                    </label>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between items-center"><span>🧤 GOLS SOFRIDOS</span>{selectedPlayerForStats.position === 'Goleiro' && <span className="text-amber-600 bg-amber-100 px-2 py-0.5 rounded text-[8px]">GOLEIRO</span>}</label>
                     <input type="number" value={statsData.concededGoals} onChange={e => setStatsData({...statsData, concededGoals: Number(e.target.value)})} className="w-full h-14 bg-transparent border-none outline-none font-black text-navy text-3xl" />
                  </div>
-
                  <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-18 bg-navy text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
                     {isSavingStats ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : 'ATUALIZAR SCORES'}
                  </button>
@@ -267,69 +171,30 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
            </div>
         </div>
       )}
-
-      {showAddModal && (
-        <div className="fixed inset-0 bg-navy/40 backdrop-blur-sm z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-           <div className="w-full max-w-[400px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden">
-              <div className="px-8 pt-8 pb-4 flex justify-between items-center">
-                 <h3 className="text-lg font-black text-navy uppercase italic">NOVO ATLETA ELITE</h3>
-                 <button onClick={() => setShowAddModal(false)} className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
-                    <span className="material-symbols-outlined text-sm">close</span>
-                 </button>
-              </div>
-              <form onSubmit={handleManualAdd} className="p-8 space-y-5">
-                 <input required type="text" value={newPlayerData.name} onChange={e => setNewPlayerData({...newPlayerData, name: e.target.value})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-navy" placeholder="Nome do Jogador" />
-                 <select value={newPlayerData.position} onChange={e => setNewPlayerData({...newPlayerData, position: e.target.value})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-navy">
-                    <option>Goleiro</option><option>Zagueiro</option><option>Lateral</option><option>Volante</option><option>Meia</option><option>Atacante</option>
-                 </select>
-                 <button type="submit" disabled={isAdding} className="w-full h-16 bg-navy text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl">{isAdding ? "Adicionando..." : "ADICIONAR À ARENA"}</button>
-              </form>
-           </div>
-        </div>
-      )}
     </div>
   );
 };
 
-const Section: React.FC<SectionProps> = ({ title, color, badgeColor, list, countText, isWaitlist, isNotPlaying, isAdmin, onToggleAdmin, onDelete, onEditStats, promotingId, isDeletingId, currentUser }) => (
-  <section>
+const Section: React.FC<SectionProps> = ({ title, color, badgeColor, list, countText, isAdmin, onToggleAdmin, onDelete, onEditStats, promotingId, isDeletingId, currentUser }) => (
+  <section className="animate-slide-up">
     <div className="flex items-center justify-between mb-6 px-2">
-      <div className="flex items-center gap-3">
-        <div className={`w-2 h-6 ${color} rounded-full`}></div>
-        <h3 className={`text-xs font-black uppercase tracking-widest text-navy ${isNotPlaying ? 'opacity-50' : ''}`}>{title}</h3>
-      </div>
+      <div className="flex items-center gap-3"><div className={`w-2 h-6 ${color} rounded-full`}></div><h3 className="text-xs font-black uppercase tracking-widest text-navy">{title}</h3></div>
       <span className={`${badgeColor} text-[10px] font-black px-3 py-1 rounded-lg`}>{list.length} {countText}</span>
     </div>
-    <div className={`space-y-4 ${isNotPlaying ? 'opacity-60 grayscale' : ''}`}>
-      {list.map((p) => {
+    <div className="space-y-4">
+      {list.map((p, i) => {
         const isTargetMaster = p.email === MASTER_ADMIN_EMAIL || (p.id === currentUser?.uid && currentUser?.email === MASTER_ADMIN_EMAIL);
         return (
-          <div key={p.id} className={`bg-white rounded-[2rem] p-5 border border-slate-100 shadow-soft flex items-center gap-4 group transition-all hover:border-primary/20`}>
-            <div className="relative">
-              <div className={`w-16 h-16 rounded-2xl overflow-hidden border-2 ${p.role === 'admin' ? (isTargetMaster ? 'border-primary shadow-glow' : 'border-amber-400') : 'border-slate-50'}`}>
-                <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
-              </div>
-            </div>
+          <div key={p.id} className="bg-white rounded-[2rem] p-5 border border-slate-100 shadow-soft flex items-center gap-4 animate-slide-in-right" style={{ animationDelay: `${i * 100}ms` }}>
+            <div className={`w-16 h-16 rounded-2xl overflow-hidden border-2 ${p.role === 'admin' ? (isTargetMaster ? 'border-primary shadow-glow' : 'border-amber-400') : 'border-slate-50'}`}><img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} /></div>
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-center">
-                <div>
-                  <h4 className="font-black text-navy uppercase italic tracking-tight text-sm leading-none mb-1">{p.name}</h4>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">{p.position}</span>
-                    {p.goals > 0 && <span className="text-[7px] font-black text-primary">⚽ {p.goals}</span>}
-                  </div>
-                </div>
+                <div><h4 className="font-black text-navy uppercase italic tracking-tight text-sm leading-none mb-1">{p.name}</h4><div className="flex items-center gap-2"><span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">{p.position}</span>{p.goals > 0 && <span className="text-[7px] font-black text-primary">⚽ {p.goals}</span>}</div></div>
                 {isAdmin && (
                   <div className="flex items-center gap-1.5">
-                     <button onClick={() => onEditStats(p)} className="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white">
-                        <span className="material-symbols-outlined text-xl">analytics</span>
-                      </button>
-                      <button onClick={() => onToggleAdmin(p)} disabled={promotingId === p.id || isTargetMaster} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isTargetMaster ? 'bg-slate-100 text-slate-300' : (p.role === 'admin' ? 'bg-amber-100 text-amber-600' : 'bg-slate-50 text-slate-300 hover:bg-navy hover:text-white')}`}>
-                        <span className="material-symbols-outlined text-xl">{isTargetMaster ? 'shield_person' : 'verified_user'}</span>
-                      </button>
-                      <button onClick={() => onDelete(p)} disabled={isDeletingId === p.id || isTargetMaster} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-red-50 text-red-500 hover:bg-red-500 hover:text-white ${isTargetMaster ? 'opacity-30' : ''}`}>
-                        <span className="material-symbols-outlined text-xl">delete</span>
-                      </button>
+                      <button onClick={() => onEditStats(p)} className="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"><span className="material-symbols-outlined text-xl">analytics</span></button>
+                      <button onClick={() => onToggleAdmin(p)} disabled={promotingId === p.id || isTargetMaster} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isTargetMaster ? 'bg-slate-100 text-slate-300' : (p.role === 'admin' ? 'bg-amber-100 text-amber-600' : 'bg-slate-50 text-slate-300 hover:bg-navy hover:text-white')}`}><span className="material-symbols-outlined text-xl">{isTargetMaster ? 'shield_person' : 'verified_user'}</span></button>
+                      <button onClick={() => onDelete(p)} disabled={isDeletingId === p.id || isTargetMaster} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-red-50 text-red-500 hover:bg-red-500 hover:text-white ${isTargetMaster ? 'opacity-30' : ''}`}><span className="material-symbols-outlined text-xl">delete</span></button>
                   </div>
                 )}
               </div>

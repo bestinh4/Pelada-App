@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { db, doc, setDoc } from '../services/firebase.ts';
 import { Page } from '../types.ts';
+import { sendPushNotification } from '../services/notificationService.ts';
 
 interface OnboardingProps {
   user: any;
@@ -26,7 +27,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
       await setDoc(playerDocRef, {
         id: user.uid,
         name: name,
-        email: user.email, // Salva o e-mail para verificação de Master Admin
+        email: user.email,
         photoUrl: user.photoURL || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
         goals: 0,
         assists: 0,
@@ -35,8 +36,14 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         playerType: playerType,
         paymentStatus: 'pendente',
         status: 'pendente',
-        role: 'player' // Cargo inicial padrão
+        role: 'player'
       });
+      
+      sendPushNotification(
+        "🚀 BEM-VINDO À ELITE!", 
+        `${name}, seu contrato foi assinado! A Arena O&A espera por você.`
+      );
+      
       onComplete();
     } catch (err) {
       console.error(err);
