@@ -99,10 +99,12 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       weekday: 'long', day: '2-digit', month: 'long' 
     });
 
+    // Link da aplicação
     const appUrl = window.location.origin;
 
+    // Monta a mensagem com ícones reconhecíveis e a bandeira da croácia 🇭🇷
     let message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n`;
-    message += `📍 *Local:* ${match.location}\n`;
+    message += `📍 *Local:* ${match.location} 🇭🇷\n`;
     message += `📅 *Data:* ${dateStr}\n`;
     message += `⏰ *Hora:* ${match.time}h\n\n`;
 
@@ -118,7 +120,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       });
     }
 
-    message += `\n🔗 *Confirme sua presença no App:* \n${appUrl}\n`;
+    // Link direto para o app
+    message += `\n🔗 *Confirme sua presença pelo App:* \n${appUrl}\n`;
     message += `\n_Ousadia & Alegria_ 🔥`;
     
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
@@ -194,7 +197,6 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         />
       </main>
 
-      {/* Botão de compartilhamento flutuante proeminente */}
       <div className="fixed bottom-32 right-8 z-50">
         <button 
           onClick={handleShareList}
