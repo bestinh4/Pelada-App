@@ -15,27 +15,29 @@
     <link rel="apple-touch-icon" href="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png">
 
     <link rel="icon" type="image/png" href="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png">
+    
+    <!-- Import Map consolidado para evitar erros de registro de componentes -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@18.2.0",
+          "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+          "react-dom": "https://esm.sh/react-dom@18.2.0",
+          "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+          "firebase/app": "https://esm.sh/firebase@10.7.1/app",
+          "firebase/auth": "https://esm.sh/firebase@10.7.1/auth",
+          "firebase/firestore": "https://esm.sh/firebase@10.7.1/firestore",
+          "firebase/messaging": "https://esm.sh/firebase@10.7.1/messaging",
+          "@google/genai": "https://esm.sh/@google/genai"
+        }
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Bebas+Neue&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
-    <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@18.2.0",
-    "react-dom": "https://esm.sh/react-dom@18.2.0",
-    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-    "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
-    "@google/genai": "https://esm.sh/@google/genai",
-    "firebase/app": "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
-    "firebase/auth": "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js",
-    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js",
-    "firebase/messaging": "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js"
-  }
-}
-</script>
-
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
       tailwind.config = {
@@ -82,16 +84,6 @@
   </head>
   <body class="bg-slate-50 font-display text-slate-900 overflow-x-hidden">
     <div id="root"></div>
-    <script type="module" src="index.tsx"></script>
-    <script>
-      // Registro do Service Worker de forma segura e local
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js')
-            .then(reg => console.log('O&A Elite Pro: PWA pronto para uso.'))
-            .catch(err => console.warn('O&A Elite Pro: Falha no SW.', err));
-        });
-      }
-    </script>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

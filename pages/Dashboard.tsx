@@ -56,7 +56,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       const newStatus = isConfirmed ? 'pendente' : 'presente';
       await updateDoc(playerRef, { status: newStatus });
       
-      // Envia notificação push de confirmação
       if (newStatus === 'presente') {
         sendPushNotification(
           "✅ Presença Confirmada!", 
@@ -74,6 +73,15 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     } finally { 
       setIsUpdating(false); 
     }
+  };
+
+  const handleShareMatch = () => {
+    if (!match) return;
+    const dateStr = new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { 
+      weekday: 'long', day: '2-digit', month: 'long' 
+    });
+    const message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n📍 *Local:* ${match.location}\n📅 *Data:* ${dateStr}\n⏰ *Hora:* ${match.time}h\n\n🔥 *Bora pro jogo! Confirme sua presença no app.*`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
@@ -105,6 +113,12 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                   {match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) : '---'} • {match?.time || '--:--'}h
                 </div>
               </div>
+              <button 
+                onClick={handleShareMatch}
+                className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm active:scale-90 transition-all border border-emerald-100"
+              >
+                <span className="material-symbols-outlined text-2xl">share</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-8">

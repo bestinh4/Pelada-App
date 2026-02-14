@@ -18,6 +18,7 @@ const sanitizeForAI = (players: Player[]) => {
 };
 
 export const balanceTeams = async (players: Player[]) => {
+  // Fix: Initializing GoogleGenAI client correctly
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   const cleanData = sanitizeForAI(players);
@@ -39,9 +40,10 @@ export const balanceTeams = async (players: Player[]) => {
   Retorne APENAS um JSON com dois arrays: "teamRed" e "teamBlue" contendo os nomes originais.`;
 
   try {
+    // Fix: Using correct model 'gemini-3-pro-preview' and simplified 'contents' string parameter
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: [{ role: 'user', parts: [{ text: promptText }] }],
+      contents: promptText,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -61,6 +63,7 @@ export const balanceTeams = async (players: Player[]) => {
       }
     });
 
+    // Fix: Accessing text directly as a property, not a method
     const text = response.text;
     if (!text) throw new Error("IA retornou resposta vazia");
     
