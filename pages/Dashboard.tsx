@@ -20,8 +20,8 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   const currentPlayer = players.find(p => p.id === user?.uid);
   const isConfirmed = currentPlayer?.status === 'presente';
-  const confirmedPlayers = players.filter(p => p.status === 'presente');
   
+  const confirmedPlayers = players.filter(p => p.status === 'presente');
   const fieldSlotsLimit = match?.fieldSlots || 30;
   const gkSlotsLimit = match?.gkSlots || 5;
 
@@ -35,7 +35,13 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const waitlistField = confirmedField.slice(fieldSlotsLimit);
   const fullWaitlist = [...waitlistGKs, ...waitlistField];
 
-  const canceledPlayers = players.filter(p => p.status === 'pendente' && (p.goals > 0 || p.assists > 0 || p.id === user?.uid));
+  // Líderes (Top 3 Artilheiros)
+  const topScorers = [...players]
+    .filter(p => p.goals > 0)
+    .sort((a, b) => b.goals - a.goals)
+    .slice(0, 3);
+
+  const canceledPlayers = players.filter(p => p.status === 'pendente' && (p.goals > 0 || p.assists > 0));
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -113,7 +119,8 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <section className="px-6 mt-8 pb-32">
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-6 animate-scale-in">
+        {/* Match Info Card */}
+        <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-10 animate-scale-in">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
           <div className="relative z-10">
             <div className="flex justify-between items-start mb-8">
@@ -162,20 +169,60 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
         </div>
 
-        <div className="space-y-4 mb-8 animate-fade-in delay-3">
-           <div className="flex items-center justify-between px-2">
-              <h3 className="text-[10px] font-black text-navy uppercase tracking-widest">RANKING DE ATIVIDADE</h3>
-              <button onClick={() => onPageChange(Page.PlayerList)} className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline">VER TUDO</button>
+        {/* Season Leaders Section */}
+        <div className="space-y-6 animate-fade-in delay-3">
+           <div className="flex items-center gap-3 px-2">
+             <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-navy italic">LÍDERES DA TEMPORADA</h3>
            </div>
-           <div className="flex -space-x-3 overflow-hidden p-2">
-              {confirmedPlayers.slice(0, 10).map((p, i) => (
-                <img key={p.id} src={p.photoUrl} className="inline-block h-10 w-10 rounded-full ring-4 ring-slate-50 object-cover animate-scale-in" style={{ animationDelay: `${i * 50}ms` }} />
-              ))}
-              {confirmedPlayers.length > 10 && (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 ring-4 ring-slate-50 text-[10px] font-black text-slate-500">
-                  +{confirmedPlayers.length - 10}
-                </div>
-              )}
+
+           <div className="grid grid-cols-1 gap-4">
+              <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-soft">
+                 <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-2">
+                       <span className="material-symbols-outlined text-primary text-xl">emoji_events</span>
+                       <span className="text-[10px] font-black uppercase tracking-widest text-navy">ARTILHARIA ELITE</span>
+                    </div>
+                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">GOLS</span>
+                 </div>
+                 
+                 <div className="space-y-4">
+                    {topScorers.length > 0 ? topScorers.map((p, i) => (
+                      <div key={p.id} className="flex items-center justify-between animate-slide-in-right" style={{ animationDelay: `${i * 100}ms` }}>
+                         <div className="flex items-center gap-3">
+                            <div className="relative">
+                               <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
+                                  <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
+                               </div>
+                               <div className="absolute -top-1 -left-1 w-5 h-5 bg-navy text-white text-[8px] font-black flex items-center justify-center rounded-lg border-2 border-white">{i + 1}º</div>
+                            </div>
+                            <div>
+                               <h4 className="text-[12px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
+                               <p className="text-[8px] font-bold text-slate-400 uppercase">{p.position}</p>
+                            </div>
+                         </div>
+                         <div className="text-right">
+                            <span className="text-xl font-black text-primary italic leading-none">{p.goals}</span>
+                            <p className="text-[7px] font-black text-slate-300 uppercase">GOLS</p>
+                         </div>
+                      </div>
+                    )) : (
+                      <div className="py-8 text-center opacity-30">
+                        <span className="material-symbols-outlined text-3xl mb-1">sports_soccer</span>
+                        <p className="text-[8px] font-black uppercase tracking-widest">Aguardando início da temporada</p>
+                      </div>
+                    )}
+                 </div>
+
+                 {topScorers.length > 0 && (
+                   <button 
+                    onClick={() => onPageChange(Page.PlayerList)}
+                    className="w-full mt-6 py-3 bg-slate-50 rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-navy hover:text-white transition-all"
+                   >
+                     VER RANKING COMPLETO
+                   </button>
+                 )}
+              </div>
            </div>
         </div>
       </section>
