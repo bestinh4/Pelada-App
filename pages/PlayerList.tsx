@@ -86,7 +86,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       }
     });
 
-    return { confirmed, waitlist, notPlaying };
+    return { confirmed, waitlist, notPlaying, currentGKs, currentField };
   }, [players, searchQuery, fieldSlots, gkSlots]);
 
   const handleShareList = () => {
@@ -100,10 +100,12 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     });
 
     const appUrl = window.location.origin;
+    const remainingField = Math.max(0, fieldSlots - groupedPlayers.currentField);
+    const remainingGKs = Math.max(0, gkSlots - groupedPlayers.currentGKs);
+    const flag = "🇭🇷"; // Bandeira da Croácia
 
-    // Emojis padrão reconhecidos pelo WhatsApp
-    let message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n`;
-    message += `📍 *Local:* ${match.location} 🇭🇷\n`;
+    let message = `⚽ *CONVOCAÇÃO O&A ELITE* ${flag} ⚽\n\n`;
+    message += `📍 *Local:* ${match.location} ${flag}\n`;
     message += `📅 *Data:* ${dateStr}\n`;
     message += `⏰ *Hora:* ${match.time}h\n\n`;
 
@@ -113,16 +115,26 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     });
 
     if (groupedPlayers.waitlist.length > 0) {
-      message += `\n⏳ *LISTA DE ESPERA:* \n`;
+      message += `\n⏳ *LISTA DE ESPERA (${groupedPlayers.waitlist.length}):*\n`;
       groupedPlayers.waitlist.forEach((p, index) => {
         message += `${index + 1}. ${p.name} (${p.position})\n`;
       });
     }
 
-    message += `\n🔗 *Confirme sua presença pelo App:* \n${appUrl}\n`;
+    if (groupedPlayers.notPlaying.length > 0) {
+      message += `\n❌ *FORA / AUSENTES (${groupedPlayers.notPlaying.length}):*\n`;
+      groupedPlayers.notPlaying.forEach((p, index) => {
+        message += `${index + 1}. ${p.name}\n`;
+      });
+    }
+
+    message += `\n📊 *VAGAS RESTANTES:*\n`;
+    message += `🏃 Linha: ${remainingField}\n`;
+    message += `🧤 Goleiros: ${remainingGKs}\n\n`;
+
+    message += `🔗 *Confirme pelo App:* \n${appUrl}\n`;
     message += `\n_Ousadia & Alegria_ 🔥`;
     
-    // Usando api.whatsapp.com para garantir codificação correta de emojis e bandeira
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 

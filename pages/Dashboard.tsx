@@ -24,6 +24,9 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const fieldSlotsLimit = match?.fieldSlots || 30;
   const gkSlotsLimit = match?.gkSlots || 5;
 
+  const remainingField = Math.max(0, fieldSlotsLimit - confirmedField);
+  const remainingGKs = Math.max(0, gkSlotsLimit - confirmedGKs);
+
   const topScorers = [...players]
     .filter(p => p.goals > 0)
     .sort((a, b) => b.goals - a.goals)
@@ -81,10 +84,19 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     });
     
     const appUrl = window.location.origin;
-    // Bandeira da Croácia e emojis padrão WhatsApp
-    const message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n📍 *Local:* ${match.location} 🇭🇷\n📅 *Data:* ${dateStr}\n⏰ *Hora:* ${match.time}h\n\n🔥 *Confirme sua presença pelo link:* \n🔗 ${appUrl}`;
+    const flag = "🇭🇷"; // Bandeira da Croácia
     
-    // Usando a API oficial do WhatsApp para melhor compatibilidade com caracteres especiais
+    let message = `⚽ *CONVOCAÇÃO O&A ELITE* ${flag} ⚽\n\n`;
+    message += `📍 *Local:* ${match.location} ${flag}\n`;
+    message += `📅 *Data:* ${dateStr}\n`;
+    message += `⏰ *Hora:* ${match.time}h\n\n`;
+    
+    message += `📊 *VAGAS RESTANTES:*\n`;
+    message += `🏃 Linha: ${remainingField}\n`;
+    message += `🧤 Goleiros: ${remainingGKs}\n\n`;
+    
+    message += `🔥 *Confirme sua presença pelo link:* \n🔗 ${appUrl}`;
+    
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 
