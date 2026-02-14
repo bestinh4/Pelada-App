@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+ELITEeact, { useState } from 'react';
 import { Match, Player, Page } from '../types.ts';
 import { db, doc, updateDoc } from '../services/firebase.ts';
 import { sendPushNotification } from '../services/notificationService.ts';
@@ -86,7 +86,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     const appUrl = window.location.origin;
     const flag = "🇭🇷"; // Bandeira da Croácia
     
-    let message = `⚽ *CONVOCAÇÃO O&A ELITE* ${flag} ⚽\n\n`;
+    let message = `⚽ *CONVOCAÇÃO O&A*{flag} ⚽\n\n`;
     message += `📍 *Local:* ${match.location} ${flag}\n`;
     message += `📅 *Data:* ${dateStr}\n`;
     message += `⏰ *Hora:* ${match.time}h\n\n`;
