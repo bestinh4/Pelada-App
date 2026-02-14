@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Match, Player, Page } from '../types.ts';
 import { db, doc, updateDoc } from '../services/firebase.ts';
-import { sendPushNotification } from '../services/notificationService.ts';
 
 interface DashboardProps {
   match: Match | null;
@@ -28,14 +27,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const confirmedGKs = confirmedPlayers.filter(p => p.position === 'Goleiro');
   const confirmedField = confirmedPlayers.filter(p => p.position !== 'Goleiro');
 
-  const effectiveGKs = confirmedGKs.slice(0, gkSlotsLimit);
-  const effectiveField = confirmedField.slice(0, fieldSlotsLimit);
-  
-  const waitlistGKs = confirmedGKs.slice(gkSlotsLimit);
-  const waitlistField = confirmedField.slice(fieldSlotsLimit);
-  const fullWaitlist = [...waitlistGKs, ...waitlistField];
-
-  // Líderes (Top 3 Artilheiros)
+  // Top 3 Artilheiros
   const topScorers = [...players]
     .filter(p => p.goals > 0)
     .sort((a, b) => b.goals - a.goals)
@@ -47,7 +39,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     const timer = setTimeout(() => {
       setFieldPercent(Math.min(100, (confirmedField.length / fieldSlotsLimit) * 100));
       setGkPercent(Math.min(100, (confirmedGKs.length / gkSlotsLimit) * 100));
-    }, 300);
+    }, 400);
     return () => clearTimeout(timer);
   }, [confirmedField.length, confirmedGKs.length, fieldSlotsLimit, gkSlotsLimit]);
 
@@ -66,9 +58,9 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   const handleShareMatch = () => {
     if (!match) return;
-    const dateStr = new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { 
+    const dateStr = match.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { 
       weekday: 'long', day: '2-digit', month: 'long' 
-    });
+    }) : '---';
     
     const appUrl = window.location.origin;
     const flag = "🇭🇷";
@@ -78,24 +70,14 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     message += `📅 *Data:* ${dateStr}\n`;
     message += `⏰ *Hora:* ${match.time}h\n\n`;
     
-    message += `✅ *CONFIRMADOS (${effectiveField.length + effectiveGKs.length}/${fieldSlotsLimit + gkSlotsLimit})*\n`;
-    if (effectiveGKs.length > 0) {
-      message += `_Goleiros:_\n`;
-      effectiveGKs.forEach((p, i) => message += `${i+1}. ${p.name}\n`);
-    }
-    if (effectiveField.length > 0) {
-      message += `_Linha:_\n`;
-      effectiveField.forEach((p, i) => message += `${i+1}. ${p.name}\n`);
-    }
+    message += `✅ *CONFIRMADOS (${confirmedPlayers.length}/${fieldSlotsLimit + gkSlotsLimit})*\n`;
+    
+    const waitlist = confirmedPlayers.length > (fieldSlotsLimit + gkSlotsLimit) 
+      ? confirmedPlayers.length - (fieldSlotsLimit + gkSlotsLimit) 
+      : 0;
 
-    if (fullWaitlist.length > 0) {
-      message += `\n⏳ *LISTA DE ESPERA (${fullWaitlist.length})*\n`;
-      fullWaitlist.forEach((p, i) => message += `${i+1}. ${p.name} (${p.position})\n`);
-    }
-
-    if (canceledPlayers.length > 0) {
-      message += `\n❌ *DESISTÊNCIAS / FORA*\n`;
-      canceledPlayers.slice(0, 5).forEach((p) => message += `- ${p.name}\n`);
+    if (waitlist > 0) {
+      message += `⏳ *LISTA DE ESPERA:* ${waitlist} atletas\n`;
     }
     
     message += `\n🔥 *Confirme pelo App:* \n🔗 ${appUrl}`;
@@ -119,7 +101,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <section className="px-6 mt-8 pb-32">
-        {/* Match Info Card */}
         <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-10 animate-scale-in">
           <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
           <div className="relative z-10">
@@ -169,60 +150,54 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
         </div>
 
-        {/* Season Leaders Section */}
+        {/* Top Artilheiros Section */}
         <div className="space-y-6 animate-fade-in delay-3">
            <div className="flex items-center gap-3 px-2">
              <div className="w-1.5 h-6 bg-primary rounded-full"></div>
              <h3 className="text-xs font-black uppercase tracking-[0.3em] text-navy italic">LÍDERES DA TEMPORADA</h3>
            </div>
 
-           <div className="grid grid-cols-1 gap-4">
-              <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-soft">
-                 <div className="flex items-center justify-between mb-6">
-                    <div className="flex items-center gap-2">
-                       <span className="material-symbols-outlined text-primary text-xl">emoji_events</span>
-                       <span className="text-[10px] font-black uppercase tracking-widest text-navy">ARTILHARIA ELITE</span>
-                    </div>
-                    <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">GOLS</span>
+           <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-soft">
+              <div className="flex items-center justify-between mb-6">
+                 <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-xl">emoji_events</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-navy">ARTILHARIA ELITE</span>
                  </div>
-                 
-                 <div className="space-y-4">
-                    {topScorers.length > 0 ? topScorers.map((p, i) => (
-                      <div key={p.id} className="flex items-center justify-between animate-slide-in-right" style={{ animationDelay: `${i * 100}ms` }}>
-                         <div className="flex items-center gap-3">
-                            <div className="relative">
-                               <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                                  <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
-                               </div>
-                               <div className="absolute -top-1 -left-1 w-5 h-5 bg-navy text-white text-[8px] font-black flex items-center justify-center rounded-lg border-2 border-white">{i + 1}º</div>
+              </div>
+              
+              <div className="space-y-4">
+                 {topScorers.length > 0 ? topScorers.map((p, i) => (
+                   <div key={p.id} className="flex items-center justify-between animate-slide-in-right" style={{ animationDelay: `${i * 100}ms` }}>
+                      <div className="flex items-center gap-3">
+                         <div className="relative">
+                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
+                               <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
                             </div>
-                            <div>
-                               <h4 className="text-[12px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
-                               <p className="text-[8px] font-bold text-slate-400 uppercase">{p.position}</p>
-                            </div>
+                            <div className="absolute -top-1 -left-1 w-5 h-5 bg-navy text-white text-[8px] font-black flex items-center justify-center rounded-lg border-2 border-white">{i + 1}º</div>
                          </div>
-                         <div className="text-right">
-                            <span className="text-xl font-black text-primary italic leading-none">{p.goals}</span>
-                            <p className="text-[7px] font-black text-slate-300 uppercase">GOLS</p>
+                         <div>
+                            <h4 className="text-[12px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
+                            <p className="text-[8px] font-bold text-slate-400 uppercase">{p.position}</p>
                          </div>
                       </div>
-                    )) : (
-                      <div className="py-8 text-center opacity-30">
-                        <span className="material-symbols-outlined text-3xl mb-1">sports_soccer</span>
-                        <p className="text-[8px] font-black uppercase tracking-widest">Aguardando início da temporada</p>
+                      <div className="text-right">
+                         <span className="text-xl font-black text-primary italic leading-none">{p.goals}</span>
+                         <p className="text-[7px] font-black text-slate-300 uppercase">GOLS</p>
                       </div>
-                    )}
-                 </div>
-
-                 {topScorers.length > 0 && (
-                   <button 
-                    onClick={() => onPageChange(Page.PlayerList)}
-                    className="w-full mt-6 py-3 bg-slate-50 rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-navy hover:text-white transition-all"
-                   >
-                     VER RANKING COMPLETO
-                   </button>
+                   </div>
+                 )) : (
+                   <div className="py-8 text-center opacity-30">
+                     <p className="text-[8px] font-black uppercase tracking-widest italic">Aguardando início da contagem</p>
+                   </div>
                  )}
               </div>
+              
+              <button 
+                onClick={() => onPageChange(Page.PlayerList)}
+                className="w-full mt-6 py-3 bg-slate-50 rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-navy hover:text-white transition-all"
+              >
+                VER RANKING COMPLETO
+              </button>
            </div>
         </div>
       </section>
