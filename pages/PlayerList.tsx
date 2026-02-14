@@ -99,10 +99,9 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       weekday: 'long', day: '2-digit', month: 'long' 
     });
 
-    // Link da aplicação
     const appUrl = window.location.origin;
 
-    // Monta a mensagem com ícones reconhecíveis e a bandeira da croácia 🇭🇷
+    // Emojis padrão reconhecidos pelo WhatsApp
     let message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n`;
     message += `📍 *Local:* ${match.location} 🇭🇷\n`;
     message += `📅 *Data:* ${dateStr}\n`;
@@ -120,11 +119,11 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       });
     }
 
-    // Link direto para o app
     message += `\n🔗 *Confirme sua presença pelo App:* \n${appUrl}\n`;
     message += `\n_Ousadia & Alegria_ 🔥`;
     
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    // Usando api.whatsapp.com para garantir codificação correta de emojis e bandeira
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (

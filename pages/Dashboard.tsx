@@ -79,11 +79,13 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     const dateStr = new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { 
       weekday: 'long', day: '2-digit', month: 'long' 
     });
-    // Obtém o link base da aplicação
+    
     const appUrl = window.location.origin;
-    // Adiciona a bandeira da croácia após o local e o link no final
-    const message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n📍 *Local:* ${match.location} 🇭🇷\n📅 *Data:* ${dateStr}\n⏰ *Hora:* ${match.time}h\n\n🔥 *Confirme sua presença agora:* \n🔗 ${appUrl}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    // Bandeira da Croácia e emojis padrão WhatsApp
+    const message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n📍 *Local:* ${match.location} 🇭🇷\n📅 *Data:* ${dateStr}\n⏰ *Hora:* ${match.time}h\n\n🔥 *Confirme sua presença pelo link:* \n🔗 ${appUrl}`;
+    
+    // Usando a API oficial do WhatsApp para melhor compatibilidade com caracteres especiais
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
