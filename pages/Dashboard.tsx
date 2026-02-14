@@ -170,8 +170,17 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                    <div key={p.id} className="flex items-center justify-between animate-slide-in-right" style={{ animationDelay: `${i * 100}ms` }}>
                       <div className="flex items-center gap-3">
                          <div className="relative">
-                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100 shadow-sm">
-                               <img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} />
+                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100 shadow-sm bg-slate-50">
+                               <img 
+                                src={p.photoUrl && p.photoUrl !== "" ? p.photoUrl : `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=003876&color=fff`} 
+                                referrerPolicy="no-referrer"
+                                className="w-full h-full object-cover" 
+                                alt={p.name} 
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=003876&color=fff`;
+                                }}
+                               />
                             </div>
                             <div className="absolute -top-1 -left-1 w-5 h-5 bg-navy text-white text-[8px] font-black flex items-center justify-center rounded-lg border-2 border-white">{i + 1}º</div>
                          </div>

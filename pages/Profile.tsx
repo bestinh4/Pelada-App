@@ -1,3 +1,4 @@
+
 import { logout, db, doc, updateDoc } from '../services/firebase.ts';
 import React, { useRef, useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
@@ -16,10 +17,16 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
 
   const isMaster = currentUserEmail === MASTER_ADMIN_EMAIL;
 
+  // Fallback robusto para fotos
+  const getSafePhotoUrl = () => {
+    if (previewUrl) return previewUrl;
+    if (player.photoUrl && player.photoUrl !== "") return player.photoUrl;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=003876&color=fff&size=256`;
+  };
+
   useEffect(() => {
     setEditedName(player.name);
     setEditedPosition(player.position);
-    // Resetar preview quando o player mudar via props (sync com banco)
     setPreviewUrl(null);
   }, [player.id, player.name, player.position, player.photoUrl]);
 
@@ -62,9 +69,9 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
       return;
     }
 
-    // Limite de 2MB para base64 no Firestore (recomendado manter pequeno)
-    if (file.size > 2 * 1024 * 1024) {
-      alert("A imagem deve ter no máximo 2MB.");
+    // Firestore limite rigoroso de 1MB por documento. Reduzindo para 500KB para segurança do base64.
+    if (file.size > 500 * 1024) {
+      alert("A imagem deve ter no máximo 500KB para garantir o sincronismo.");
       return;
     }
 
@@ -74,7 +81,6 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
       reader.onloadend = async () => {
         const base64String = reader.result as string;
         
-        // Preview Instantâneo (Optimistic UI)
         setPreviewUrl(base64String);
         
         const playerDocRef = doc(db, "players", player.id);
@@ -133,9 +139,14 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
             className={`w-44 h-44 rounded-[3.5rem] border-[10px] ${isMaster ? 'border-primary ring-8 ring-primary/5' : 'border-white'} shadow-2xl overflow-hidden relative z-10 transition-transform duration-500 group-hover:scale-105 cursor-pointer bg-slate-100`}
            >
              <img 
-              src={previewUrl || player.photoUrl} 
+              src={getSafePhotoUrl()} 
+              referrerPolicy="no-referrer"
               className={`w-full h-full object-cover transition-opacity duration-300 ${isUploading ? 'opacity-50' : 'opacity-100'}`} 
-              alt={player.name} 
+              alt={player.name}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(player.name)}&background=003876&color=fff&size=256`;
+              }}
              />
              
              {isUploading && (
@@ -160,7 +171,6 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
              </span>
            </button>
            
-           {/* Input invisível para Câmera ou Galeria */}
            <input 
             type="file" 
             ref={fileInputRef} 
@@ -170,7 +180,6 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
            />
         </div>
 
-        {/* Cargo Badge Master */}
         <div className={`mb-6 px-6 py-2 rounded-full flex items-center gap-2 shadow-2xl transition-all ${isMaster ? 'bg-primary text-white scale-110 animate-pulse' : (player.role === 'admin' ? 'bg-navy text-white' : 'bg-slate-100 text-slate-400')}`}>
           <span className="material-symbols-outlined text-sm fill-1">{isMaster ? 'workspace_premium' : (player.role === 'admin' ? 'military_tech' : 'person')}</span>
           <span className="text-[10px] font-black uppercase tracking-[0.2em]">
