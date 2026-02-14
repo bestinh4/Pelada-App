@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Player, Page, Match } from '../types.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
@@ -100,6 +99,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       weekday: 'long', day: '2-digit', month: 'long' 
     });
 
+    const appUrl = window.location.origin;
+
     let message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n`;
     message += `📍 *Local:* ${match.location}\n`;
     message += `📅 *Data:* ${dateStr}\n`;
@@ -117,7 +118,9 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       });
     }
 
-    message += `\n_Bora pro jogo! Ousadia & Alegria_ 🔥`;
+    message += `\n🔗 *Confirme sua presença no App:* \n${appUrl}\n`;
+    message += `\n_Ousadia & Alegria_ 🔥`;
+    
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 

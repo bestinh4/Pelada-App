@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Match, Player, Page } from '../types.ts';
 import { db, doc, updateDoc } from '../services/firebase.ts';
@@ -80,7 +79,8 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     const dateStr = new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { 
       weekday: 'long', day: '2-digit', month: 'long' 
     });
-    const message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n📍 *Local:* ${match.location}\n📅 *Data:* ${dateStr}\n⏰ *Hora:* ${match.time}h\n\n🔥 *Bora pro jogo! Confirme sua presença no app.*`;
+    const appUrl = window.location.origin;
+    const message = `⚽ *CONVOCAÇÃO O&A ELITE* ⚽\n\n📍 *Local:* ${match.location}\n📅 *Data:* ${dateStr}\n⏰ *Hora:* ${match.time}h\n\n🔥 *Confirme sua presença pelo link:* \n🔗 ${appUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
   };
 
