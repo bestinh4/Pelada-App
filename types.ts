@@ -13,6 +13,8 @@ export interface Player {
   status: 'presente' | 'pendente';
   playerType: 'mensalista' | 'avulso';
   paymentStatus?: 'pago' | 'pendente';
+  monthlyPaid?: boolean; // Novo: Controle específico para mensalistas
+  lastPaymentDate?: string;
   role?: 'admin' | 'player';
   pushEnabled?: boolean;
   skills?: {

@@ -28,7 +28,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         id: user.uid,
         name: name,
         email: user.email,
-        photoUrl: user.photoURL || "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
+        photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=003876&color=fff`,
         goals: 0,
         assists: 0,
         concededGoals: 0,
@@ -60,8 +60,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
       <div className="w-full max-w-[420px] bg-white rounded-apple-xl shadow-[0_30px_70px_rgba(0,56,118,0.15)] border border-slate-100 p-10 flex flex-col z-10 animate-in fade-in zoom-in-95 duration-500">
         <div className="flex flex-col items-center mb-8">
           <img src={logoUrl} alt="Logo" className="w-24 h-24 object-contain mb-4" />
-          <h1 className="text-xl font-black text-navy uppercase italic tracking-tighter">BEM-VINDO À ELITE</h1>
-          <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] mt-1 text-center">Complete seu cadastro para acessar a arena</p>
+          <h1 className="text-xl font-black text-navy uppercase italic tracking-tighter">CONVOCAÇÃO ELITE</h1>
+          <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] mt-1 text-center">Complete seu cadastro para entrar em campo</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -86,13 +86,18 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
               className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-navy focus:ring-2 focus:ring-primary/20 outline-none transition-all"
             >
               <option value="" disabled>Selecione sua posição...</option>
-              <option value="Goleiro">Goleiro</option>
+              <option value="Goleiro">Goleiro (Isento de Taxa)</option>
               <option value="Zagueiro">Zagueiro</option>
               <option value="Lateral">Lateral</option>
               <option value="Volante">Volante</option>
               <option value="Meia">Meia</option>
               <option value="Atacante">Atacante</option>
             </select>
+            {position === 'Goleiro' && (
+              <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest mt-2 bg-amber-50 p-2 rounded-lg border border-amber-100 animate-pulse">
+                🧤 BENEFÍCIO: Goleiros são isentos de cobrança na Arena O&A!
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">
@@ -126,7 +131,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             ) : (
               <>
-                CONCLUIR CONTRATAÇÃO
+                ASSINAR CONTRATO
                 <span className="material-symbols-outlined">chevron_right</span>
               </>
             )}
