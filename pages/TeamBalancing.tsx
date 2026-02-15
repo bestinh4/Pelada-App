@@ -46,39 +46,22 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
       const result = await balanceTeams(selectedPlayers);
       setTeamsResult(result.teams);
     } catch (e) {
-      alert("Erro na IA. Tente novamente.");
+      alert("Falha no balanceamento IA. Tente novamente.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleShare = () => {
-    if (!teamsResult) return;
-    let message = `⚽ *SORTEIO ARENA O&A ELITE* 🇭🇷\n\n`;
-    teamsResult.forEach(t => {
-      message += `*${t.name.toUpperCase()}*\n`;
-      message += `🧤 GK: ${t.goalkeeper || 'Rodízio'}\n`;
-      message += `🏃 Linha: ${t.field.join(', ')}\n\n`;
-    });
-    message += `Bora pro jogo! 🔥`;
-    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
-  };
-
-  const gksSelected = players.filter(p => selectedIds.has(p.id) && p.position === 'Goleiro').length;
-  const fieldSelected = selectedIds.size - gksSelected;
-
   return (
-    <div className="flex flex-col animate-in fade-in duration-500">
-      <header className="px-6 pt-12 pb-6 glass-white sticky top-0 z-50 flex items-center justify-between">
-        <div className="flex items-center gap-5">
-          <button onClick={() => onPageChange(Page.Dashboard)} className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-navy active:scale-90 transition-all border border-slate-100">
-            <span className="material-symbols-outlined text-2xl">arrow_back</span>
+    <div className="flex flex-col animate-in fade-in duration-500 pb-32">
+      <header className="px-8 pt-12 pb-6 glass-white sticky top-0 z-50 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-navy shadow-sm border border-slate-100">
+            <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div>
-            <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO ELITE</h2>
-            <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mt-1.5 flex items-center gap-1.5">
-               SALA TÁTICA 🇭🇷
-            </p>
+            <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">SALA TÁTICA</h2>
+            <p className="text-[8px] font-black text-primary uppercase tracking-[0.4em] mt-1.5">GEMINI 3 ENGINE</p>
           </div>
         </div>
         <img src={mainLogoUrl} className="w-10 h-10 object-contain opacity-20 grayscale" alt="" />
@@ -86,62 +69,51 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
 
       <main className="px-6 mt-8">
         {!teamsResult ? (
-          <div className="space-y-8">
-            {/* IA SUMMARY CARD */}
-            <div className="bg-white rounded-[2.8rem] p-9 border border-slate-100 shadow-heavy relative overflow-hidden animate-scale-in">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-croatia-pattern opacity-5"></div>
-              <div className="relative z-10 flex justify-between items-center mb-10">
+          <div className="space-y-10">
+            {/* CARD GERADOR LIMPO */}
+            <div className="bg-white rounded-[2.5rem] p-9 border border-slate-100 shadow-heavy relative overflow-hidden">
+              <div className="absolute top-0 right-0 h-full w-2 bg-primary"></div>
+              <div className="flex justify-between items-center mb-10">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 block mb-2">SELEÇÃO PARA O JOGO</span>
-                  <h3 className="text-4xl font-condensed italic text-navy leading-none tracking-tighter">{selectedIds.size} ATLETAS</h3>
+                   <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest block mb-1">CONVOCADOS</span>
+                   <h3 className="text-4xl font-condensed italic text-navy leading-none">{selectedIds.size} ATLETAS</h3>
                 </div>
-                <div className="flex gap-4">
-                  <div className="text-center">
-                    <p className="text-xl font-black text-primary font-condensed italic">{gksSelected}</p>
-                    <p className="text-[7px] font-black text-slate-300 uppercase">GKs</p>
-                  </div>
-                  <div className="text-center border-l border-slate-100 pl-4">
-                    <p className="text-xl font-black text-navy font-condensed italic">{fieldSelected}</p>
-                    <p className="text-[7px] font-black text-slate-300 uppercase">LINHA</p>
-                  </div>
+                <div className="text-right">
+                   <p className="text-xl font-black text-primary font-condensed italic">{players.filter(p => selectedIds.has(p.id) && p.position === 'Goleiro').length} GKs</p>
+                   <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">PAREDÕES</p>
                 </div>
               </div>
               
               <button 
                 onClick={handleGenerate}
                 disabled={isGenerating || selectedIds.size < 4}
-                className="w-full h-20 bg-primary text-white rounded-[1.8rem] font-black uppercase text-xs tracking-widest shadow-heavy flex items-center justify-center gap-5 active:scale-[0.97] transition-all"
+                className="w-full h-18 bg-primary text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-heavy flex items-center justify-center gap-4 active:scale-[0.98] transition-all"
               >
                 {isGenerating ? (
-                  <div className="w-7 h-7 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div>
                 ) : (
                   <>
-                    <span className="material-symbols-outlined text-3xl">bolt</span>
-                    GERAR TIMES COM IA
+                    <span className="material-symbols-outlined text-2xl">bolt</span>
+                    GERAR ESCALAÇÃO IA
                   </>
                 )}
               </button>
             </div>
 
-            <div className="space-y-5">
-              <div className="flex items-center gap-3 px-2">
-                 <div className="w-1.5 h-5 bg-navy rounded-full"></div>
-                 <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-navy italic">CONFIRMADOS</h4>
-              </div>
+            <div className="space-y-4">
+              <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-navy italic ml-2">CONFIRMADOS NO JOGO</h4>
               <div className="grid grid-cols-1 gap-3">
                 {confirmedPlayers.map((p) => (
                   <div 
                     key={p.id}
                     onClick={() => togglePlayer(p.id)}
-                    className={`p-5 rounded-[1.8rem] border transition-all flex items-center justify-between cursor-pointer ${selectedIds.has(p.id) ? 'bg-white border-primary/30 shadow-pro' : 'bg-slate-50/50 border-slate-100 opacity-60'}`}
+                    className={`p-5 rounded-3xl border transition-all flex items-center justify-between cursor-pointer ${selectedIds.has(p.id) ? 'bg-white border-primary shadow-pro' : 'bg-slate-50/50 border-slate-100 opacity-60'}`}
                   >
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-slate-100">
-                        <img src={p.photoUrl} className="w-full h-full object-cover" alt="" />
-                      </div>
+                    <div className="flex items-center gap-4">
+                      <img src={p.photoUrl} className="w-12 h-12 rounded-xl object-cover grayscale" alt="" />
                       <div>
-                        <p className="text-sm font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</p>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
+                        <p className="text-sm font-black text-navy uppercase italic leading-none mb-1">{p.name}</p>
+                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
                       </div>
                     </div>
                     <div className={`w-7 h-7 rounded-xl flex items-center justify-center border-2 transition-all ${selectedIds.has(p.id) ? 'bg-primary border-primary text-white scale-110' : 'border-slate-200'}`}>
@@ -155,24 +127,24 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
         ) : (
           <div className="space-y-10 animate-in slide-in-from-bottom-10">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-xs font-black uppercase tracking-[0.5em] text-navy italic">ESCALAÇÃO VATRENI</h3>
-              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline decoration-2 underline-offset-8">REFAZER SORTEIO</button>
+              <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-navy italic">ESCALAÇÃO PROCESSADA</h3>
+              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase tracking-widest underline underline-offset-8">REFAZER</button>
             </div>
 
             <div className="space-y-8">
               {teamsResult.map((team, idx) => (
-                <div key={idx} className="bg-white rounded-[2.8rem] border border-slate-100 shadow-heavy overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 150}ms` }}>
+                <div key={idx} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-heavy overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 100}ms` }}>
                   <div className={`px-8 py-5 flex justify-between items-center ${idx % 2 === 0 ? 'bg-navy' : 'bg-primary'} text-white`}>
-                    <div className="flex items-center gap-3">
-                       <span className="material-symbols-outlined text-lg">groups</span>
-                       <h4 className="font-black uppercase italic tracking-tighter text-sm">{team.name}</h4>
-                    </div>
-                    <span className="text-[8px] font-black uppercase tracking-widest opacity-40">VATRENI UNIT {idx+1}</span>
+                    <h4 className="font-black uppercase italic tracking-tighter text-[13px]">{team.name}</h4>
+                    <span className="text-[8px] font-black uppercase tracking-widest opacity-40 italic">ELITE SQUAD</span>
                   </div>
                   
                   <div className="p-8 space-y-6">
-                    <PlayerRow name={team.goalkeeper} isGK={true} allPlayers={players} />
-                    <div className="h-px bg-slate-50 w-full"></div>
+                    {team.goalkeeper && (
+                      <div className="pb-4 border-b border-slate-50">
+                        <PlayerRow name={team.goalkeeper} isGK={true} allPlayers={players} />
+                      </div>
+                    )}
                     <div className="grid grid-cols-1 gap-4">
                        {team.field.map((name, i) => (
                          <PlayerRow key={i} name={name} allPlayers={players} />
@@ -184,11 +156,17 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
             </div>
 
             <button 
-              onClick={handleShare}
-              className="w-full h-20 bg-success text-white rounded-[2rem] font-black uppercase text-[11px] tracking-[0.3em] flex items-center justify-center gap-5 shadow-lg active:scale-[0.97] transition-all"
+              onClick={() => {
+                let msg = `⚽ *ESCALAÇÃO ELITE* 🇭🇷\n\n`;
+                teamsResult.forEach(t => {
+                  msg += `*${t.name.toUpperCase()}*\n🧤 GK: ${t.goalkeeper || 'Rodízio'}\n🏃: ${t.field.join(', ')}\n\n`;
+                });
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+              }}
+              className="w-full h-18 bg-success text-white rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-4 shadow-xl active:scale-95 transition-all"
             >
-              <span className="material-symbols-outlined text-3xl">share</span>
-              PUBLICAR ESCALAÇÃO
+              <span className="material-symbols-outlined text-2xl">share</span>
+              PUBLICAR NO WHATSAPP
             </button>
           </div>
         )}
@@ -200,24 +178,14 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
 const PlayerRow = ({ name, isGK = false, allPlayers }: { name: string | null, isGK?: boolean, allPlayers: Player[] }) => {
   const p = allPlayers.find(x => x.name === name);
   if (!name) return null;
-
   return (
-    <div className="flex items-center gap-5 group">
-      <div className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-transform group-hover:scale-105 ${isGK ? 'border-primary ring-4 ring-primary/5 shadow-pro' : 'border-slate-50'}`}>
-        <img 
-          src={p?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=003876&color=fff`} 
-          className="w-full h-full object-cover" 
-          alt={name}
-        />
-      </div>
+    <div className="flex items-center gap-4">
+      <img src={p?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=003876&color=fff`} className="w-11 h-11 rounded-xl object-cover grayscale" alt="" />
       <div>
-        <h5 className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{name}</h5>
-        <div className="flex items-center gap-2">
-           <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${isGK ? 'bg-primary text-white' : 'bg-slate-50 text-slate-400'}`}>
-             {isGK ? 'GOLEIRO' : (p?.position || 'LINHA')}
-           </span>
-           {isGK && <span className="material-symbols-outlined text-primary text-[12px] fill-1">verified</span>}
-        </div>
+        <h5 className="text-[13px] font-black text-navy uppercase italic leading-none mb-1">{name}</h5>
+        <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${isGK ? 'bg-primary text-white' : 'bg-slate-50 text-slate-400'}`}>
+          {isGK ? 'GOLEIRO' : (p?.position || 'LINHA')}
+        </span>
       </div>
     </div>
   );
