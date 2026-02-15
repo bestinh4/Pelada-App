@@ -66,7 +66,7 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
       winnerId = session.activeMatch.teamBId!;
       loserId = session.activeMatch.teamAId;
     } else {
-      const choice = confirm("Time A permanece no empate? (OK para Sim, Cancelar para Time B)") ? 'A' : 'B';
+      const choice = confirm("Vencedor no empate? (OK para Time A, Cancelar para Time B)") ? 'A' : 'B';
       winnerId = choice === 'A' ? session.activeMatch.teamAId! : session.activeMatch.teamBId!;
       loserId = choice === 'A' ? session.activeMatch.teamBId : session.activeMatch.teamAId;
     }
@@ -85,17 +85,17 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
 
   if (!session) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] p-10 animate-fade-in text-center">
-        <GlassCard className="max-w-xs flex flex-col items-center">
-          <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mb-8">
-             <span className="material-symbols-outlined text-4xl text-primary">stadium</span>
+      <div className="flex flex-col items-center justify-center min-h-[85vh] p-8 animate-fade-in">
+        <GlassCard className="max-w-xs w-full text-center flex flex-col items-center gap-6 border-white/80">
+          <div className="w-24 h-24 bg-primary/5 rounded-[2.5rem] flex items-center justify-center border border-primary/10">
+             <span className="material-symbols-outlined text-5xl text-primary font-light">stadium</span>
           </div>
-          <h2 className="text-xl font-black text-navy uppercase italic mb-4">ARENA DIGITAL</h2>
-          <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest leading-relaxed mb-10">
-            Painel operacional para gestão em tempo real das partidas.
-          </p>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-extrabold text-slate-900 uppercase italic tracking-tighter">ARENA ELITE</h2>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em]">CHAMPIONS OPERATION</p>
+          </div>
           <GlassButton variant="primary" size="xl" onClick={handleStartNight} className="w-full">
-            ABRIR TEMPORADA
+            ABRIR CONVOCAÇÃO
           </GlassButton>
         </GlassCard>
       </div>
@@ -106,150 +106,158 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
   const teamB = session.teams.find(t => t.id === session.activeMatch?.teamBId);
 
   return (
-    <div className="p-6 space-y-8 animate-fade-in pb-40">
-      <header className="flex justify-between items-center glass p-5 rounded-[2rem]">
-        <div className="flex flex-col">
-          <h2 className="text-sm font-black text-navy uppercase italic leading-none">ARENA ADM</h2>
-          <div className="flex items-center gap-1.5 mt-1.5">
-             <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse-glow"></span>
-             <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em]">AO VIVO</span>
+    <div className="p-6 space-y-10 animate-fade-in pb-48">
+      {/* HEADER EDITORIAL */}
+      <header className="flex justify-between items-end px-2">
+        <div className="space-y-1">
+          <h2 className="text-xl font-black text-slate-900 uppercase italic leading-none tracking-tighter">CENTRAL AO VIVO</h2>
+          <div className="flex items-center gap-2">
+             <div className="flex gap-1">
+                <span className="w-3 h-1 bg-primary rounded-full"></span>
+                <span className="w-1 h-1 bg-navy rounded-full opacity-30"></span>
+             </div>
+             <span className="text-[9px] font-extrabold text-primary uppercase tracking-[0.4em] animate-pulse">MATCHDAY</span>
           </div>
         </div>
         <button 
-          onClick={() => confirm("Fechar arena?") && deleteDoc(doc(db, "sessions", "current"))}
-          className="text-[9px] font-bold text-slate-400 uppercase hover:text-primary transition-colors"
+          onClick={() => confirm("Encerrar Matchday?") && deleteDoc(doc(db, "sessions", "current"))}
+          className="text-[10px] font-bold text-slate-400 uppercase hover:text-primary transition-all border-b border-slate-200"
         >
-          ENCERRAR SESSÃO
+          ENCERRAR
         </button>
       </header>
 
-      {/* CRONÔMETRO CIRCULAR ESTILIZADO */}
-      <GlassCard variant="blue" className="relative flex flex-col items-center py-10 overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-1 bg-white/10">
-          <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${(timeLeft / (MATCH_LIMIT_MINUTES * 60)) * 100}%` }}></div>
-        </div>
-        
-        <div className="relative">
-          <svg className="w-48 h-48 -rotate-90">
-            <circle cx="96" cy="96" r="88" className="stroke-white/5 fill-none" strokeWidth="6" />
-            <circle 
-              cx="96" cy="96" r="88" 
-              className={`fill-none transition-all duration-1000 ${timeLeft < 60 ? 'stroke-primary' : 'stroke-white/40'}`} 
-              strokeWidth="6" 
-              strokeDasharray="552.92" 
-              strokeDashoffset={552.92 - (552.92 * timeLeft) / (MATCH_LIMIT_MINUTES * 60)}
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-             <span className="text-[8px] font-black uppercase tracking-[0.3em] opacity-50 mb-1">MINUTOS</span>
-             <div className={`text-6xl font-condensed italic leading-none ${timeLeft < 60 ? 'text-primary animate-pulse' : 'text-white'}`}>
-               {formatTime(timeLeft)}
-             </div>
-          </div>
+      {/* PLACAR HERO CHAMPIONS */}
+      <GlassCard className="relative overflow-hidden pt-12 pb-10 px-4 border-white/90">
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100/50 flex">
+           <div className="h-full bg-primary transition-all duration-1000" style={{ width: `${(timeLeft / (MATCH_LIMIT_MINUTES * 60)) * 100}%` }}></div>
         </div>
 
-        <div className="flex gap-4 mt-8">
-          <GlassButton variant="glass" className="w-12 h-12 !rounded-full text-white" onClick={() => setTimerActive(!timerActive)}>
-            <span className="material-symbols-outlined text-2xl">{timerActive ? 'pause' : 'play_arrow'}</span>
-          </GlassButton>
-          <GlassButton variant="glass" className="w-12 h-12 !rounded-full text-white" onClick={() => { setTimeLeft(MATCH_LIMIT_MINUTES * 60); setTimerActive(false); }}>
-            <span className="material-symbols-outlined text-2xl">replay</span>
-          </GlassButton>
+        <div className="grid grid-cols-3 items-center mb-10">
+           <div className="text-center space-y-3">
+             <div className="flex justify-center">
+                {teamA?.hasGoalkeeper ? <span className="material-symbols-outlined text-navy/40 text-xl">guardian</span> : <span className="material-symbols-outlined text-primary/30 text-xl">warning</span>}
+             </div>
+             <p className="text-[11px] font-extrabold text-slate-900 uppercase italic truncate px-2">{teamA?.name || '---'}</p>
+             {teamA?.consecutiveWins > 0 && (
+                <span className="bg-success/10 text-success text-[7px] font-black px-2 py-0.5 rounded-full uppercase">{teamA.consecutiveWins}W STREAK</span>
+             )}
+           </div>
+
+           <div className="flex flex-col items-center">
+              <div className="flex items-center gap-3">
+                 <span className="text-7xl font-condensed italic font-black text-primary leading-none transition-all duration-300">{session.activeMatch?.scoreA}</span>
+                 <span className="text-2xl font-light text-slate-200 mx-1">:</span>
+                 <span className="text-7xl font-condensed italic font-black text-primary leading-none transition-all duration-300">{session.activeMatch?.scoreB}</span>
+              </div>
+           </div>
+
+           <div className="text-center space-y-3">
+             <div className="flex justify-center">
+                {teamB?.hasGoalkeeper ? <span className="material-symbols-outlined text-navy/40 text-xl">guardian</span> : <span className="material-symbols-outlined text-primary/30 text-xl">warning</span>}
+             </div>
+             <p className="text-[11px] font-extrabold text-slate-900 uppercase italic truncate px-2">{teamB?.name || '---'}</p>
+             {teamB?.consecutiveWins > 0 && (
+                <span className="bg-success/10 text-success text-[7px] font-black px-2 py-0.5 rounded-full uppercase">{teamB.consecutiveWins}W STREAK</span>
+             )}
+           </div>
+        </div>
+
+        {/* CRONÔMETRO DIGITAL MINIMALISTA */}
+        <div className="flex flex-col items-center gap-4 border-t border-slate-50 pt-8">
+           <div className="flex items-center gap-6">
+              <button 
+                onClick={() => setTimerActive(!timerActive)}
+                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all ${timerActive ? 'bg-slate-100 text-navy' : 'btn-champions-blue'}`}
+              >
+                <span className="material-symbols-outlined text-3xl">{timerActive ? 'pause' : 'play_arrow'}</span>
+              </button>
+              
+              <div className="flex flex-col items-center min-w-[100px]">
+                 <span className={`text-4xl font-condensed italic tracking-widest ${timeLeft < 60 ? 'text-primary animate-pulse' : 'text-navy'}`}>
+                    {formatTime(timeLeft)}
+                 </span>
+                 <span className="text-[7px] font-black text-slate-300 uppercase tracking-[0.3em] mt-1">OFFICIAL TIME</span>
+              </div>
+
+              <button 
+                onClick={() => { setTimeLeft(MATCH_LIMIT_MINUTES * 60); setTimerActive(false); }}
+                className="w-14 h-14 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center"
+              >
+                <span className="material-symbols-outlined text-2xl">replay</span>
+              </button>
+           </div>
         </div>
       </GlassCard>
 
-      {/* PLACAR GLASS */}
-      <div className="grid grid-cols-2 gap-4">
-        <TeamScoreControl 
-          side="A" 
-          team={teamA} 
-          score={session.activeMatch?.scoreA || 0} 
-          onGoal={() => handleGoal('A')} 
-          onFinish={() => handleFinishMatch('A')}
-          isLeading={(session.activeMatch?.scoreA || 0) > (session.activeMatch?.scoreB || 0)}
-        />
-        <TeamScoreControl 
-          side="B" 
-          team={teamB} 
-          score={session.activeMatch?.scoreB || 0} 
-          onGoal={() => handleGoal('B')} 
-          onFinish={() => handleFinishMatch('B')}
-          isLeading={(session.activeMatch?.scoreB || 0) > (session.activeMatch?.scoreA || 0)}
-        />
+      {/* CONTROLES TÁTEIS */}
+      <div className="grid grid-cols-2 gap-5">
+         <div className="space-y-4">
+            <GlassButton variant="primary" size="lg" className="w-full h-16 !rounded-3xl" onClick={() => handleGoal('A')}>
+              GOL A
+            </GlassButton>
+            <GlassButton variant="outline" className="w-full h-12 !rounded-xl !text-[8px] !border-slate-200" onClick={() => handleFinishMatch('A')}>
+              VITÓRIA TIME A
+            </GlassButton>
+         </div>
+         <div className="space-y-4">
+            <GlassButton variant="secondary" size="lg" className="w-full h-16 !rounded-3xl" onClick={() => handleGoal('B')}>
+              GOL B
+            </GlassButton>
+            <GlassButton variant="outline" className="w-full h-12 !rounded-xl !text-[8px] !border-slate-200" onClick={() => handleFinishMatch('B')}>
+              VITÓRIA TIME B
+            </GlassButton>
+         </div>
       </div>
 
       {session.activeMatch?.scoreA === session.activeMatch?.scoreB && (session.activeMatch?.scoreA || 0) > 0 && (
-         <GlassButton variant="glass" className="w-full h-14 border-slate-200" onClick={() => handleFinishMatch('draw')}>
-           RESOLVER EMPATE
+         <GlassButton variant="glass" className="w-full h-14 border-slate-200 rounded-2xl" onClick={() => handleFinishMatch('draw')}>
+           RESOLVER EMPATE NO CRITÉRIO
          </GlassButton>
       )}
 
-      {/* FILA DE DESAFIANTES */}
-      <GlassCard>
-        <div className="flex justify-between items-center mb-6">
+      {/* FILA DE COMPETIÇÃO SCROLL HORIZONTAL */}
+      <section className="space-y-5">
+        <div className="flex justify-between items-center px-2">
           <h3 className="text-[10px] font-black text-navy uppercase italic flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">reorder</span>
-            FILA DE DESAFIANTES
+            <span className="w-4 h-0.5 bg-primary"></span>
+            PRÓXIMOS CONFRONTOS
           </h3>
-          <span className="bg-navy/5 px-2 py-1 rounded-lg text-[8px] font-black text-navy uppercase tracking-widest">{session.waitingQueue.length} TIMES</span>
+          <span className="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest">{session.waitingQueue.length} EM ESPERA</span>
         </div>
 
-        <div className="space-y-3">
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-6 px-2 -mx-2">
           {session.waitingQueue.length > 0 ? session.waitingQueue.map((tid, i) => {
             const t = session.teams.find(x => x.id === tid);
+            const isNext = i === 0;
             return (
-              <div key={tid} className="p-4 bg-white/40 border border-white/60 rounded-2xl flex items-center justify-between animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
-                <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 rounded-lg bg-navy/5 text-navy flex items-center justify-center font-black italic text-xs border border-navy/10">{i+1}</div>
-                  <div>
-                    <p className="text-[11px] font-black text-navy uppercase italic leading-none mb-1">{t?.name}</p>
-                    <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">{t?.playerIds.length} ATLETAS</p>
-                  </div>
+              <GlassCard 
+                key={tid} 
+                className={`min-w-[160px] p-5 flex flex-col items-center justify-center gap-4 transition-all border-2 ${isNext ? 'border-navy/20 bg-white scale-105 shadow-premium' : 'border-white/40 opacity-70'}`}
+              >
+                <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+                   <span className="text-[10px] font-black italic text-navy">{i+1}º</span>
                 </div>
-                <div className="flex gap-1.5">
-                   {!t?.isComplete && <div className="w-2 h-2 bg-amber-400 rounded-full" title="Incompleto"></div>}
-                   {!t?.hasGoalkeeper && <div className="w-2 h-2 bg-primary rounded-full" title="Sem Goleiro"></div>}
+                <div className="text-center">
+                   <p className="text-[11px] font-black text-navy uppercase italic leading-none truncate w-32">{t?.name}</p>
+                   <p className="text-[7px] font-bold text-slate-400 uppercase mt-1 tracking-widest">{t?.playerIds.length} ATLETAS</p>
                 </div>
-              </div>
+                <div className="flex gap-1">
+                   {!t?.isComplete && <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>}
+                   {!t?.hasGoalkeeper && <div className="w-1.5 h-1.5 bg-navy rounded-full opacity-40"></div>}
+                </div>
+                {isNext && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-navy text-white text-[6px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg">PRÓXIMO</span>}
+              </GlassCard>
             );
           }) : (
-            <div className="py-8 text-center bg-slate-50/50 rounded-[2rem] border border-dashed border-slate-200">
-               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Aguardando novos times</p>
+            <div className="w-full py-12 text-center glass-panel border-dashed border-slate-200 rounded-[2.5rem]">
+               <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Lista de espera vazia</p>
             </div>
           )}
         </div>
-      </GlassCard>
+      </section>
     </div>
   );
 };
-
-const TeamScoreControl = ({ side, team, score, onGoal, onFinish, isLeading }: any) => (
-  <GlassCard className={`relative border-2 transition-all duration-500 overflow-hidden ${isLeading ? 'border-primary/40 ring-4 ring-primary/5' : 'border-white/40'}`}>
-    {isLeading && <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>}
-    
-    <div className="text-center mb-4">
-      <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1.5 block">TIME {side}</span>
-      <h4 className="text-[14px] font-black text-navy uppercase italic truncate mb-2">{team?.name || '---'}</h4>
-      
-      <div className="flex justify-center gap-2">
-        {team?.consecutiveWins > 0 && (
-          <span className="bg-success/10 text-success text-[7px] font-black px-2 py-0.5 rounded-md uppercase">{team.consecutiveWins} VITÓRIAS</span>
-        )}
-      </div>
-    </div>
-
-    <div className="flex flex-col items-center gap-6 mb-6">
-       <div className={`text-7xl font-condensed italic font-black transition-all ${isLeading ? 'text-primary scale-110' : 'text-navy opacity-80'}`}>{score}</div>
-       <GlassButton variant={isLeading ? 'primary' : 'secondary'} className="w-full !rounded-xl" onClick={onGoal}>
-         GOL
-       </GlassButton>
-    </div>
-
-    <GlassButton variant="outline" className={`w-full !h-10 !rounded-lg !text-[8px] ${isLeading ? 'opacity-100' : 'opacity-30'}`} onClick={onFinish}>
-      VITÓRIA
-    </GlassButton>
-  </GlassCard>
-);
 
 export default ArenaPanel;
