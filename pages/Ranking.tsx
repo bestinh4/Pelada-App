@@ -53,77 +53,77 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
       } else {
         await updateDoc(playerRef, { paymentStatus: player.paymentStatus === 'pago' ? 'pendente' : 'pago' });
       }
-    } catch (e) { alert("Erro ao salvar."); } finally { setLoadingId(null); }
+    } catch (e) { alert("Erro."); } finally { setLoadingId(null); }
   };
 
   return (
-    <div className="flex flex-col animate-in fade-in duration-500">
-      <header className="px-8 pt-12 pb-6 glass-white sticky top-0 z-50 flex items-center justify-between">
+    <div className="flex flex-col">
+      <header className="px-8 pt-12 pb-6 glass-header sticky top-0 z-40 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={mainLogoUrl} className="w-10 h-10 object-contain" alt="Logo" />
+          <img src={mainLogoUrl} className="w-9 h-9 object-contain" alt="Logo" />
           <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter">FINANCEIRO</h2>
         </div>
-        <div className="px-3 py-1 bg-slate-50 border border-slate-100 rounded-lg text-[8px] font-black text-navy uppercase tracking-widest">
-           {activePlayers.length} ATIVOS
+        <div className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+           {activePlayers.length} ATLETAS
         </div>
       </header>
 
       <main className="px-6 mt-8">
-        {/* CARD FINANCEIRO LIMPO */}
-        <div className="bg-white rounded-[2.5rem] p-9 border border-slate-100 shadow-heavy relative overflow-hidden mb-10">
-          <div className="absolute top-0 right-0 w-1 h-full bg-primary"></div>
+        {/* SUMMARY CARD */}
+        <div className="bg-navy rounded-[2.5rem] p-9 text-white relative overflow-hidden mb-10 shadow-elite">
+          <div className="absolute top-0 right-0 h-full w-1.5 bg-primary"></div>
           <div className="space-y-1 mb-8">
-            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">TOTAL EM CAIXA</span>
-            <h2 className="text-5xl font-condensed italic text-navy leading-none tracking-tighter">R$ {totals.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h2>
+             <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">SALDO EM CAIXA</span>
+             <h2 className="text-5xl font-condensed italic leading-none tracking-tighter">R$ {totals.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h2>
           </div>
-          <div className="flex items-center justify-between pt-6 border-t border-slate-50">
+          <div className="flex justify-between items-center pt-6 border-t border-white/10">
              <div className="flex flex-col">
                 <span className="text-[8px] font-black text-primary uppercase tracking-widest">A RECEBER</span>
-                <span className="text-lg font-black text-navy italic">R$ {totals.pending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <span className="text-lg font-black italic">R$ {totals.pending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
              </div>
-             <span className="material-symbols-outlined text-navy/10 text-4xl">receipt_long</span>
+             <span className="material-symbols-outlined text-white/20 text-4xl">payments</span>
           </div>
         </div>
 
-        {/* ABAS PADRONIZADAS */}
-        <div className="flex bg-white p-1.5 rounded-3xl mb-10 border border-slate-100 shadow-sm">
+        {/* TABS */}
+        <div className="flex bg-white p-1.5 rounded-3xl mb-8 border border-slate-100 shadow-elite">
           {(['todos', 'pendentes', 'pagos'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`flex-1 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-navy text-white shadow-lg' : 'text-slate-300 hover:text-navy'}`}
+              className={`flex-1 py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-navy text-white' : 'text-slate-300'}`}
             >
               {f === 'todos' ? 'GERAL' : f === 'pendentes' ? 'DÉBITO' : 'OK'}
             </button>
           ))}
         </div>
 
-        {/* LISTA SIMPLIFICADA */}
-        <div className="space-y-4">
+        {/* PLAYER LIST */}
+        <div className="space-y-3">
           {filteredPlayers.map((p, i) => {
             const isGoleiro = p.position === 'Goleiro';
             const isPaid = isGoleiro || (p.playerType === 'mensalista' ? p.monthlyPaid : p.paymentStatus === 'pago');
             return (
-              <div key={p.id} className="bg-white rounded-[2rem] p-5 border border-slate-100 shadow-pro flex items-center justify-between group animate-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
-                <div className="flex items-center gap-5">
+              <div key={p.id} className="bg-white rounded-[1.8rem] p-4 border border-slate-100 flex items-center justify-between group animate-in slide-in-from-bottom-5" style={{ animationDelay: `${i * 50}ms` }}>
+                <div className="flex items-center gap-4">
                   <div className="relative">
-                    <img src={p.photoUrl} className="w-12 h-12 rounded-2xl object-cover" alt="" />
+                    <img src={p.photoUrl} className="w-11 h-11 rounded-xl object-cover" alt="" />
                     <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-lg border-2 border-white flex items-center justify-center ${isPaid ? 'bg-success' : 'bg-primary'}`}>
                        <span className="material-symbols-outlined text-white text-[10px] font-bold">{isPaid ? 'check' : 'priority_high'}</span>
                     </div>
                   </div>
                   <div>
                     <h4 className="text-[13px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
-                    <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{p.playerType === 'mensalista' ? 'MENSAL' : 'AVULSO'} • R$ {isGoleiro ? 0 : (p.playerType === 'mensalista' ? prices.mensalista : prices.avulso)}</span>
+                    <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{isGoleiro ? 'ISENTO' : (p.playerType === 'mensalista' ? 'MENSALISTA' : 'AVULSO')}</span>
                   </div>
                 </div>
                 {isAdmin && (
                   <button 
                     onClick={() => handleTogglePayment(p)}
                     disabled={isGoleiro}
-                    className={`h-10 px-5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all active:scale-95 ${isPaid ? 'bg-slate-50 text-slate-300' : 'bg-primary text-white shadow-lg shadow-primary/20'}`}
+                    className={`h-10 px-5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${isPaid ? 'bg-slate-50 text-slate-300' : 'bg-primary text-white shadow-button'}`}
                   >
-                    {isGoleiro ? 'ISENTO' : (isPaid ? 'OK' : 'COBRAR')}
+                    {isGoleiro ? 'FREE' : (isPaid ? 'PAGO' : 'PAGAR')}
                   </button>
                 )}
               </div>

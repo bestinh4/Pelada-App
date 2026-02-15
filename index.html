@@ -14,7 +14,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="O&A Elite">
     <link rel="apple-touch-icon" href="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png">
-
     <link rel="icon" type="image/png" href="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png">
     
     <script type="importmap">
@@ -68,18 +67,17 @@
       @layer utilities {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .shadow-pro { box-shadow: 0 4px 20px rgba(0, 56, 118, 0.04); }
-        .shadow-heavy { box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05); }
-        .glass-white { @apply bg-white/98 backdrop-blur-xl border-b border-slate-100; }
-        .animate-float { animation: float 3s ease-in-out infinite; }
-        @keyframes float {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
+        .shadow-elite { box-shadow: 0 10px 40px -10px rgba(0, 56, 118, 0.08); }
+        .shadow-button { box-shadow: 0 15px 30px -5px rgba(237, 29, 35, 0.2); }
+        .glass-header { @apply bg-white/95 backdrop-blur-2xl border-b border-slate-50; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+      }
+      body {
+        @apply bg-[#F9FBFC] font-display text-slate-900 antialiased;
       }
     </style>
   </head>
-  <body class="bg-[#F9FAFB] font-display text-slate-900 overflow-x-hidden antialiased selection:bg-primary/10">
+  <body>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>
