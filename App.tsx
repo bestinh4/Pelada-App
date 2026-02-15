@@ -8,6 +8,7 @@ import PlayerList from './pages/PlayerList.tsx';
 import Ranking from './pages/Ranking.tsx';
 import CreateMatch from './pages/CreateMatch.tsx';
 import Profile from './pages/Profile.tsx';
+import TeamBalancing from './pages/TeamBalancing.tsx';
 import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL } from './constants.tsx';
 import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc } from './services/firebase.ts';
@@ -61,7 +62,6 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
-    // Listener de Jogadores
     const qPlayers = query(collection(db, "players"), orderBy("goals", "desc"));
     const unsubscribePlayers = onSnapshot(qPlayers, (snapshot) => {
       const playerList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
@@ -97,7 +97,6 @@ const App: React.FC = () => {
       setPlayers(playerList);
     });
 
-    // Listener de Partidas
     const qMatches = query(collection(db, "matches"), orderBy("createdAt", "desc"));
     const unsubscribeMatches = onSnapshot(qMatches, (snapshot) => {
       if (!snapshot.empty) {
@@ -134,6 +133,7 @@ const App: React.FC = () => {
         {user && currentPage === Page.PlayerList && <PlayerList players={players} currentUser={user} match={currentMatch} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.Ranking && <Ranking players={players} currentUser={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.CreateMatch && <CreateMatch players={players} currentUser={user} onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.TeamBalancing && <TeamBalancing players={players} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.Profile && (
           <Profile 
             player={currentPlayer || { id: user.uid, name: user.displayName, email: user.email, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente', role: effectiveRole } as Player} 

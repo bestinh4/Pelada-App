@@ -13,7 +13,7 @@ export interface Player {
   status: 'presente' | 'pendente';
   playerType: 'mensalista' | 'avulso';
   paymentStatus?: 'pago' | 'pendente';
-  monthlyPaid?: boolean; // Novo: Controle específico para mensalistas
+  monthlyPaid?: boolean;
   lastPaymentDate?: string;
   role?: 'admin' | 'player';
   pushEnabled?: boolean;
@@ -44,5 +44,6 @@ export enum Page {
   PlayerList = 'players',
   Ranking = 'ranking',
   CreateMatch = 'create-match',
-  Profile = 'profile'
+  Profile = 'profile',
+  TeamBalancing = 'team-balancing'
 }
