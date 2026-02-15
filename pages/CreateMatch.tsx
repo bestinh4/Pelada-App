@@ -12,6 +12,8 @@ interface CreateMatchProps {
 
 const CreateMatch: React.FC<CreateMatchProps> = ({ players, currentUser, onPageChange }) => {
   const [isSavingMatch, setIsSavingMatch] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [lastCreatedMatch, setLastCreatedMatch] = useState<any>(null);
   
   const currentPlayer = players.find(p => p.id === currentUser?.uid);
   const isAdmin = currentPlayer?.role === 'admin';
@@ -59,8 +61,9 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ players, currentUser, onPageC
 
       await addDoc(collection(db, "matches"), newMatch);
       sendPushNotification("🔥 CONVOCAÇÃO ELITE!", `Nova pelada em ${newMatch.location}. Confirme agora!`);
-      alert("Pelada publicada na arena!");
-      onPageChange(Page.Dashboard);
+      
+      setLastCreatedMatch(newMatch);
+      setShowSuccessModal(true);
     } catch (err) {
       alert("Erro ao salvar pelada.");
     } finally {
@@ -79,7 +82,7 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ players, currentUser, onPageC
 
       <section className="px-6 mt-8 space-y-10">
         {/* Card de Configuração */}
-        <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-soft space-y-6">
+        <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-heavy space-y-6">
           <div className="flex items-center gap-3 mb-2">
             <span className="material-symbols-outlined text-primary">stadium</span>
             <h3 className="text-xs font-black uppercase tracking-widest text-navy">AGENDAR NOVA PELADA</h3>
@@ -117,7 +120,7 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ players, currentUser, onPageC
         </div>
 
         {/* ACESSO AO SORTEIO IA */}
-        <div className="bg-navy-deep rounded-[2.5rem] p-8 text-white relative overflow-hidden group shadow-2xl">
+        <div className="bg-navy rounded-[2.5rem] p-8 text-white relative overflow-hidden group shadow-2xl">
            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl -mr-16 -mt-16 group-hover:bg-primary/40 transition-all"></div>
            <div className="relative z-10">
               <div className="flex items-center gap-3 mb-4">
@@ -138,6 +141,43 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ players, currentUser, onPageC
            </div>
         </div>
       </section>
+
+      {/* SUCCESS MODAL */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-navy/80 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-[380px] rounded-[3rem] p-8 shadow-2xl animate-in zoom-in-95 duration-300 border border-white/20">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-navy text-white rounded-[2rem] flex items-center justify-center mb-6 shadow-xl animate-bounce">
+                <span className="material-symbols-outlined text-4xl font-bold">verified</span>
+              </div>
+              
+              <h3 className="text-2xl font-black text-navy uppercase italic tracking-tighter mb-2">PARTIDA PUBLICADA!</h3>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Convocação ativa na Arena Elite.</p>
+              
+              <div className="w-full bg-slate-50 rounded-[2rem] p-6 border border-slate-100 mb-8 space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">LOCAL</span>
+                  <span className="text-xs font-black text-navy uppercase italic">{lastCreatedMatch?.location}</span>
+                </div>
+                <div className="h-px bg-slate-100 w-full"></div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">DATA E HORA</span>
+                  <span className="text-xs font-black text-navy uppercase italic">
+                    {new Date(lastCreatedMatch?.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} • {lastCreatedMatch?.time}H
+                  </span>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => onPageChange(Page.Dashboard)}
+                className="w-full h-18 bg-primary text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
+              >
+                VOLTAR PARA ARENA
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
