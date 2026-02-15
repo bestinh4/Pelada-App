@@ -7,7 +7,7 @@
     <title>O&A Elite Pro - Pure Edition</title>
     
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#ed1d23">
+    <meta name="theme-color" content="#C8102E">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -35,7 +35,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&family=Bebas+Neue&family=Inter:wght@400;700;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -45,61 +45,56 @@
         theme: {
           extend: {
             colors: {
-              "primary": "#ed1d23",
-              "navy": "#003876",
-              "slate-bg": "#FFFFFF",
+              "primary": "#C8102E",
+              "primary-soft": "#E63946",
+              "navy": "#0033A0",
+              "navy-soft": "#1D4ED8",
+              "glass-bg": "rgba(255, 255, 255, 0.55)",
               "success": "#10B981"
             },
             fontFamily: {
-              "display": ["Lexend", "sans-serif"],
+              "display": ["Inter", "sans-serif"],
               "condensed": ["Bebas Neue", "sans-serif"],
-              "body": ["Inter", "sans-serif"]
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
               'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
               'scale-up': 'scaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              'float': 'float 3s ease-in-out infinite',
-              'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+              'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
             },
             keyframes: {
               fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
               slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
               scaleUp: { '0%': { transform: 'scale(0.95)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } },
-              float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
-              pulseSoft: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.6' } },
+              pulseGlow: { '0%, 100%': { opacity: '1', filter: 'drop-shadow(0 0 5px rgba(200, 16, 46, 0.5))' }, '50%': { opacity: '0.7', filter: 'drop-shadow(0 0 15px rgba(200, 16, 46, 0.2))' } },
             }
           },
         },
       }
     </script>
     <style type="text/tailwindcss">
-      @layer utilities {
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .shadow-elite { box-shadow: 0 10px 40px -10px rgba(0, 56, 118, 0.06); }
-        .shadow-heavy { box-shadow: 0 20px 60px -15px rgba(0, 56, 118, 0.12); }
-        .glass-header { @apply bg-white/95 backdrop-blur-xl border-b border-slate-100; }
-        .shimmer {
-          background: linear-gradient(90deg, #f0f0f0 25%, #f8f8f8 50%, #f0f0f0 75%);
-          background-size: 200% 100%;
-          animation: shimmer 1.5s infinite;
+      @layer components {
+        .glass {
+          @apply bg-glass-bg backdrop-blur-[20px] border border-white/40 shadow-[0_8px_32px_0_rgba(31,38,135,0.07)];
+        }
+        .glass-dark {
+          @apply bg-navy/80 backdrop-blur-[20px] border border-white/10 shadow-2xl;
+        }
+        .glass-red {
+          @apply bg-primary/90 backdrop-blur-[15px] border border-white/20 shadow-xl;
         }
       }
-      @keyframes shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
+      @layer utilities {
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .bg-croatia {
+          background: linear-gradient(180deg, #F8FAFF 0%, #EEF2F9 100%);
+          min-height: 100vh;
+        }
       }
       * { -webkit-tap-highlight-color: transparent; scroll-behavior: smooth; }
       body {
-        @apply bg-[#F4F7F9] font-display text-slate-900 antialiased overflow-x-hidden;
+        @apply bg-croatia font-display text-slate-900 antialiased overflow-x-hidden;
       }
-      input, select { @apply text-base; } /* Previne zoom no iOS */
-      
-      .stagger-1 { animation-delay: 50ms; }
-      .stagger-2 { animation-delay: 100ms; }
-      .stagger-3 { animation-delay: 150ms; }
-      .stagger-4 { animation-delay: 200ms; }
-      .stagger-5 { animation-delay: 250ms; }
     </style>
   </head>
   <body>
