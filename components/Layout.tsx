@@ -15,18 +15,18 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
   const isAdmin = currentUserRole === 'admin';
 
   return (
-    <div className="flex justify-center min-h-screen sm:py-8 bg-champions-gradient font-display">
-      {/* Container principal com altura fixa no mobile (100dvh) para manter menu sempre visível */}
-      <div className="relative w-full h-[100dvh] sm:h-[880px] sm:max-w-[430px] bg-transparent sm:rounded-[3.5rem] overflow-hidden flex flex-col transition-all duration-1000 border-x border-slate-100 sm:border-none">
+    <div className="flex justify-center min-h-screen bg-champions-gradient font-display overflow-hidden">
+      {/* Container principal */}
+      <div className="relative w-full h-[100dvh] sm:h-[880px] sm:max-w-[430px] bg-transparent sm:rounded-[3.5rem] overflow-hidden flex flex-col border-x border-slate-100 sm:border-none shadow-2xl">
         
-        {/* Área de conteúdo com scroll independente */}
-        <div className="flex-1 overflow-y-auto hide-scrollbar pb-32">
+        {/* Área de conteúdo com scroll interno e padding para o menu fixo */}
+        <div className="flex-1 overflow-y-auto hide-scrollbar pb-36">
           {children}
         </div>
         
-        {/* MENU INFERIOR - SEMPRE FIXO NO BOTTOM DO VIEWPORT */}
-        <div className="absolute bottom-6 left-6 right-6 z-[100] animate-slide-up">
-          <nav className="h-20 glass-surface rounded-[2.5rem] flex items-center justify-around px-2 border border-white/80 shadow-2xl">
+        {/* MENU INFERIOR FIXO - USANDO FIXED PARA GARANTIR VISIBILIDADE NO VIEWPORT */}
+        <div className="fixed bottom-6 left-6 right-6 sm:absolute sm:bottom-8 sm:left-8 sm:right-8 z-[1000] animate-slide-up">
+          <nav className="h-20 glass-surface rounded-[2.5rem] flex items-center justify-around px-2 border border-white/80 shadow-[0_20px_50px_-10px_rgba(0,51,160,0.15)]">
             
             <NavItem 
               icon="stadium" 
@@ -37,7 +37,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
             
             <NavItem 
               icon="sports_soccer" 
-              label="Squad" 
+              label="Elenco" 
               active={currentPage === Page.PlayerList} 
               onClick={() => onPageChange(Page.PlayerList)} 
             />
@@ -51,7 +51,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
                     ? 'bg-primary text-white scale-110 shadow-primary/30' 
                     : 'bg-white/60 text-navy border border-white/80'
                   }`}
-                  title="Painel Live"
+                  title="Painel de Controle"
                 >
                   <span className="material-symbols-outlined text-[24px] font-light">podium</span>
                 </button>
@@ -60,7 +60,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
             
             <NavItem 
               icon="account_balance_wallet" 
-              label="Cofre" 
+              label="Financeiro" 
               active={currentPage === Page.Ranking} 
               onClick={() => onPageChange(Page.Ranking)} 
             />

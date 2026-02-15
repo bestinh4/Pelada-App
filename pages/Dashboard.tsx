@@ -53,34 +53,36 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const handleShareMatch = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
     
-    let message = `🏆 *MATCHDAY O&A ELITE PRO* 🇭🇷\n`;
-    message += `🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n`;
+    let message = `🏆 *OUSADIA & ALEGRIA ELITE* 🇭🇷\n`;
+    message += `🏟️ *LOCAL:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n`;
     message += `🗓️ *DATA:* ${dateStr}\n`;
-    message += `⏱️ *HORA:* ${match?.time || '--:--'}H\n`;
+    message += `⏱️ *HORÁRIO:* ${match?.time || '--:--'}H\n`;
     message += `────────────────────\n\n`;
     
-    message += `🧤 *PAREDÕES* (${confirmedGKs.length}/${gkSlots})\n`;
+    message += `🧤 *GOLEIROS* (${confirmedGKs.length}/${gkSlots})\n`;
     if (confirmedGKs.length > 0) {
       confirmedGKs.forEach((p, i) => message += `*${i + 1}.* ${p.name.toUpperCase()}\n`);
     } else {
-      message += `_Vagas abertas para Goleiros..._\n`;
+      message += `_Aguardando goleiros..._\n`;
     }
     
-    message += `\n🏃 *LINE-UP CONFIRMADO* (${confirmedField.length}/${fieldSlots})\n`;
+    message += `\n🏃 *LISTA DE PRESENÇA* (${confirmedField.length}/${fieldSlots})\n`;
     if (confirmedField.length > 0) {
-      confirmedField.slice(0, fieldSlots).forEach((p, i) => message += `*${String(i + 1).padStart(2, '0')}.* ${p.name.toUpperCase()}\n`);
-      
+      const titulares = confirmedField.slice(0, fieldSlots);
       const espera = confirmedField.slice(fieldSlots);
+
+      titulares.forEach((p, i) => message += `*${String(i + 1).padStart(2, '0')}.* ${p.name.toUpperCase()}\n`);
+      
       if (espera.length > 0) {
         message += `\n⏳ *LISTA DE ESPERA*\n`;
         espera.forEach((p) => message += `• ${p.name.toUpperCase()}\n`);
       }
     } else {
-      message += `_Lista aberta! Confirme agora no App!_\n`;
+      message += `_Lista aberta! Garanta sua vaga no App!_\n`;
     }
     
     message += `\n────────────────────\n`;
-    message += `📢 *STATUS:* ${confirmedPlayers.length} CONVOCADOS\n`;
+    message += `📢 *STATUS:* ${confirmedPlayers.length} CONFIRMADOS ✅\n`;
     message += `🔗 *APP:* ${window.location.origin}`;
 
     const encoded = encodeURIComponent(message);
@@ -95,10 +97,10 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         <div className="flex items-center gap-4">
           <img src={mainLogoUrl} className="w-12 h-12 object-contain grayscale opacity-10" alt="O&A" />
           <div className="space-y-1">
-            <h1 className="text-xl font-black tracking-tighter text-navy uppercase italic leading-none">PRÓXIMA PARTIDA</h1>
+            <h1 className="text-xl font-black tracking-tighter text-navy uppercase italic leading-none">PRÓXIMA PELADA</h1>
             <div className="flex items-center gap-2">
                <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-glow-red"></span>
-               <p className="text-[8px] font-extrabold text-primary uppercase tracking-[0.4em]">ARENA LIVE</p>
+               <p className="text-[8px] font-extrabold text-primary uppercase tracking-[0.4em]">ARENA AO VIVO</p>
             </div>
           </div>
         </div>
@@ -112,7 +114,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           
           <div className="flex justify-between items-start mb-12 relative z-10">
             <div className="space-y-2">
-              <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] block">SESSÃO OFICIAL</span>
+              <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] block">PARTIDA MARCADA</span>
               <h2 className="text-4xl font-condensed tracking-tight uppercase italic leading-none text-navy">{match?.location || "ARENA OUSADIA"}</h2>
             </div>
             <button onClick={handleShareMatch} className="w-12 h-12 bg-white/60 border border-white/80 rounded-2xl flex items-center justify-center active:scale-90 transition-all shadow-glass">
@@ -121,17 +123,17 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
 
           <div className="grid grid-cols-1 gap-8 mb-12 relative z-10">
-             <ProgressBlock label="LINHA" current={confirmedField.length} max={fieldSlots} progress={lineProgress} color="primary" />
+             <ProgressBlock label="JOGADORES" current={confirmedField.length} max={fieldSlots} progress={lineProgress} color="primary" />
              <ProgressBlock label="GOLEIROS" current={confirmedGKs.length} max={gkSlots} progress={gkProgress} color="navy" />
           </div>
 
           <div className="flex items-center gap-12 mb-12 py-6 border-y border-navy/5 relative z-10">
              <div className="space-y-1">
-               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">AGENDA</p>
+               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">DATA</p>
                <p className="text-xs font-extrabold text-navy uppercase italic">{match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '---'}</p>
              </div>
              <div className="space-y-1">
-               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">KICK-OFF</p>
+               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">HORÁRIO</p>
                <p className="text-xs font-extrabold text-navy uppercase italic">{match?.time || '--:--'}H</p>
              </div>
           </div>
@@ -146,7 +148,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
             {isUpdating ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : (
               <>
                 <span className="material-symbols-outlined text-xl">{isConfirmed ? 'verified' : 'stadium'}</span>
-                {isConfirmed ? 'CONFIRMADO' : 'CONFIRMAR PRESENÇA'}
+                {isConfirmed ? 'PRESENÇA CONFIRMADA' : 'GARANTIR MINHA VAGA'}
               </>
             )}
           </GlassButton>
@@ -154,8 +156,8 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA ELITE</h3>
-            <button onClick={() => onPageChange(Page.PlayerList)} className="text-[9px] font-extrabold text-primary uppercase tracking-widest border-b border-primary/20 pb-1">SQUAD COMPLETO</button>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-navy italic">DESTAQUES DA ARENA</h3>
+            <button onClick={() => onPageChange(Page.PlayerList)} className="text-[9px] font-extrabold text-primary uppercase tracking-widest border-b border-primary/20 pb-1">VER TODOS</button>
           </div>
           <div className="space-y-3">
             {topScorers.map((p, i) => (

@@ -23,7 +23,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     concededGoals: 0, 
     role: 'player' as 'admin' | 'player',
     playerType: 'avulso' as 'mensalista' | 'avulso',
-    status: 'pendente' as 'presente' | 'pendente'
+    status: 'presente' as 'presente' | 'pendente'
   });
   const [isSavingStats, setIsSavingStats] = useState(false);
 
@@ -43,60 +43,45 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const gksTitulares = allConfirmedGks.slice(0, gkSlots);
   const gksEspera = allConfirmedGks.slice(gkSlots);
   
-  const fieldTitulares = allConfirmedField.slice(0, fieldSlots);
+  const fieldConfirmados = allConfirmedField.slice(0, fieldSlots);
   const fieldEspera = allConfirmedField.slice(fieldSlots);
 
   const handleShareList = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
-    const remaining = fieldSlots - fieldTitulares.length;
     
-    let message = `🏆 *MATCHDAY O&A ELITE PRO* 🇭🇷\n`;
-    message += `🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ELITE ARENA'}\n`;
+    let message = `🏆 *OUSADIA & ALEGRIA ELITE* 🇭🇷\n`;
+    message += `🏟️ *LOCAL:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n`;
     message += `🗓️ *DATA:* ${dateStr}\n`;
-    message += `⏱️ *KICK-OFF:* ${match?.time || '--:--'}H\n`;
+    message += `⏱️ *HORÁRIO:* ${match?.time || '--:--'}H\n`;
     message += `────────────────────\n\n`;
     
-    message += `🧤 *PAREDÕES DE ELITE* (${gksTitulares.length}/${gkSlots})\n`;
+    message += `🧤 *GOLEIROS CONFIRMADOS* (${gksTitulares.length}/${gkSlots})\n`;
     if (gksTitulares.length > 0) {
       gksTitulares.forEach((p, i) => message += `*${i + 1}.* ${p.name.toUpperCase()}\n`);
     } else {
-      message += `_Aguardando convocação de goleiros..._\n`;
+      message += `_Aguardando goleiros..._\n`;
     }
 
     if (gksEspera.length > 0) {
-      message += `\n⏳ *RESERVA (GOLEIROS)*\n`;
-      gksEspera.forEach((p, i) => message += `• ${p.name.toUpperCase()}\n`);
+      message += `\n⏳ *LISTA DE ESPERA (Goleiros)*\n`;
+      gksEspera.forEach((p) => message += `• ${p.name.toUpperCase()}\n`);
     }
     
-    message += `\n🏃 *LINE-UP PRINCIPAL* (${fieldTitulares.length}/${fieldSlots})\n`;
-    if (fieldTitulares.length > 0) {
-      fieldTitulares.forEach((p, i) => message += `*${String(i + 1).padStart(2, '0')}.* ${p.name.toUpperCase()}\n`);
+    message += `\n🏃 *ATLETAS CONFIRMADOS* (${fieldConfirmados.length}/${fieldSlots})\n`;
+    if (fieldConfirmados.length > 0) {
+      fieldConfirmados.forEach((p, i) => message += `*${String(i + 1).padStart(2, '0')}.* ${p.name.toUpperCase()}\n`);
     } else {
-      message += `_Lista de convocação aberta!_\n`;
+      message += `_Lista aberta! Garanta sua vaga!_\n`;
     }
 
     if (fieldEspera.length > 0) {
-      message += `\n⏳ *LISTA DE ESPERA*\n`;
-      fieldEspera.forEach((p, i) => message += `• ${p.name.toUpperCase()}\n`);
-    }
-    
-    if (pending.length > 0) {
-      message += `\n❌ *AUSÊNCIAS / FORA*\n`;
-      pending.slice(0, 10).forEach(p => message += `~${p.name.toUpperCase()}~\n`);
-      if (pending.length > 10) message += `_... e outros_\n`;
+      message += `\n⏳ *LISTA DE ESPERA (Linha)*\n`;
+      fieldEspera.forEach((p) => message += `• ${p.name.toUpperCase()}\n`);
     }
     
     message += `\n────────────────────\n`;
-    if (remaining > 5) {
-      message += `📢 *STATUS:* VAGAS DISPONÍVEIS ✅\n`;
-    } else if (remaining > 0) {
-      message += `🔥 *URGENTE:* ÚLTIMAS ${remaining} VAGAS!\n`;
-    } else {
-      message += `🚫 *STATUS:* LISTA LOTADA (ESPERA ATIVA)\n`;
-    }
-    
-    message += `\n🔗 *CONFIRME PELO APP ELITE:*\n`;
-    message += `${window.location.origin}`;
+    message += `📢 *STATUS:* ${confirmed.length} CONFIRMADOS ✅\n`;
+    message += `🔗 *APP:* ${window.location.origin}`;
 
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
@@ -160,10 +145,10 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       <header className="px-6 pt-12 pb-8 glass-surface sticky top-0 z-40 border-b-0 rounded-b-[2rem]">
         <div className="flex items-center justify-between mb-8">
            <div className="flex flex-col gap-1">
-             <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">CONVOCAÇÃO</h2>
+             <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">LISTA DE PRESENÇA</h2>
              <div className="flex items-center gap-2">
                 <span className="w-4 h-1 bg-primary rounded-full"></span>
-                <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">OFFICIAL SQUAD</span>
+                <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">CONFIRMADOS PARA O SORTEIO</span>
              </div>
            </div>
            <div className="flex gap-3">
@@ -180,7 +165,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         <div className="relative">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">search</span>
           <input 
-            type="text" placeholder="Buscar atleta..." value={searchQuery} 
+            type="text" placeholder="Buscar atleta na lista..." value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-12 bg-white/50 border border-white/80 rounded-2xl pl-12 pr-4 text-xs font-bold text-navy outline-none shadow-inner" 
           />
@@ -189,15 +174,15 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
 
       <main className="px-6 mt-10 space-y-12 pb-40">
         <Section 
-          title="CONVOCADOS TITULARES" 
-          list={[...gksTitulares, ...fieldTitulares]} 
+          title="DENTRO DO JOGO" 
+          list={[...gksTitulares, ...fieldConfirmados]} 
           isAdmin={isCurrentUserAdmin} 
           onEdit={handleOpenEditModal} 
           onDelete={handleDeletePlayer} 
           isDeletingId={isDeletingId} 
           currentUser={currentUser} 
           type="confirmed" 
-          badge="TITULAR" 
+          badge="CONFIRMADO" 
         />
 
         {(gksEspera.length > 0 || fieldEspera.length > 0) && (
@@ -215,7 +200,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         )}
 
         <Section 
-          title="BASE / AUSENTES" 
+          title="BANCO / AUSENTES" 
           list={pending} 
           isAdmin={isCurrentUserAdmin} 
           onEdit={handleOpenEditModal} 
@@ -227,7 +212,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         />
       </main>
 
-      {/* MODAL ADICIONAR ATLETA */}
+      {/* MODAIS (MANTIDOS) */}
       {isAddingPlayer && (
         <div className="fixed inset-0 bg-navy/80 backdrop-blur-md z-[110] flex items-center justify-center p-6">
            <div className="w-full max-w-[340px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-slide-up">
@@ -237,8 +222,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
               </div>
               <div className="p-8 space-y-5">
                  <div className="space-y-1.5">
-                   <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">NOME COMPLETO</label>
-                   <input type="text" placeholder="Ex: Ivan Perišić" value={newPlayer.name} onChange={e => setNewPlayer({...newPlayer, name: e.target.value})} className="w-full h-12 bg-slate-50 rounded-xl border border-slate-100 px-4 font-bold text-navy" />
+                   <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">NOME DO JOGADOR</label>
+                   <input type="text" placeholder="Ex: Rodrigo" value={newPlayer.name} onChange={e => setNewPlayer({...newPlayer, name: e.target.value})} className="w-full h-12 bg-slate-50 rounded-xl border border-slate-100 px-4 font-bold text-navy" />
                  </div>
                  <div className="space-y-1.5">
                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">POSIÇÃO</label>
@@ -251,22 +236,14 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                       <option value="Atacante">Atacante</option>
                    </select>
                  </div>
-                 <div className="space-y-1.5">
-                   <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest px-1">TIPO DE ATLETA</label>
-                   <select value={newPlayer.playerType} onChange={e => setNewPlayer({...newPlayer, playerType: e.target.value as any})} className="w-full h-12 bg-slate-50 rounded-xl border border-slate-100 px-4 font-bold text-navy">
-                      <option value="mensalista">Mensalista</option>
-                      <option value="avulso">Avulso</option>
-                   </select>
-                 </div>
                  <button onClick={handleCreatePlayer} disabled={isSavingStats} className="w-full h-16 bg-navy text-white rounded-[1.25rem] font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all mt-4">
-                    {isSavingStats ? "SALVANDO..." : "CONVOCAR ATLETA"}
+                    {isSavingStats ? "SALVANDO..." : "ADICIONAR À LISTA"}
                  </button>
               </div>
            </div>
         </div>
       )}
 
-      {/* MODAL EDITAR ATLETA */}
       {selectedPlayerForStats && (
         <div className="fixed inset-0 bg-navy/80 backdrop-blur-md z-[110] flex items-center justify-center p-6">
            <div className="w-full max-w-[340px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-slide-up">
@@ -290,23 +267,15 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                  </div>
 
                  <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-primary uppercase tracking-widest block px-1">STATUS ARENA</label>
+                    <label className="text-[8px] font-black text-primary uppercase tracking-widest block px-1">STATUS DE PRESENÇA</label>
                     <select value={statsData.status} onChange={e => setStatsData({...statsData, status: e.target.value as any})} className="w-full h-12 bg-slate-50 rounded-xl border-2 border-primary/10 font-black text-navy px-4">
-                      <option value="presente">CONVOCADO (EM JOGO)</option>
+                      <option value="presente">DENTRO (CONFIRMADO)</option>
                       <option value="pendente">FORA (AUSENTE)</option>
-                    </select>
-                 </div>
-
-                 <div className="space-y-1.5">
-                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block px-1">CONTRATO</label>
-                    <select value={statsData.playerType} onChange={e => setStatsData({...statsData, playerType: e.target.value as any})} className="w-full h-12 bg-slate-50 rounded-xl border border-slate-100 font-black text-navy px-4">
-                      <option value="mensalista">MENSALISTA</option>
-                      <option value="avulso">AVULSO</option>
                     </select>
                  </div>
                  
                  <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-16 bg-primary text-white rounded-[1.25rem] font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 mt-4 active:scale-95 transition-all">
-                    {isSavingStats ? "PROCESSANDO..." : "SALVAR ALTERAÇÕES ADM"}
+                    {isSavingStats ? "PROCESSANDO..." : "SALVAR ALTERAÇÕES"}
                  </button>
               </div>
            </div>
@@ -323,7 +292,7 @@ const Section = ({ title, list, isAdmin, onEdit, onDelete, isDeletingId, current
           <div className={`w-1.5 h-4 ${type === 'confirmed' ? 'bg-success' : type === 'waiting' ? 'bg-amber-400' : 'bg-slate-300'} rounded-full`}></div>
           <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-navy italic">{title}</h3>
        </div>
-       <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{list.length} ATLETAS</span>
+       <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{list.length} JOGADORES</span>
     </div>
     <div className="grid grid-cols-1 gap-3">
       {list.length > 0 ? list.map((p: Player, i: number) => (
@@ -361,7 +330,7 @@ const Section = ({ title, list, isAdmin, onEdit, onDelete, isDeletingId, current
         </div>
       )) : (
         <div className="py-10 text-center glass-surface rounded-[2rem] border-dashed">
-           <p className="text-[10px] text-slate-300 uppercase font-black tracking-widest">Lista vazia</p>
+           <p className="text-[10px] text-slate-300 uppercase font-black tracking-widest">Lista de presença vazia</p>
         </div>
       )}
     </div>
