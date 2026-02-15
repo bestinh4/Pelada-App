@@ -86,12 +86,54 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const confirmed = filtered.filter(p => p.status === 'presente');
   const pending = filtered.filter(p => p.status !== 'presente');
 
+  const handleShareList = () => {
+    const gks = confirmed.filter(p => p.position === 'Goleiro');
+    const field = confirmed.filter(p => p.position !== 'Goleiro');
+    
+    const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '--/--';
+    
+    let message = `📋 *BOLETIM OFICIAL - O&A ELITE* 🇭🇷\n`;
+    message += `🏟️ *LOCAL:* ${match?.location || 'Arena Elite'}\n`;
+    message += `🗓️ *DATA:* ${dateStr} às ${match?.time || '--:--'}h\n`;
+    message += `──────────────────\n\n`;
+    
+    message += `🧤 *PAREDÕES CONFIRMADOS* (${gks.length}/${match?.gkSlots || 4})\n`;
+    if (gks.length > 0) {
+      gks.forEach((p, i) => message += `${i + 1}. ${p.name.toUpperCase()}\n`);
+    } else {
+      message += `_Aguardando muralhas..._\n`;
+    }
+    
+    message += `\n🏃 *LINHA DE FRENTE* (${field.length}/${match?.fieldSlots || 30})\n`;
+    if (field.length > 0) {
+      field.forEach((p, i) => message += `${String(i + 1).padStart(2, '0')}. ${p.name.toUpperCase()}\n`);
+    } else {
+      message += `_Lista aberta. Garanta sua vaga!_\n`;
+    }
+    
+    message += `\n──────────────────\n`;
+    message += `⚠️ *VAGAS RESTANTES:* ${(match?.fieldSlots || 30) - field.length}\n`;
+    message += `✅ *CONFIRME PELO APP:* ${window.location.origin}`;
+
+    const encoded = encodeURIComponent(message);
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+  };
+
   return (
     <div className="flex flex-col animate-in fade-in duration-500">
       <header className="px-6 pt-10 pb-6 glass-header sticky top-0 z-40">
         <div className="flex items-center justify-between mb-6">
-           <h2 className="text-base font-black text-navy uppercase italic tracking-tighter">CONVOCAÇÃO</h2>
+           <div className="flex flex-col">
+             <h2 className="text-base font-black text-navy uppercase italic tracking-tighter">CONVOCAÇÃO</h2>
+             <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em]">ELITE ROSTER</span>
+           </div>
            <div className="flex gap-2">
+             <button 
+              onClick={handleShareList}
+              className="w-10 h-10 bg-success text-white rounded-xl flex items-center justify-center shadow-lg shadow-success/20 active:scale-90 transition-all"
+             >
+                <span className="material-symbols-outlined text-xl">share</span>
+             </button>
              {isCurrentUserAdmin && (
                 <button 
                   onClick={() => setIsAddingPlayer(true)}
@@ -100,9 +142,6 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                   <span className="material-symbols-outlined text-xl font-bold">person_add</span>
                 </button>
              )}
-             <div className="px-3 py-2 bg-navy text-white rounded-xl text-[8px] font-black uppercase tracking-widest flex items-center">
-                {confirmed.length} ATLETAS
-             </div>
            </div>
         </div>
         <div className="relative">

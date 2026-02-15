@@ -58,6 +58,27 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     }
   };
 
+  const handleShareMatch = () => {
+    const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '---';
+    const text = `⚽ *CONVOCAÇÃO ELITE* 🇭🇷\n\n` +
+                 `📍 *LOCAL:* ${match?.location || 'Arena Elite'}\n` +
+                 `🗓️ *DATA:* ${dateStr}\n` +
+                 `⏱️ *HORA:* ${match?.time || '--:--'}h\n\n` +
+                 `📢 *STATUS:* ${confirmedPlayers.length} atletas já confirmados!\n` +
+                 `🔗 *CONFIRME SUA VAGA AQUI:* ${window.location.origin}\n\n` +
+                 `#O&AElite #Futebol #EliteArena`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: 'Pelada O&A Elite',
+        text: text,
+        url: window.location.origin,
+      });
+    } else {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    }
+  };
+
   const topScorers = [...players].filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 3);
   const topAssists = [...players].filter(p => p.assists > 0).sort((a,b) => b.assists - a.assists).slice(0, 3);
 
@@ -88,11 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                 <h2 className="text-2xl font-condensed tracking-tighter uppercase italic leading-none text-navy animate-slide-up stagger-2">{match?.location || "ARENA ELITE"}</h2>
               </div>
               <button 
-                onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({ title: 'Pelada O&A Elite', text: `Partiu jogo em ${match?.location || 'Arena Elite'}?`, url: window.location.href });
-                  }
-                }}
+                onClick={handleShareMatch}
                 className="w-10 h-10 bg-slate-50 text-navy rounded-lg flex items-center justify-center active:scale-90 hover:bg-slate-100 transition-all border border-slate-100 animate-slide-up stagger-2"
               >
                 <span className="material-symbols-outlined text-xl">share</span>
