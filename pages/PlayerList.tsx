@@ -87,8 +87,17 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const pending = filtered.filter(p => p.status !== 'presente');
 
   const handleShareList = () => {
-    const gks = confirmed.filter(p => p.position === 'Goleiro');
-    const field = confirmed.filter(p => p.position !== 'Goleiro');
+    const gkSlots = match?.gkSlots || 4;
+    const fieldSlots = match?.fieldSlots || 30;
+
+    const allConfirmedGks = confirmed.filter(p => p.position === 'Goleiro');
+    const allConfirmedField = confirmed.filter(p => p.position !== 'Goleiro');
+
+    const gks = allConfirmedGks.slice(0, gkSlots);
+    const gksWaiting = allConfirmedGks.slice(gkSlots);
+    
+    const field = allConfirmedField.slice(0, fieldSlots);
+    const fieldWaiting = allConfirmedField.slice(fieldSlots);
     
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '--/--';
     
@@ -97,22 +106,40 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     message += `🗓️ *DATA:* ${dateStr} às ${match?.time || '--:--'}h\n`;
     message += `──────────────────\n\n`;
     
-    message += `🧤 *PAREDÕES CONFIRMADOS* (${gks.length}/${match?.gkSlots || 4})\n`;
+    message += `🧤 *PAREDÕES CONFIRMADOS* (${gks.length}/${gkSlots})\n`;
     if (gks.length > 0) {
       gks.forEach((p, i) => message += `${i + 1}. ${p.name.toUpperCase()}\n`);
     } else {
       message += `_Aguardando muralhas..._\n`;
     }
+
+    if (gksWaiting.length > 0) {
+      message += `\n⏳ *LISTA DE ESPERA - GOLEIROS*\n`;
+      gksWaiting.forEach((p, i) => message += `• ${p.name.toUpperCase()}\n`);
+    }
     
-    message += `\n🏃 *LINHA DE FRENTE* (${field.length}/${match?.fieldSlots || 30})\n`;
+    message += `\n🏃 *LINHA DE FRENTE* (${field.length}/${fieldSlots})\n`;
     if (field.length > 0) {
       field.forEach((p, i) => message += `${String(i + 1).padStart(2, '0')}. ${p.name.toUpperCase()}\n`);
     } else {
       message += `_Lista aberta. Garanta sua vaga!_\n`;
     }
+
+    if (fieldWaiting.length > 0) {
+      message += `\n⏳ *LISTA DE ESPERA - LINHA*\n`;
+      fieldWaiting.forEach((p, i) => message += `• ${p.name.toUpperCase()}\n`);
+    }
+    
+    if (pending.length > 0) {
+      message += `\n❌ *AUSENTES / PENDENTES*\n`;
+      const limitedPending = pending.slice(0, 10);
+      limitedPending.forEach(p => message += `~${p.name.toUpperCase()}~\n`);
+      if (pending.length > 10) message += `_... e mais ${pending.length - 10} atletas_\n`;
+    }
     
     message += `\n──────────────────\n`;
-    message += `⚠️ *VAGAS RESTANTES:* ${(match?.fieldSlots || 30) - field.length}\n`;
+    const remaining = fieldSlots - field.length;
+    message += remaining > 0 ? `⚠️ *VAGAS RESTANTES:* ${remaining}\n` : `🔥 *ARENA LOTADA!* (Entrando em espera)\n`;
     message += `✅ *CONFIRME PELO APP:* ${window.location.origin}`;
 
     const encoded = encodeURIComponent(message);
