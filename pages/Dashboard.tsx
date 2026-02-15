@@ -53,7 +53,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const handleShareMatch = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
     
-    let message = `🏆 *OUSADIA & ALEGRIA ELITE* 🇭🇷\n`;
+    let message = `🏆 *OUSADIA & ALEGRIA* 🇭🇷\n`;
     message += `🏟️ *LOCAL:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n`;
     message += `🗓️ *DATA:* ${dateStr}\n`;
     message += `⏱️ *HORÁRIO:* ${match?.time || '--:--'}H\n`;
