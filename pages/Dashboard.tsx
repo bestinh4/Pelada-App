@@ -51,23 +51,22 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   };
 
   const handleShareMatch = () => {
-    const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '---';
-    const remaining = fieldSlots - confirmedField.slice(0, fieldSlots).length;
+    const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
     
     let message = `🏆 *MATCHDAY O&A ELITE PRO* 🇭🇷\n`;
-    message += `🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ELITE ARENA'}\n`;
+    message += `🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n`;
     message += `🗓️ *DATA:* ${dateStr}\n`;
-    message += `⏱️ *KICK-OFF:* ${match?.time || '--:--'}H\n`;
+    message += `⏱️ *HORA:* ${match?.time || '--:--'}H\n`;
     message += `────────────────────\n\n`;
     
     message += `🧤 *PAREDÕES* (${confirmedGKs.length}/${gkSlots})\n`;
     if (confirmedGKs.length > 0) {
       confirmedGKs.forEach((p, i) => message += `*${i + 1}.* ${p.name.toUpperCase()}\n`);
     } else {
-      message += `_Aguardando goleiros..._\n`;
+      message += `_Vagas abertas para Goleiros..._\n`;
     }
     
-    message += `\n🏃 *LINE-UP* (${confirmedField.length}/${fieldSlots})\n`;
+    message += `\n🏃 *LINE-UP CONFIRMADO* (${confirmedField.length}/${fieldSlots})\n`;
     if (confirmedField.length > 0) {
       confirmedField.slice(0, fieldSlots).forEach((p, i) => message += `*${String(i + 1).padStart(2, '0')}.* ${p.name.toUpperCase()}\n`);
       
@@ -77,7 +76,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         espera.forEach((p) => message += `• ${p.name.toUpperCase()}\n`);
       }
     } else {
-      message += `_Lista aberta! Confirme agora!_\n`;
+      message += `_Lista aberta! Confirme agora no App!_\n`;
     }
     
     message += `\n────────────────────\n`;
@@ -114,7 +113,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           <div className="flex justify-between items-start mb-12 relative z-10">
             <div className="space-y-2">
               <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] block">SESSÃO OFICIAL</span>
-              <h2 className="text-4xl font-condensed tracking-tight uppercase italic leading-none text-navy">{match?.location || "ARENA ELITE"}</h2>
+              <h2 className="text-4xl font-condensed tracking-tight uppercase italic leading-none text-navy">{match?.location || "ARENA OUSADIA"}</h2>
             </div>
             <button onClick={handleShareMatch} className="w-12 h-12 bg-white/60 border border-white/80 rounded-2xl flex items-center justify-center active:scale-90 transition-all shadow-glass">
               <span className="material-symbols-outlined text-navy font-light">share</span>

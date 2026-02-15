@@ -16,16 +16,17 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
 
   return (
     <div className="flex justify-center min-h-screen sm:py-8 bg-champions-gradient font-display">
-      <div className="relative w-full sm:max-w-[430px] sm:h-[880px] bg-transparent sm:rounded-[3.5rem] overflow-hidden flex flex-col transition-all duration-1000">
+      {/* Container principal com altura fixa no mobile (100dvh) para manter menu sempre visível */}
+      <div className="relative w-full h-[100dvh] sm:h-[880px] sm:max-w-[430px] bg-transparent sm:rounded-[3.5rem] overflow-hidden flex flex-col transition-all duration-1000 border-x border-slate-100 sm:border-none">
         
-        <div className="flex-1 overflow-y-auto hide-scrollbar">
+        {/* Área de conteúdo com scroll independente */}
+        <div className="flex-1 overflow-y-auto hide-scrollbar pb-32">
           {children}
-          <div className="h-44"></div>
         </div>
         
-        {/* MENU INFERIOR CRYSTAL GLASS - ALINHAMENTO UNIFICADO */}
-        <div className="absolute bottom-8 left-6 right-6 z-[100] animate-slide-up">
-          <nav className="h-20 glass-surface rounded-[2.5rem] flex items-center justify-around px-2 border border-white/80">
+        {/* MENU INFERIOR - SEMPRE FIXO NO BOTTOM DO VIEWPORT */}
+        <div className="absolute bottom-6 left-6 right-6 z-[100] animate-slide-up">
+          <nav className="h-20 glass-surface rounded-[2.5rem] flex items-center justify-around px-2 border border-white/80 shadow-2xl">
             
             <NavItem 
               icon="stadium" 
