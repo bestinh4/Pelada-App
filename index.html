@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>O&A Elite Pro - Champions Edition</title>
+    <title>O&A Elite Pro - Champions Legacy</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#C8102E">
@@ -47,30 +47,32 @@
               "primary": "#C8102E",
               "primary-bright": "#E10600",
               "navy": "#0033A0",
-              "navy-bright": "#1D4ED8",
+              "navy-deep": "#002166",
               "slate-bg": "#F9FBFF",
-              "glass-white": "rgba(255, 255, 255, 0.65)"
+              "glass-card": "rgba(255, 255, 255, 0.7)",
+              "glass-border": "rgba(255, 255, 255, 0.6)",
+              "success": "#10B981"
             },
             fontFamily: {
               "display": ["Plus Jakarta Sans", "sans-serif"],
               "condensed": ["Bebas Neue", "sans-serif"],
             },
             boxShadow: {
-              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
-              'premium': '0 20px 40px -10px rgba(0, 51, 160, 0.12)',
-              'red-glow': '0 0 20px rgba(200, 16, 46, 0.3)',
+              'elite': '0 10px 40px -10px rgba(0, 51, 160, 0.08)',
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.05)',
+              'glow-red': '0 0 20px rgba(200, 16, 46, 0.25)',
             },
             animation: {
               'fade-in': 'fadeIn 0.5s ease-out',
               'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-              'pulse-soft': 'pulseSoft 3s ease-in-out infinite',
-              'ripple': 'ripple 0.6s linear',
+              'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+              'float': 'float 3s ease-in-out infinite',
             },
             keyframes: {
               fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
-              slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
-              pulseSoft: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.6' } },
-              ripple: { '0%': { transform: 'scale(0)', opacity: '0.5' }, '100%': { transform: 'scale(4)', opacity: '0' } }
+              slideUp: { '0%': { transform: 'translateY(24px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+              pulseGlow: { '0%, 100%': { opacity: '1', filter: 'drop-shadow(0 0 5px rgba(200, 16, 46, 0.4))' }, '50%': { opacity: '0.7', filter: 'drop-shadow(0 0 15px rgba(200, 16, 46, 0.15))' } },
+              float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-6px)' } }
             }
           },
         },
@@ -78,26 +80,26 @@
     </script>
     <style type="text/tailwindcss">
       @layer components {
-        .glass-panel {
-          @apply bg-glass-white backdrop-blur-[24px] border border-white/60 shadow-glass;
+        .glass-surface {
+          @apply bg-glass-card backdrop-blur-[24px] border border-glass-border shadow-glass;
         }
-        .bg-champions {
+        .bg-champions-gradient {
           background: linear-gradient(180deg, #F9FBFF 0%, #EEF3FA 60%, #E8EDF6 100%);
           min-height: 100vh;
         }
-        .btn-champions-red {
+        .btn-elite-primary {
           background: linear-gradient(135deg, #C8102E 0%, #E10600 100%);
-          @apply text-white shadow-premium active:scale-95 transition-all duration-300;
+          @apply text-white shadow-xl shadow-primary/20 active:scale-[0.97] transition-all;
         }
-        .btn-champions-blue {
+        .btn-elite-secondary {
           background: linear-gradient(135deg, #0033A0 0%, #1D4ED8 100%);
-          @apply text-white shadow-premium active:scale-95 transition-all duration-300;
+          @apply text-white shadow-xl shadow-navy/20 active:scale-[0.97] transition-all;
         }
       }
       .hide-scrollbar::-webkit-scrollbar { display: none; }
       * { -webkit-tap-highlight-color: transparent; }
       body {
-        @apply bg-champions font-display text-slate-900 antialiased;
+        @apply bg-champions-gradient font-display text-slate-900 antialiased overflow-x-hidden;
       }
     </style>
   </head>
