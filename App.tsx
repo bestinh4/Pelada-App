@@ -9,6 +9,7 @@ import Ranking from './pages/Ranking.tsx';
 import CreateMatch from './pages/CreateMatch.tsx';
 import Profile from './pages/Profile.tsx';
 import TeamBalancing from './pages/TeamBalancing.tsx';
+import ArenaPanel from './pages/ArenaPanel.tsx';
 import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL } from './constants.tsx';
 import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc } from './services/firebase.ts';
@@ -69,21 +70,15 @@ const App: React.FC = () => {
       const currentPlayerRecord = playerList.find(p => p.id === user?.uid);
       const isAdmin = currentPlayerRecord?.role === 'admin' || user?.email === MASTER_ADMIN_EMAIL;
 
-      // Lógica de Notificações para Administradores
       if (isAdmin && !isFirstLoad.current) {
         snapshot.docChanges().forEach((change) => {
           const playerData = change.doc.data() as Player;
           const oldPlayerData = prevPlayersState.current[change.doc.id];
 
-          // 1. Notificar novo cadastro (Novo Usuário)
           if (change.type === "added") {
-            sendPushNotification(
-              "🆕 NOVO CADASTRO NA ARENA!", 
-              `O atleta ${playerData.name.toUpperCase()} acaba de entrar para a elite!`
-            );
+            sendPushNotification("🆕 NOVO CADASTRO NA ARENA!", `O atleta ${playerData.name.toUpperCase()} acaba de entrar para a elite!`);
           } 
           
-          // 2. Notificar mudanças de presença (Para Admins acompanharem o quórum)
           if (change.type === "modified" && oldPlayerData) {
             if (oldPlayerData.status !== playerData.status) {
               if (playerData.status === 'presente') {
@@ -96,7 +91,6 @@ const App: React.FC = () => {
         });
       }
 
-      // Atualiza estado de referência para a próxima iteração
       const newState: Record<string, Player> = {};
       playerList.forEach(p => newState[p.id] = p);
       prevPlayersState.current = newState;
@@ -141,6 +135,7 @@ const App: React.FC = () => {
         {user && currentPage === Page.Ranking && <Ranking players={players} currentUser={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.CreateMatch && <CreateMatch players={players} currentUser={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.TeamBalancing && <TeamBalancing players={players} onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.ArenaPanel && <ArenaPanel players={players} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.Profile && (
           <Profile 
             player={currentPlayer || { id: user.uid, name: user.displayName, email: user.email, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente', role: effectiveRole } as Player} 

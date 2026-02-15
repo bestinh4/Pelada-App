@@ -16,26 +16,27 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
 
   return (
     <div className="flex justify-center min-h-screen sm:py-8 bg-slate-100/50">
-      {/* 
-          Main Responsive Wrapper
-      */}
       <div className="relative w-full sm:max-w-[430px] sm:h-[880px] bg-white sm:rounded-[3rem] sm:shadow-2xl overflow-hidden flex flex-col sm:border-[8px] sm:border-white ring-1 ring-slate-100 transition-all duration-700">
         
-        {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto hide-scrollbar bg-[#F9FBFC]">
           {children}
-          {/* Espaçador generoso para o menu flutuante não cobrir o conteúdo final */}
           <div className="h-44"></div>
         </div>
         
-        {/* Futuristic Floating Bottom Dock - White Theme */}
-        <div className="absolute bottom-6 left-6 right-6 z-[100] animate-slide-up stagger-5">
-          <nav className="h-20 bg-white border border-slate-100 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,56,118,0.25)] flex items-center justify-around px-4">
+        <div className="absolute bottom-6 left-6 right-6 z-[100] animate-slide-up">
+          <nav className="h-20 bg-white border border-slate-100 rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,56,118,0.25)] flex items-center justify-around px-2">
             <NavItem icon="dashboard" label="Home" active={currentPage === Page.Dashboard} onClick={() => onPageChange(Page.Dashboard)} />
             <NavItem icon="groups" label="Squad" active={currentPage === Page.PlayerList} onClick={() => onPageChange(Page.PlayerList)} />
             
             {isAdmin && (
-              <div className="relative">
+              <div className="relative flex items-center gap-1">
+                <button 
+                  onClick={() => onPageChange(Page.ArenaPanel)}
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-xl active:scale-90 ${currentPage === Page.ArenaPanel ? 'bg-navy text-white scale-110' : 'bg-slate-50 text-navy'}`}
+                  title="Painel Arena"
+                >
+                  <span className="material-symbols-outlined text-2xl font-bold">stadium</span>
+                </button>
                 <button 
                   onClick={() => onPageChange(Page.CreateMatch)}
                   className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-2xl active:scale-90 hover:scale-105 ${currentPage === Page.CreateMatch ? 'bg-navy text-white rotate-45 scale-110' : 'bg-primary text-white shadow-primary/40'}`}

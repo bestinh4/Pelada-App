@@ -9,19 +9,44 @@ export interface Player {
   goals: number;
   assists: number;
   concededGoals: number;
+  totalGames: number;
+  totalWins: number;
   position: string;
   status: 'presente' | 'pendente';
   playerType: 'mensalista' | 'avulso';
-  paymentStatus?: 'pago' | 'pendente';
-  monthlyPaid?: boolean;
-  lastPaymentDate?: string;
   role?: 'admin' | 'player';
-  pushEnabled?: boolean;
   skills?: {
     attack: number;
     defense: number;
     stamina: number;
   };
+  // Fix: Adding financial tracking properties used in Ranking.tsx
+  monthlyPaid?: boolean;
+  paymentStatus?: 'pago' | 'pendente';
+}
+
+export interface Team {
+  id: string;
+  name: string;
+  playerIds: string[];
+  hasGK: boolean;
+  isComplete: boolean;
+  consecutiveWins: number;
+  totalWins: number;
+}
+
+export interface MatchSession {
+  id: string;
+  activeMatch: {
+    teamAId: string | null;
+    teamBId: string | null;
+    scoreA: number;
+    scoreB: number;
+    startTime: number | null; // timestamp
+  };
+  queue: string[]; // IDs dos times na fila
+  teams: Team[];
+  status: 'inactive' | 'active';
 }
 
 export interface Match {
@@ -45,5 +70,6 @@ export enum Page {
   Ranking = 'ranking',
   CreateMatch = 'create-match',
   Profile = 'profile',
-  TeamBalancing = 'team-balancing'
+  TeamBalancing = 'team-balancing',
+  ArenaPanel = 'arena-panel'
 }
