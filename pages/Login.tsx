@@ -24,14 +24,14 @@ const Login: React.FC = () => {
       <div className="w-full max-w-sm space-y-16 flex flex-col items-center animate-fade-in relative z-10">
         <div className="relative group">
            <div className="absolute inset-0 bg-primary/10 blur-[60px] rounded-full scale-150 group-hover:bg-primary/20 transition-all duration-1000"></div>
-           <img src={logoUrl} alt="O&A Elite Pro" className="w-56 h-56 object-contain relative z-10 drop-shadow-2xl animate-float" />
+           <img src={logoUrl} alt="Ousadia & LEGACYclassName="w-56 h-56 object-contain relative z-10 drop-shadow-2xl animate-float" />
         </div>
         
         <div className="text-center space-y-4">
           <h1 className="text-5xl font-condensed italic font-black tracking-tight text-navy uppercase leading-none">O&A ELITE PRO</h1>
           <div className="flex items-center justify-center gap-4">
              <div className="w-8 h-0.5 bg-primary/20"></div>
-             <p className="text-[11px] font-extrabold uppercase text-primary tracking-[0.5em]">CHAMPIONS LEGACY</p>
+             <p className="text-[11px] font-extrabold uppercase text-primary tracking-[0.5em]">🇭🇷ACY>
              <div className="w-8 h-0.5 bg-primary/20"></div>
           </div>
         </div>
