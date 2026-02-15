@@ -30,19 +30,21 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
           <div className="h-32"></div>
         </div>
         
-        {/* Floating Bottom Nav - Precise Scaling */}
-        <div className="absolute bottom-6 left-6 right-6 z-50">
-          <nav className="h-16 bg-navy rounded-2xl shadow-2xl flex items-center justify-around px-2 border border-white/5">
+        {/* Futuristic Floating Bottom Dock */}
+        <div className="absolute bottom-8 left-6 right-6 z-50">
+          <nav className="h-20 bg-white/90 backdrop-blur-2xl rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,56,118,0.15)] flex items-center justify-around px-4 border border-slate-200/40">
             <NavItem icon="dashboard" label="Home" active={currentPage === Page.Dashboard} onClick={() => onPageChange(Page.Dashboard)} />
-            <NavItem icon="groups" label="Convocados" active={currentPage === Page.PlayerList} onClick={() => onPageChange(Page.PlayerList)} />
+            <NavItem icon="groups" label="Squad" active={currentPage === Page.PlayerList} onClick={() => onPageChange(Page.PlayerList)} />
             
             {isAdmin && (
-              <button 
-                onClick={() => onPageChange(Page.CreateMatch)}
-                className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all active:scale-90 -mt-2 ${currentPage === Page.CreateMatch ? 'bg-white text-primary rotate-45 scale-110 shadow-lg' : 'bg-primary text-white shadow-xl shadow-primary/20'}`}
-              >
-                <span className="material-symbols-outlined text-2xl font-bold">add</span>
-              </button>
+              <div className="relative">
+                <button 
+                  onClick={() => onPageChange(Page.CreateMatch)}
+                  className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-2xl active:scale-90 ${currentPage === Page.CreateMatch ? 'bg-navy text-white rotate-45' : 'bg-primary text-white shadow-primary/30'}`}
+                >
+                  <span className="material-symbols-outlined text-3xl font-bold">add</span>
+                </button>
+              </div>
             )}
             
             <NavItem icon="account_balance_wallet" label="Cofre" active={currentPage === Page.Ranking} onClick={() => onPageChange(Page.Ranking)} />
@@ -57,10 +59,14 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
 const NavItem = ({ icon, active, onClick, label }: { icon: string, active: boolean, onClick: () => void, label: string }) => (
   <button 
     onClick={onClick}
-    className={`flex flex-col items-center justify-center w-12 transition-all duration-300 ${active ? 'text-primary' : 'text-white/30'}`}
+    className={`flex flex-col items-center justify-center w-12 transition-all duration-500 relative ${active ? 'text-navy' : 'text-slate-300'}`}
   >
-    <span className={`material-symbols-outlined text-[22px] ${active ? 'fill-1' : ''}`}>{icon}</span>
-    <span className={`text-[8px] font-black uppercase tracking-widest mt-0.5 ${active ? 'opacity-100' : 'opacity-0'}`}>{label}</span>
+    <span className={`material-symbols-outlined text-[26px] transition-all duration-500 ${active ? 'fill-1 scale-110' : 'scale-100'}`}>{icon}</span>
+    <span className={`text-[7px] font-black uppercase tracking-[0.2em] mt-1 transition-all duration-500 ${active ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'}`}>{label}</span>
+    
+    {active && (
+      <span className="absolute -bottom-2 w-1 h-1 bg-primary rounded-full animate-pulse"></span>
+    )}
   </button>
 );
 
