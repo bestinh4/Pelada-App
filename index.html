@@ -6,16 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>O&A Elite Pro - Pure Edition</title>
     
-    <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ed1d23">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="O&A Elite">
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png">
-    <link rel="icon" type="image/png" href="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png">
-    
+
     <script type="importmap">
 {
   "imports": {
@@ -66,15 +62,14 @@
     <style type="text/tailwindcss">
       @layer utilities {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .shadow-elite { box-shadow: 0 10px 40px -10px rgba(0, 56, 118, 0.08); }
-        .shadow-button { box-shadow: 0 15px 30px -5px rgba(237, 29, 35, 0.2); }
-        .glass-header { @apply bg-white/95 backdrop-blur-2xl border-b border-slate-50; }
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .shadow-elite { box-shadow: 0 10px 40px -10px rgba(0, 56, 118, 0.06); }
+        .glass-header { @apply bg-white/95 backdrop-blur-xl border-b border-slate-100; }
       }
+      * { -webkit-tap-highlight-color: transparent; }
       body {
-        @apply bg-[#F9FBFC] font-display text-slate-900 antialiased;
+        @apply bg-[#F4F7F9] font-display text-slate-900 antialiased overflow-x-hidden;
       }
+      input, select { @apply text-base; } /* Previne zoom no iOS */
     </style>
   </head>
   <body>

@@ -60,81 +60,80 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ players, currentUser, onPageC
   };
 
   return (
-    <div className="flex flex-col min-h-full">
-      <header className="px-8 pt-12 pb-6 glass-header sticky top-0 z-40">
+    <div className="flex flex-col">
+      <header className="px-6 pt-10 pb-6 glass-header sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-          <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter">GESTÃO DA ARENA</h2>
+          <div className="w-1 h-5 bg-primary rounded-full"></div>
+          <h2 className="text-base font-black text-navy uppercase italic tracking-tighter">AGENDAR JOGO</h2>
         </div>
       </header>
 
-      <main className="px-6 mt-8 space-y-8">
-        <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-elite space-y-6">
-          <div className="space-y-2">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">LOCAL DA BATALHA</label>
+      <main className="px-5 mt-8 space-y-6">
+        <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-elite space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest px-1">LOCAL</label>
             <input 
               type="text" 
-              placeholder="Ex: Arena Elite Pro" 
+              placeholder="Ex: Arena Pro Elite" 
               value={matchData.location}
               onChange={e => setMatchData({...matchData, location: e.target.value})}
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-navy focus:ring-2 focus:ring-primary/10 outline-none"
+              className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-navy outline-none focus:ring-1 focus:ring-primary/10"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">DATA</label>
-               <input type="date" value={matchData.date} onChange={e => setMatchData({...matchData, date: e.target.value})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-3 font-bold text-navy" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+               <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest px-1">DATA</label>
+               <input type="date" value={matchData.date} onChange={e => setMatchData({...matchData, date: e.target.value})} className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-3 font-bold text-navy" />
             </div>
-            <div className="space-y-2">
-               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">HORÁRIO</label>
-               <input type="time" value={matchData.time} onChange={e => setMatchData({...matchData, time: e.target.value})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-3 font-bold text-navy" />
+            <div className="space-y-1.5">
+               <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest px-1">HORA</label>
+               <input type="time" value={matchData.time} onChange={e => setMatchData({...matchData, time: e.target.value})} className="w-full h-12 bg-slate-50 border border-slate-100 rounded-xl px-3 font-bold text-navy" />
             </div>
           </div>
 
           <button 
             onClick={handleCreateNewMatch}
             disabled={isSavingMatch}
-            className="w-full h-18 bg-primary text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-button flex items-center justify-center gap-3 active:scale-95 transition-all"
+            className="w-full h-14 bg-primary text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 active:scale-95 transition-all"
           >
-            {isSavingMatch ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : "AGENDAR PARTIDA"}
+            {isSavingMatch ? <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : "PUBLICAR NA ARENA"}
           </button>
         </div>
 
-        {/* AI TEAM DRAWER ACCESS */}
-        <div className="bg-navy rounded-[2.5rem] p-8 text-white relative overflow-hidden group">
+        <div className="bg-navy rounded-[2rem] p-7 text-white relative overflow-hidden group shadow-2xl">
            <div className="relative z-10">
-              <span className="text-[8px] font-black uppercase tracking-widest opacity-40 mb-2 block">SALA TÁTICA</span>
-              <h3 className="text-2xl font-condensed italic uppercase leading-none mb-6">SORTEIO COM INTELIGÊNCIA ARTICIAL</h3>
+              <span className="text-[7px] font-black uppercase tracking-widest opacity-40 mb-1 block">TÁTICA AVANÇADA</span>
+              <h3 className="text-xl font-condensed italic uppercase leading-tight mb-6">DIVIDIR TIMES COM INTELIGÊNCIA ARTICIAL</h3>
               <button 
                 onClick={() => onPageChange(Page.TeamBalancing)}
-                className="w-full h-16 bg-white text-navy rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all"
+                className="w-full h-14 bg-white text-navy rounded-xl font-black uppercase text-[9px] tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-xl"
               >
-                ACESSAR SORTEIO IA
-                <span className="material-symbols-outlined">bolt</span>
+                ABRIR SALA TÁTICA
+                <span className="material-symbols-outlined text-lg">bolt</span>
               </button>
            </div>
         </div>
       </main>
 
-      {/* PURE ELITE SUCCESS MODAL */}
+      {/* PURE ELITE SUCCESS MODAL - REFINED SCALE */}
       {showSuccessModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-navy/60 backdrop-blur-xl animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-[360px] rounded-[3rem] p-10 text-center shadow-2xl animate-in zoom-in-95 duration-300">
-            <div className="w-20 h-20 bg-primary text-white rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-button">
-              <span className="material-symbols-outlined text-4xl font-bold">check</span>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-navy/80 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-[320px] rounded-[2.5rem] p-8 text-center shadow-2xl animate-in zoom-in-95">
+            <div className="w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center mx-auto mb-5 shadow-xl shadow-primary/20">
+              <span className="material-symbols-outlined text-3xl font-bold">check</span>
             </div>
-            <h3 className="text-2xl font-black text-navy uppercase italic tracking-tighter mb-2">SUCESSO TOTAL!</h3>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">A convocação foi enviada para todos os atletas da elite.</p>
+            <h3 className="text-xl font-black text-navy uppercase italic tracking-tighter mb-1.5">FECHADO!</h3>
+            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-6 leading-relaxed">A convocação oficial foi disparada para toda a elite.</p>
             
-            <div className="bg-slate-50 rounded-2xl p-5 mb-10 text-left space-y-2 border border-slate-100">
+            <div className="bg-slate-50 rounded-2xl p-4 mb-8 text-left space-y-2 border border-slate-100/50">
                <div className="flex justify-between items-center">
-                  <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">LOCAL</span>
-                  <span className="text-[11px] font-black text-navy uppercase italic">{lastCreatedMatch?.location}</span>
+                  <span className="text-[7px] font-black text-slate-300 uppercase tracking-widest">LOCAL</span>
+                  <span className="text-[9px] font-black text-navy uppercase italic truncate ml-2">{lastCreatedMatch?.location}</span>
                </div>
                <div className="flex justify-between items-center">
-                  <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">DATA</span>
-                  <span className="text-[11px] font-black text-navy uppercase italic">
+                  <span className="text-[7px] font-black text-slate-300 uppercase tracking-widest">AGENDA</span>
+                  <span className="text-[9px] font-black text-navy uppercase italic">
                     {new Date(lastCreatedMatch?.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })} • {lastCreatedMatch?.time}H
                   </span>
                </div>
@@ -142,7 +141,7 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ players, currentUser, onPageC
 
             <button 
               onClick={() => onPageChange(Page.Dashboard)}
-              className="w-full h-16 bg-navy text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl active:scale-95 transition-all"
+              className="w-full h-14 bg-navy text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all"
             >
               IR PARA ARENA
             </button>
