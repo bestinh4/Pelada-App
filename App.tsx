@@ -69,27 +69,34 @@ const App: React.FC = () => {
       const currentPlayerRecord = playerList.find(p => p.id === user?.uid);
       const isAdmin = currentPlayerRecord?.role === 'admin' || user?.email === MASTER_ADMIN_EMAIL;
 
+      // Lógica de Notificações para Administradores
       if (isAdmin && !isFirstLoad.current) {
         snapshot.docChanges().forEach((change) => {
           const playerData = change.doc.data() as Player;
-          const oldPlayerData = prevPlayersState.current[change.doc.id] as Player | undefined;
+          const oldPlayerData = prevPlayersState.current[change.doc.id];
 
+          // 1. Notificar novo cadastro (Novo Usuário)
           if (change.type === "added") {
-            sendPushNotification("🆕 NOVO ATLETA!", `${playerData.name} entrou na Elite!`);
+            sendPushNotification(
+              "🆕 NOVO CADASTRO NA ARENA!", 
+              `O atleta ${playerData.name.toUpperCase()} acaba de entrar para a elite!`
+            );
           } 
           
+          // 2. Notificar mudanças de presença (Para Admins acompanharem o quórum)
           if (change.type === "modified" && oldPlayerData) {
             if (oldPlayerData.status !== playerData.status) {
               if (playerData.status === 'presente') {
-                sendPushNotification("✅ CONFIRMAÇÃO!", `${playerData.name} confirmou presença!`);
+                sendPushNotification("✅ CONFIRMAÇÃO!", `${playerData.name} confirmou presença na pelada!`);
               } else {
-                sendPushNotification("❌ DESISTÊNCIA!", `${playerData.name} saiu do jogo.`);
+                sendPushNotification("❌ DESISTÊNCIA!", `${playerData.name} saiu da lista de presença.`);
               }
             }
           }
         });
       }
 
+      // Atualiza estado de referência para a próxima iteração
       const newState: Record<string, Player> = {};
       playerList.forEach(p => newState[p.id] = p);
       prevPlayersState.current = newState;

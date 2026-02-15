@@ -175,7 +175,8 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
   );
 };
 
-const PlayerRow = ({ name, isGK = false, allPlayers }: { name: string | null, isGK?: boolean, allPlayers: Player[] }) => {
+// Fix: Using React.FC to properly handle standard props like 'key' in TypeScript when mapping list items
+const PlayerRow: React.FC<{ name: string | null; isGK?: boolean; allPlayers: Player[] }> = ({ name, isGK = false, allPlayers }) => {
   const p = allPlayers.find(x => x.name === name);
   if (!name) return null;
   return (
