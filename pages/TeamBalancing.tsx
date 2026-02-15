@@ -24,7 +24,6 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
   const confirmedPlayers = players.filter(p => p.status === 'presente');
 
   useEffect(() => {
-    // Pré-selecionar todos os confirmados ao carregar
     setSelectedIds(new Set(confirmedPlayers.map(p => p.id)));
   }, [players]);
 
@@ -38,7 +37,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
   const handleGenerate = async () => {
     const selectedPlayers = players.filter(p => selectedIds.has(p.id));
     if (selectedPlayers.length < 4) {
-      alert("Selecione pelo menos 4 atletas para um sorteio equilibrado.");
+      alert("Selecione pelo menos 4 atletas.");
       return;
     }
 
@@ -47,7 +46,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
       const result = await balanceTeams(selectedPlayers);
       setTeamsResult(result.teams);
     } catch (e) {
-      alert("Ocorreu um erro ao processar com a IA. Tente novamente.");
+      alert("Erro na IA. Tente novamente.");
     } finally {
       setIsGenerating(false);
     }
@@ -55,7 +54,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
 
   const handleShare = () => {
     if (!teamsResult) return;
-    let message = `⚽ *ARENA O&A ELITE - TIMES SORTEADOS* 🇭🇷\n\n`;
+    let message = `⚽ *SORTEIO ARENA O&A ELITE* 🇭🇷\n\n`;
     teamsResult.forEach(t => {
       message += `*${t.name.toUpperCase()}*\n`;
       message += `🧤 GK: ${t.goalkeeper || 'Rodízio'}\n`;
@@ -69,78 +68,84 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
   const fieldSelected = selectedIds.size - gksSelected;
 
   return (
-    <div className="flex flex-col animate-in fade-in duration-500 pb-40">
-      <header className="px-6 pt-12 pb-6 glass sticky top-0 z-50 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-navy active:scale-90 transition-all">
-            <span className="material-symbols-outlined">arrow_back</span>
+    <div className="flex flex-col animate-in fade-in duration-500">
+      <header className="px-6 pt-12 pb-6 glass-white sticky top-0 z-50 flex items-center justify-between">
+        <div className="flex items-center gap-5">
+          <button onClick={() => onPageChange(Page.Dashboard)} className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-navy active:scale-90 transition-all border border-slate-100">
+            <span className="material-symbols-outlined text-2xl">arrow_back</span>
           </button>
           <div>
             <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO ELITE</h2>
-            <p className="text-[8px] font-black text-primary uppercase tracking-[0.4em] mt-1">SALA TÁTICA IA</p>
+            <p className="text-[9px] font-black text-primary uppercase tracking-[0.4em] mt-1.5 flex items-center gap-1.5">
+               SALA TÁTICA 🇭🇷
+            </p>
           </div>
         </div>
-        <img src={mainLogoUrl} className="w-10 h-10 object-contain opacity-20" alt="" />
+        <img src={mainLogoUrl} className="w-10 h-10 object-contain opacity-20 grayscale" alt="" />
       </header>
 
       <main className="px-6 mt-8">
         {!teamsResult ? (
-          <div className="space-y-8 animate-in slide-in-from-bottom-10">
-            {/* CARD DE RESUMO SELEÇÃO */}
-            <div className="bg-navy-deep rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-pro">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl -mr-16 -mt-16"></div>
-              <div className="relative z-10 flex justify-between items-center mb-6">
+          <div className="space-y-8">
+            {/* IA SUMMARY CARD */}
+            <div className="bg-white rounded-[2.8rem] p-9 border border-slate-100 shadow-heavy relative overflow-hidden animate-scale-in">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-croatia-pattern opacity-5"></div>
+              <div className="relative z-10 flex justify-between items-center mb-10">
                 <div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white/40 block mb-1">ATLETAS SELECIONADOS</span>
-                  <h3 className="text-4xl font-condensed italic">{selectedIds.size} CONVOCADOS</h3>
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 block mb-2">SELEÇÃO PARA O JOGO</span>
+                  <h3 className="text-4xl font-condensed italic text-navy leading-none tracking-tighter">{selectedIds.size} ATLETAS</h3>
                 </div>
-                <div className="flex items-center gap-3">
-                   <div className="text-center">
-                      <p className="text-xl font-black text-emerald-400">{gksSelected}</p>
-                      <p className="text-[7px] font-black uppercase text-white/30">GKS</p>
-                   </div>
-                   <div className="w-px h-8 bg-white/10"></div>
-                   <div className="text-center">
-                      <p className="text-xl font-black text-primary">{fieldSelected}</p>
-                      <p className="text-[7px] font-black uppercase text-white/30">LINHA</p>
-                   </div>
+                <div className="flex gap-4">
+                  <div className="text-center">
+                    <p className="text-xl font-black text-primary font-condensed italic">{gksSelected}</p>
+                    <p className="text-[7px] font-black text-slate-300 uppercase">GKs</p>
+                  </div>
+                  <div className="text-center border-l border-slate-100 pl-4">
+                    <p className="text-xl font-black text-navy font-condensed italic">{fieldSelected}</p>
+                    <p className="text-[7px] font-black text-slate-300 uppercase">LINHA</p>
+                  </div>
                 </div>
               </div>
+              
               <button 
                 onClick={handleGenerate}
                 disabled={isGenerating || selectedIds.size < 4}
-                className="w-full h-18 bg-primary text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl shadow-primary/30 flex items-center justify-center gap-4 active:scale-95 transition-all disabled:opacity-50"
+                className="w-full h-20 bg-primary text-white rounded-[1.8rem] font-black uppercase text-xs tracking-widest shadow-heavy flex items-center justify-center gap-5 active:scale-[0.97] transition-all"
               >
                 {isGenerating ? (
-                  <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  <div className="w-7 h-7 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-3xl">bolt</span>
-                    GERAR TIMES COM GEMINI 3
+                    GERAR TIMES COM IA
                   </>
                 )}
               </button>
             </div>
 
-            {/* LISTA DE SELEÇÃO */}
-            <div className="space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-navy italic ml-2">CONFIRMADOS NA ARENA</h4>
+            <div className="space-y-5">
+              <div className="flex items-center gap-3 px-2">
+                 <div className="w-1.5 h-5 bg-navy rounded-full"></div>
+                 <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-navy italic">CONFIRMADOS</h4>
+              </div>
               <div className="grid grid-cols-1 gap-3">
                 {confirmedPlayers.map((p) => (
                   <div 
                     key={p.id}
                     onClick={() => togglePlayer(p.id)}
-                    className={`p-4 rounded-2xl border transition-all flex items-center justify-between cursor-pointer ${selectedIds.has(p.id) ? 'bg-white border-primary shadow-sm' : 'bg-slate-50 border-slate-100 opacity-50'}`}
+                    className={`p-5 rounded-[1.8rem] border transition-all flex items-center justify-between cursor-pointer ${selectedIds.has(p.id) ? 'bg-white border-primary/30 shadow-pro' : 'bg-slate-50/50 border-slate-100 opacity-60'}`}
                   >
-                    <div className="flex items-center gap-4">
-                      <img src={p.photoUrl} className="w-10 h-10 rounded-xl object-cover" alt="" />
+                    <div className="flex items-center gap-5">
+                      <div className="w-12 h-12 rounded-xl overflow-hidden border-2 border-slate-100">
+                        <img src={p.photoUrl} className="w-full h-full object-cover" alt="" />
+                      </div>
                       <div>
-                        <p className="text-xs font-black text-navy uppercase italic leading-none mb-1">{p.name}</p>
-                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
+                        <p className="text-sm font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
                       </div>
                     </div>
-                    <div className={`w-6 h-6 rounded-lg flex items-center justify-center border-2 ${selectedIds.has(p.id) ? 'bg-primary border-primary text-white' : 'border-slate-200'}`}>
-                       {selectedIds.has(p.id) && <span className="material-symbols-outlined text-sm">check</span>}
+                    <div className={`w-7 h-7 rounded-xl flex items-center justify-center border-2 transition-all ${selectedIds.has(p.id) ? 'bg-primary border-primary text-white scale-110' : 'border-slate-200'}`}>
+                       {selectedIds.has(p.id) && <span className="material-symbols-outlined text-lg font-bold">check</span>}
                     </div>
                   </div>
                 ))}
@@ -150,27 +155,24 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
         ) : (
           <div className="space-y-10 animate-in slide-in-from-bottom-10">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-xs font-black uppercase tracking-[0.4em] text-navy italic">ESCALAÇÃO PROCESSADA</h3>
-              <button onClick={() => setTeamsResult(null)} className="text-[9px] font-black text-primary uppercase tracking-widest">REFAZER</button>
+              <h3 className="text-xs font-black uppercase tracking-[0.5em] text-navy italic">ESCALAÇÃO VATRENI</h3>
+              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline decoration-2 underline-offset-8">REFAZER SORTEIO</button>
             </div>
 
             <div className="space-y-8">
               {teamsResult.map((team, idx) => (
-                <div key={idx} className="bg-white rounded-[3rem] border border-slate-100 shadow-pro overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 150}ms` }}>
+                <div key={idx} className="bg-white rounded-[2.8rem] border border-slate-100 shadow-heavy overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 150}ms` }}>
                   <div className={`px-8 py-5 flex justify-between items-center ${idx % 2 === 0 ? 'bg-navy' : 'bg-primary'} text-white`}>
                     <div className="flex items-center gap-3">
                        <span className="material-symbols-outlined text-lg">groups</span>
                        <h4 className="font-black uppercase italic tracking-tighter text-sm">{team.name}</h4>
                     </div>
-                    <span className="text-[8px] font-black uppercase tracking-widest opacity-50 italic">ELITE SQUAD</span>
+                    <span className="text-[8px] font-black uppercase tracking-widest opacity-40">VATRENI UNIT {idx+1}</span>
                   </div>
                   
-                  <div className="p-8 space-y-5">
-                    {/* GOLEIRO */}
-                    <div className="pb-4 border-b border-slate-50">
-                       <PlayerRow name={team.goalkeeper} isGK={true} allPlayers={players} />
-                    </div>
-                    {/* LINHA */}
+                  <div className="p-8 space-y-6">
+                    <PlayerRow name={team.goalkeeper} isGK={true} allPlayers={players} />
+                    <div className="h-px bg-slate-50 w-full"></div>
                     <div className="grid grid-cols-1 gap-4">
                        {team.field.map((name, i) => (
                          <PlayerRow key={i} name={name} allPlayers={players} />
@@ -183,10 +185,10 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
 
             <button 
               onClick={handleShare}
-              className="w-full h-20 bg-emerald-500 text-white rounded-[2rem] font-black uppercase text-[11px] tracking-[0.3em] flex items-center justify-center gap-4 shadow-2xl shadow-emerald-500/20 active:scale-95 transition-all mt-10"
+              className="w-full h-20 bg-success text-white rounded-[2rem] font-black uppercase text-[11px] tracking-[0.3em] flex items-center justify-center gap-5 shadow-lg active:scale-[0.97] transition-all"
             >
               <span className="material-symbols-outlined text-3xl">share</span>
-              DIVULGAR NO WHATSAPP
+              PUBLICAR ESCALAÇÃO
             </button>
           </div>
         )}
@@ -197,29 +199,25 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
 
 const PlayerRow = ({ name, isGK = false, allPlayers }: { name: string | null, isGK?: boolean, allPlayers: Player[] }) => {
   const p = allPlayers.find(x => x.name === name);
-  if (!name) return (
-    <div className="flex items-center gap-4 opacity-20 italic">
-       <div className="w-12 h-12 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center">
-          <span className="material-symbols-outlined text-slate-400">person_add</span>
-       </div>
-       <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Vaga em Aberto</span>
-    </div>
-  );
+  if (!name) return null;
 
   return (
-    <div className="flex items-center gap-4">
-      <div className={`w-12 h-12 rounded-xl overflow-hidden border-2 ${isGK ? 'border-amber-400 shadow-sm' : 'border-slate-50'}`}>
+    <div className="flex items-center gap-5 group">
+      <div className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-transform group-hover:scale-105 ${isGK ? 'border-primary ring-4 ring-primary/5 shadow-pro' : 'border-slate-50'}`}>
         <img 
-          src={p?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff`} 
+          src={p?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=003876&color=fff`} 
           className="w-full h-full object-cover" 
           alt={name}
         />
       </div>
       <div>
-        <h5 className="text-[11px] font-black text-navy uppercase italic leading-none mb-1">{name}</h5>
-        <span className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-widest ${isGK ? 'bg-amber-100 text-amber-600' : 'bg-slate-50 text-slate-400'}`}>
-          {isGK ? 'GOLEIRO' : (p?.position || 'LINHA')}
-        </span>
+        <h5 className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{name}</h5>
+        <div className="flex items-center gap-2">
+           <span className={`text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest ${isGK ? 'bg-primary text-white' : 'bg-slate-50 text-slate-400'}`}>
+             {isGK ? 'GOLEIRO' : (p?.position || 'LINHA')}
+           </span>
+           {isGK && <span className="material-symbols-outlined text-primary text-[12px] fill-1">verified</span>}
+        </div>
       </div>
     </div>
   );

@@ -3,8 +3,8 @@
 <html lang="pt-BR" class="light">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>O&A Elite Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>O&A Elite Pro - Vatreni Edition</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -52,8 +52,7 @@
             colors: {
               "primary": "#ed1d23",
               "navy": "#003876",
-              "navy-deep": "#050A18",
-              "slate-bg": "#F8FAFC",
+              "slate-bg": "#FDFDFD",
               "success": "#10B981"
             },
             fontFamily: {
@@ -64,30 +63,6 @@
             borderRadius: {
               "apple": "1.5rem",
               "apple-xl": "2.5rem"
-            },
-            animation: {
-              'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-              'fade-in': 'fadeIn 0.5s ease-out',
-              'scale-in': 'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              'float': 'float 3s ease-in-out infinite'
-            },
-            keyframes: {
-              slideUp: {
-                '0%': { transform: 'translateY(30px)', opacity: '0' },
-                '100%': { transform: 'translateY(0)', opacity: '1' }
-              },
-              fadeIn: {
-                '0%': { opacity: '0' },
-                '100%': { opacity: '1' }
-              },
-              scaleIn: {
-                '0%': { transform: 'scale(0.95)', opacity: '0' },
-                '100%': { transform: 'scale(1)', opacity: '1' }
-              },
-              float: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-10px)' }
-              }
             }
           },
         },
@@ -95,15 +70,26 @@
     </script>
     <style type="text/tailwindcss">
       @layer utilities {
+        .bg-croatia-pattern {
+          background-image: 
+            linear-gradient(45deg, #ed1d23 25%, transparent 25%), 
+            linear-gradient(-45deg, #ed1d23 25%, transparent 25%), 
+            linear-gradient(45deg, transparent 75%, #ed1d23 75%), 
+            linear-gradient(-45deg, transparent 75%, #ed1d23 75%);
+          background-size: 16px 16px;
+          background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+          background-color: #ffffff;
+        }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .shadow-pro { box-shadow: 0 20px 60px -15px rgba(0, 56, 118, 0.12); }
-        .glass { @apply bg-white/80 backdrop-blur-2xl border border-white/50; }
-        .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-br from-navy to-primary; }
+        .shadow-pro { box-shadow: 0 10px 30px -5px rgba(0, 56, 118, 0.05); }
+        .shadow-heavy { box-shadow: 0 20px 50px -12px rgba(237, 29, 35, 0.12); }
+        .glass-white { @apply bg-white/95 backdrop-blur-2xl border-b border-slate-100; }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
       }
     </style>
   </head>
-  <body class="bg-slate-bg font-display text-slate-900 overflow-x-hidden antialiased">
+  <body class="bg-[#F8FAFC] font-display text-slate-900 overflow-x-hidden antialiased selection:bg-primary/10">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>
