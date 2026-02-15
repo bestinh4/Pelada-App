@@ -11,40 +11,17 @@ interface PlayerListProps {
   onPageChange: (page: Page) => void;
 }
 
-interface SectionProps {
-  title: string;
-  color: string;
-  badgeColor: string;
-  list: Player[];
-  countText: string;
-  isAdmin: boolean;
-  onToggleAdmin: (p: Player) => void;
-  onDelete: (p: Player) => void;
-  onEditStats: (p: Player) => void;
-  promotingId: string | null;
-  isDeletingId: string | null;
-  currentUser: any;
-}
-
 const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, onPageChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [promotingId, setPromotingId] = useState<string | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [selectedPlayerForStats, setSelectedPlayerForStats] = useState<Player | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
-  const [isSavingStats, setIsSavingStats] = useState(false);
-  
-  const [newPlayerData, setNewPlayerData] = useState({ name: '', position: 'Atacante', playerType: 'avulso' as 'mensalista' | 'avulso' });
   const [statsData, setStatsData] = useState({ goals: 0, assists: 0, concededGoals: 0 });
+  const [isSavingStats, setIsSavingStats] = useState(false);
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
   const adminUser = players.find(p => p.id === currentUser?.uid);
   const isCurrentUserAdmin = adminUser?.role === 'admin' || currentUser?.email === MASTER_ADMIN_EMAIL;
-
-  const fieldSlots = match?.fieldSlots || 30;
-  const gkSlots = match?.gkSlots || 4;
 
   const handleOpenStats = (player: Player) => {
     setSelectedPlayerForStats(player);
@@ -61,111 +38,80 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         concededGoals: Number(statsData.concededGoals)
       });
       setSelectedPlayerForStats(null);
-    } catch (e) { alert("Erro ao atualizar."); } finally { setIsSavingStats(false); }
-  };
-
-  const handleToggleAdmin = async (player: Player) => {
-    if (!isCurrentUserAdmin || promotingId || player.email === MASTER_ADMIN_EMAIL) return;
-    setPromotingId(player.id);
-    try {
-      await updateDoc(doc(db, "players", player.id), { role: player.role === 'admin' ? 'player' : 'admin' });
-    } catch (e) { alert("Erro ao alterar cargo."); } finally { setPromotingId(null); }
+    } catch (e) { alert("Falha na atualização."); } finally { setIsSavingStats(false); }
   };
 
   const handleDeletePlayer = async (player: Player) => {
     if (!isCurrentUserAdmin || isDeletingId || player.id === currentUser?.uid || player.email === MASTER_ADMIN_EMAIL) return;
-    if (!confirm(`⚠️ Excluir permanentemente ${player.name}?`)) return;
+    if (!confirm(`⚠️ Remover ${player.name} permanentemente?`)) return;
     setIsDeletingId(player.id);
-    try { await deleteDoc(doc(db, "players", player.id)); } catch (e) { alert("Erro ao excluir."); } finally { setIsDeletingId(null); }
+    try { await deleteDoc(doc(db, "players", player.id)); } catch (e) { alert("Erro ao deletar."); } finally { setIsDeletingId(null); }
   };
 
-  const handleManualAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newPlayerData.name.trim() || isAdding) return;
-    setIsAdding(true);
-    try {
-      await addDoc(collection(db, "players"), {
-        ...newPlayerData,
-        name: newPlayerData.name.trim(),
-        photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(newPlayerData.name)}&background=random&color=fff`,
-        goals: 0, assists: 0, concededGoals: 0, status: 'pendente', paymentStatus: 'pendente', role: 'player'
-      });
-      setShowAddModal(false);
-      setNewPlayerData({ name: '', position: 'Atacante', playerType: 'avulso' });
-    } catch (e) { alert("Erro ao adicionar."); } finally { setIsAdding(false); }
-  };
-
-  const groupedPlayers = useMemo(() => {
-    const confirmed: Player[] = [];
-    const waitlist: Player[] = [];
-    const notPlaying: Player[] = [];
-    let curGKs = 0, curField = 0;
-
-    const filtered = players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    const sorted = [...filtered].sort((a, b) => (a.role === 'admin' && b.role !== 'admin') ? -1 : 0);
-
-    sorted.forEach(p => {
-      if (p.status === 'presente') {
-        const isGK = p.position === 'Goleiro';
-        if (isGK) { if (curGKs < gkSlots) { confirmed.push(p); curGKs++; } else waitlist.push(p); }
-        else { if (curField < fieldSlots) { confirmed.push(p); curField++; } else waitlist.push(p); }
-      } else notPlaying.push(p);
-    });
-    return { confirmed, waitlist, notPlaying };
-  }, [players, searchQuery, fieldSlots, gkSlots]);
+  const filtered = players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const confirmed = filtered.filter(p => p.status === 'presente');
+  const missing = filtered.filter(p => p.status !== 'presente');
 
   return (
-    <div className="flex flex-col pb-40 relative animate-fade-in">
-      <header className="px-6 pt-12 pb-6 bg-white/80 backdrop-blur-2xl border-b border-slate-100 sticky top-0 z-40">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <img src={mainLogoUrl} className="w-10 h-10 object-contain" alt="Logo" />
-            <div>
-              <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter leading-none">CONVOCAÇÃO ELITE</h2>
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1 text-primary">🇭🇷 OUSADIA & ALEGRIA</p>
-            </div>
-          </div>
-          {isCurrentUserAdmin && (
-            <button onClick={() => setShowAddModal(true)} className="w-10 h-10 rounded-xl bg-navy text-white flex items-center justify-center shadow-lg active:scale-90 transition-all">
-              <span className="material-symbols-outlined text-xl">person_add</span>
-            </button>
-          )}
+    <div className="flex flex-col pb-40 animate-in fade-in duration-500">
+      <header className="px-6 pt-12 pb-8 glass sticky top-0 z-50">
+        <div className="flex items-center justify-between mb-8">
+           <div className="flex items-center gap-4">
+              <img src={mainLogoUrl} className="w-10 h-10 object-contain" alt="Logo" />
+              <h2 className="text-lg font-black text-navy uppercase italic tracking-tighter">CONVOCAÇÃO ELITE</h2>
+           </div>
+           <div className="px-3 py-1 bg-navy text-white rounded-lg text-[9px] font-black uppercase tracking-widest">
+              {confirmed.length} ATLETAS
+           </div>
         </div>
         <div className="relative">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-xl">search</span>
-          <input type="text" placeholder="Filtrar por nome..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-3.5 pl-12 pr-4 text-xs font-bold text-navy outline-none" />
+          <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">search</span>
+          <input 
+            type="text" 
+            placeholder="Buscar por nome ou posição..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full h-14 bg-slate-100 border-none rounded-2xl pl-14 pr-6 text-xs font-bold text-navy outline-none focus:ring-2 focus:ring-primary/20 transition-all" 
+          />
         </div>
       </header>
 
-      <main className="px-6 mt-8 space-y-12">
-        <Section title="CONFIRMADOS" color="bg-emerald-500" badgeColor="bg-emerald-50 text-emerald-600" list={groupedPlayers.confirmed} countText="ATLETAS" isAdmin={isCurrentUserAdmin} onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats} promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser} />
-        <Section title="FILA DE ESPERA" color="bg-amber-500" badgeColor="bg-amber-50 text-amber-600" list={groupedPlayers.waitlist} countText="EM ESPERA" isAdmin={isCurrentUserAdmin} onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats} promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser} />
-        <Section title="FORA DA PELADA" color="bg-slate-300" badgeColor="bg-slate-100 text-slate-400" list={groupedPlayers.notPlaying} countText="AUSENTES" isAdmin={isCurrentUserAdmin} onToggleAdmin={handleToggleAdmin} onDelete={handleDeletePlayer} onEditStats={handleOpenStats} promotingId={promotingId} isDeletingId={isDeletingId} currentUser={currentUser} />
+      <main className="px-6 mt-10 space-y-12">
+        <Section title="PRESENTES NA ARENA" list={confirmed} isAdmin={isCurrentUserAdmin} onEdit={handleOpenStats} onDelete={handleDeletePlayer} isDeletingId={isDeletingId} currentUser={currentUser} type="confirmed" />
+        <Section title="AGUARDANDO CONVOCAÇÃO" list={missing} isAdmin={isCurrentUserAdmin} onEdit={handleOpenStats} onDelete={handleDeletePlayer} isDeletingId={isDeletingId} currentUser={currentUser} type="missing" />
       </main>
 
-      {/* Modal de Estatísticas */}
+      {/* MODAL STATS ELITE */}
       {selectedPlayerForStats && (
-        <div className="fixed inset-0 bg-navy/60 backdrop-blur-md z-[110] flex items-center justify-center p-6 animate-fade-in">
-           <div className="w-full max-w-[400px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-scale-in">
+        <div className="fixed inset-0 bg-navy-deep/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6 animate-fade-in">
+           <div className="w-full max-w-[420px] bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-scale-in">
               <div className="p-8 bg-navy text-white flex items-center justify-between">
-                 <div className="flex items-center gap-3">
-                    <img src={selectedPlayerForStats.photoUrl} className="w-12 h-12 rounded-xl object-cover border-2 border-white/20" alt="" />
-                    <div><h3 className="text-sm font-black uppercase italic leading-none mb-1">{selectedPlayerForStats.name}</h3><span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{selectedPlayerForStats.position}</span></div>
+                 <div className="flex items-center gap-4">
+                    <img src={selectedPlayerForStats.photoUrl} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/20" alt="" />
+                    <div>
+                      <h3 className="text-sm font-black uppercase italic leading-none mb-1">{selectedPlayerForStats.name}</h3>
+                      <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">{selectedPlayerForStats.position}</span>
+                    </div>
                  </div>
-                 <button onClick={() => setSelectedPlayerForStats(null)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center"><span className="material-symbols-outlined text-sm">close</span></button>
+                 <button onClick={() => setSelectedPlayerForStats(null)} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center"><span className="material-symbols-outlined">close</span></button>
               </div>
-              <div className="p-8 space-y-6">
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">⚽ GOLS</label><input type="number" value={statsData.goals} onChange={e => setStatsData({...statsData, goals: Number(e.target.value)})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-black text-navy text-xl" /></div>
-                    <div className="space-y-1"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">👟 ASSIST.</label><input type="number" value={statsData.assists} onChange={e => setStatsData({...statsData, assists: Number(e.target.value)})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-black text-navy text-xl" /></div>
+              <div className="p-10 space-y-8">
+                 <div className="grid grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block ml-1">⚽ GOLS</label>
+                       <input type="number" value={statsData.goals} onChange={e => setStatsData({...statsData, goals: Number(e.target.value)})} className="w-full h-16 bg-slate-50 rounded-2xl border-none font-black text-navy text-2xl text-center" />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block ml-1">👟 ASSIST.</label>
+                       <input type="number" value={statsData.assists} onChange={e => setStatsData({...statsData, assists: Number(e.target.value)})} className="w-full h-16 bg-slate-50 rounded-2xl border-none font-black text-navy text-2xl text-center" />
+                    </div>
                  </div>
-                 <div className={`space-y-1 p-5 rounded-2xl transition-all ${selectedPlayerForStats.position === 'Goleiro' ? 'bg-amber-50 border border-amber-100' : 'bg-slate-50 opacity-40'}`}>
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between items-center"><span>🧤 GOLS SOFRIDOS</span>{selectedPlayerForStats.position === 'Goleiro' && <span className="text-amber-600 bg-amber-100 px-2 py-0.5 rounded text-[8px]">GOLEIRO</span>}</label>
-                    <input type="number" value={statsData.concededGoals} onChange={e => setStatsData({...statsData, concededGoals: Number(e.target.value)})} className="w-full h-14 bg-transparent border-none outline-none font-black text-navy text-3xl" />
+                 <div className="space-y-2 p-6 rounded-[2rem] bg-amber-50 border border-amber-100">
+                    <label className="text-[9px] font-black text-amber-600 uppercase tracking-widest block mb-1">🧤 GOLS SOFRIDOS (Goleiro)</label>
+                    <input type="number" value={statsData.concededGoals} onChange={e => setStatsData({...statsData, concededGoals: Number(e.target.value)})} className="w-full h-14 bg-transparent border-none font-black text-navy text-4xl text-center outline-none" />
                  </div>
-                 <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-18 bg-navy text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
-                    {isSavingStats ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : 'ATUALIZAR SCORES'}
+                 <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-20 bg-primary text-white rounded-[2rem] font-black uppercase text-[11px] tracking-widest shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 active:scale-95 transition-all">
+                    {isSavingStats ? <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin"></div> : 'SALVAR ESTATÍSTICAS'}
                  </button>
               </div>
            </div>
@@ -175,29 +121,44 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   );
 };
 
-const Section: React.FC<SectionProps> = ({ title, color, badgeColor, list, countText, isAdmin, onToggleAdmin, onDelete, onEditStats, promotingId, isDeletingId, currentUser }) => (
-  <section className="animate-slide-up">
-    <div className="flex items-center justify-between mb-6 px-2">
-      <div className="flex items-center gap-3"><div className={`w-2 h-6 ${color} rounded-full`}></div><h3 className="text-xs font-black uppercase tracking-widest text-navy">{title}</h3></div>
-      <span className={`${badgeColor} text-[10px] font-black px-3 py-1 rounded-lg`}>{list.length} {countText}</span>
+const Section = ({ title, list, isAdmin, onEdit, onDelete, isDeletingId, currentUser, type }: any) => (
+  <section>
+    <div className="flex items-center gap-3 mb-8 px-2">
+       <div className={`w-2 h-6 ${type === 'confirmed' ? 'bg-emerald-500' : 'bg-slate-300'} rounded-full`}></div>
+       <h3 className="text-xs font-black uppercase tracking-[0.3em] text-navy italic">{title}</h3>
     </div>
-    <div className="space-y-4">
-      {list.map((p, i) => {
-        const isTargetMaster = p.email === MASTER_ADMIN_EMAIL || (p.id === currentUser?.uid && currentUser?.email === MASTER_ADMIN_EMAIL);
+    <div className="grid grid-cols-1 gap-4">
+      {list.map((p: Player, i: number) => {
+        const isMaster = p.email === MASTER_ADMIN_EMAIL;
         return (
-          <div key={p.id} className="bg-white rounded-[2rem] p-5 border border-slate-100 shadow-soft flex items-center gap-4 animate-slide-in-right" style={{ animationDelay: `${i * 100}ms` }}>
-            <div className={`w-16 h-16 rounded-2xl overflow-hidden border-2 ${p.role === 'admin' ? (isTargetMaster ? 'border-primary shadow-glow' : 'border-amber-400') : 'border-slate-50'}`}><img src={p.photoUrl} className="w-full h-full object-cover" alt={p.name} /></div>
+          <div key={p.id} className="bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-pro flex items-center gap-5 animate-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
+            <div className={`w-18 h-18 rounded-[1.75rem] overflow-hidden border-2 transition-all ${p.role === 'admin' ? 'border-primary shadow-[0_0_15px_rgba(237,29,35,0.2)]' : 'border-slate-50'}`}>
+              <img 
+                src={p.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=003876&color=fff`} 
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover" 
+                alt={p.name} 
+                onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=003876&color=fff`; }}
+              />
+            </div>
             <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-center">
-                <div><h4 className="font-black text-navy uppercase italic tracking-tight text-sm leading-none mb-1">{p.name}</h4><div className="flex items-center gap-2"><span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">{p.position}</span>{p.goals > 0 && <span className="text-[7px] font-black text-primary">⚽ {p.goals}</span>}</div></div>
-                {isAdmin && (
-                  <div className="flex items-center gap-1.5">
-                      <button onClick={() => onEditStats(p)} className="w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white"><span className="material-symbols-outlined text-xl">analytics</span></button>
-                      <button onClick={() => onToggleAdmin(p)} disabled={promotingId === p.id || isTargetMaster} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${isTargetMaster ? 'bg-slate-100 text-slate-300' : (p.role === 'admin' ? 'bg-amber-100 text-amber-600' : 'bg-slate-50 text-slate-300 hover:bg-navy hover:text-white')}`}><span className="material-symbols-outlined text-xl">{isTargetMaster ? 'shield_person' : 'verified_user'}</span></button>
-                      <button onClick={() => onDelete(p)} disabled={isDeletingId === p.id || isTargetMaster} className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all bg-red-50 text-red-500 hover:bg-red-500 hover:text-white ${isTargetMaster ? 'opacity-30' : ''}`}><span className="material-symbols-outlined text-xl">delete</span></button>
+               <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-black text-navy uppercase italic tracking-tight text-[15px] leading-none mb-2">{p.name}</h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 bg-slate-50 px-2 py-0.5 rounded">{p.position}</span>
+                      {p.role === 'admin' && <span className="text-[8px] font-black uppercase text-primary tracking-widest flex items-center gap-1"><span className="material-symbols-outlined text-[10px] fill-1">verified</span> ADM</span>}
+                    </div>
                   </div>
-                )}
-              </div>
+                  {isAdmin && !isMaster && (
+                    <div className="flex gap-2">
+                       <button onClick={() => onEdit(p)} className="w-10 h-10 rounded-xl bg-slate-50 text-navy flex items-center justify-center hover:bg-navy hover:text-white transition-all"><span className="material-symbols-outlined text-lg">edit</span></button>
+                       {p.id !== currentUser.uid && (
+                        <button onClick={() => onDelete(p)} disabled={isDeletingId === p.id} className="w-10 h-10 rounded-xl bg-red-50 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all"><span className="material-symbols-outlined text-lg">delete</span></button>
+                       )}
+                    </div>
+                  )}
+               </div>
             </div>
           </div>
         );

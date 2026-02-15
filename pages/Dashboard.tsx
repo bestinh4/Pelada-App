@@ -12,8 +12,8 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPageChange }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [fieldPercent, setFieldPercent] = useState(0);
-  const [gkPercent, setGkPercent] = useState(0);
+  const [lineProgress, setLineProgress] = useState(0);
+  const [gkProgress, setGkProgress] = useState(0);
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
@@ -21,27 +21,19 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const isConfirmed = currentPlayer?.status === 'presente';
   
   const confirmedPlayers = players.filter(p => p.status === 'presente');
-  const fieldSlotsLimit = match?.fieldSlots || 30;
-  const gkSlotsLimit = match?.gkSlots || 5;
+  const fieldSlots = match?.fieldSlots || 30;
+  const gkSlots = match?.gkSlots || 4;
 
   const confirmedGKs = confirmedPlayers.filter(p => p.position === 'Goleiro');
   const confirmedField = confirmedPlayers.filter(p => p.position !== 'Goleiro');
 
-  // Top 3 Artilheiros
-  const topScorers = [...players]
-    .filter(p => p.goals > 0)
-    .sort((a, b) => b.goals - a.goals)
-    .slice(0, 3);
-
-  const canceledPlayers = players.filter(p => p.status === 'pendente' && (p.goals > 0 || p.assists > 0));
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      setFieldPercent(Math.min(100, (confirmedField.length / fieldSlotsLimit) * 100));
-      setGkPercent(Math.min(100, (confirmedGKs.length / gkSlotsLimit) * 100));
+      setLineProgress(Math.min(100, (confirmedField.length / fieldSlots) * 100));
+      setGkProgress(Math.min(100, (confirmedGKs.length / gkSlots) * 100));
     }, 400);
     return () => clearTimeout(timer);
-  }, [confirmedField.length, confirmedGKs.length, fieldSlotsLimit, gkSlotsLimit]);
+  }, [confirmedField.length, confirmedGKs.length, fieldSlots, gkSlots]);
 
   const togglePresence = async () => {
     if (!user || isUpdating || !currentPlayer) return;
@@ -50,7 +42,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       const playerRef = doc(db, "players", user.uid);
       await updateDoc(playerRef, { status: isConfirmed ? 'pendente' : 'presente' });
     } catch (e) { 
-      alert("Erro ao atualizar presença.");
+      alert("Erro na Arena. Tente novamente.");
     } finally { 
       setIsUpdating(false); 
     }
@@ -60,156 +52,150 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     if (!match) return;
     const dateStr = match.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { 
       weekday: 'long', day: '2-digit', month: 'long' 
-    }) : '---';
+    }) : 'Agendando...';
     
-    const appUrl = window.location.origin;
     const flag = "🇭🇷";
+    let message = `⚽ *ARENA O&A ELITE* ${flag}\n\n`;
+    message += `📍 *LOCAL:* ${match.location}\n`;
+    message += `📅 *DATA:* ${dateStr}\n`;
+    message += `⏰ *HORA:* ${match.time}h\n\n`;
+    message += `✅ *STATUS:* ${confirmedPlayers.length} atletas confirmados\n`;
+    message += `\n🔗 Confirme agora no app!\n${window.location.origin}`;
     
-    let message = `⚽ *CONVOCAÇÃO O&A ELITE* ${flag} ⚽\n\n`;
-    message += `📍 *Local:* ${match.location}\n`;
-    message += `📅 *Data:* ${dateStr}\n`;
-    message += `⏰ *Hora:* ${match.time}h\n\n`;
-    
-    message += `✅ *CONFIRMADOS (${confirmedPlayers.length}/${fieldSlotsLimit + gkSlotsLimit})*\n`;
-    
-    const waitlist = confirmedPlayers.length > (fieldSlotsLimit + gkSlotsLimit) 
-      ? confirmedPlayers.length - (fieldSlotsLimit + gkSlotsLimit) 
-      : 0;
-
-    if (waitlist > 0) {
-      message += `⏳ *LISTA DE ESPERA:* ${waitlist} atletas\n`;
-    }
-    
-    message += `\n🔥 *Confirme pelo App:* \n🔗 ${appUrl}`;
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 
   return (
-    <div className="flex flex-col">
-      <header className="px-6 pt-12 pb-6 flex items-center justify-between bg-white/50 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40 animate-fade-in">
+    <div className="flex flex-col animate-in fade-in duration-700">
+      {/* HEADER ELITE */}
+      <header className="px-6 pt-12 pb-8 flex items-center justify-between sticky top-0 z-50 glass">
         <div className="flex items-center gap-4">
-          <img src={mainLogoUrl} className="w-12 h-12 object-contain hover:rotate-12 transition-transform" alt="Logo" />
+          <div className="relative">
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse"></div>
+            <img src={mainLogoUrl} className="w-14 h-14 object-contain relative z-10" alt="Logo" />
+          </div>
           <div>
-            <span className="text-[8px] font-black uppercase text-primary tracking-[0.4em] leading-none mb-0.5">ARENA</span>
             <h1 className="text-xl font-black tracking-tighter text-navy uppercase italic leading-none">O&A ELITE</h1>
+            <p className="text-[8px] font-bold text-primary uppercase tracking-[0.4em] mt-1">Sincronizado AO VIVO</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-slate-100 rounded-full px-4 py-2 border border-slate-200">
-          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-          <span className="text-[9px] font-black text-navy uppercase tracking-widest">AO VIVO</span>
+        <div className="flex flex-col items-end">
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 rounded-full border border-emerald-100">
+            <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">SERVER OK</span>
+          </div>
         </div>
       </header>
 
-      <section className="px-6 mt-8 pb-32">
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-white border border-slate-100 shadow-soft p-8 mb-10 animate-scale-in">
-          <div className="absolute inset-0 bg-croatia opacity-[0.05]"></div>
-          <div className="relative z-10">
-            <div className="flex justify-between items-start mb-8">
-              <div className="animate-slide-up">
-                <span className="inline-block px-3 py-1 rounded-md bg-primary text-white text-[8px] font-black uppercase tracking-widest mb-4">PRÓXIMA PELADA</span>
-                <h2 className="text-4xl font-condensed text-navy tracking-tight leading-none uppercase mb-2">{match?.location || "O&A Arena Elite"}</h2>
-                <div className="flex items-center gap-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
-                  <span className="material-symbols-outlined text-sm">calendar_month</span>
-                  {match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) : '---'} • {match?.time || '--:--'}h
-                </div>
+      <main className="px-6 mt-10 pb-40">
+        {/* MATCH CARD PRO */}
+        <div className="relative overflow-hidden rounded-[3rem] bg-navy-deep p-1 text-white shadow-pro animate-scale-in">
+          <div className="absolute inset-0 bg-croatia opacity-[0.15]"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 blur-[100px] -mr-32 -mt-32"></div>
+          
+          <div className="relative z-10 p-8">
+            <div className="flex justify-between items-start mb-10">
+              <div>
+                <span className="inline-block px-3 py-1 bg-primary text-white text-[8px] font-black uppercase tracking-widest rounded-lg mb-4">MATCH DAY</span>
+                <h2 className="text-5xl font-condensed tracking-tighter uppercase italic leading-none">{match?.location || "O&A ARENA"}</h2>
               </div>
-              <button onClick={handleShareMatch} className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-sm active:scale-90 transition-all border border-emerald-100 hover:bg-emerald-600 hover:text-white">
-                <span className="material-symbols-outlined text-2xl">share</span>
+              <button onClick={handleShareMatch} className="w-14 h-14 glass rounded-2xl flex items-center justify-center text-navy active:scale-90 transition-all">
+                <span className="material-symbols-outlined text-3xl">ios_share</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100 animate-slide-up delay-1">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-[9px] font-black uppercase text-slate-400">LINHA</span>
-                  <span className="text-xs font-black text-navy">{confirmedField.length}/{fieldSlotsLimit}</span>
+            <div className="grid grid-cols-2 gap-4 mb-10">
+              <div className="bg-white/5 backdrop-blur-md rounded-[2rem] p-5 border border-white/10">
+                <div className="flex justify-between items-end mb-3">
+                  <span className="text-[9px] font-black uppercase text-white/40">LINHA</span>
+                  <span className="text-lg font-black">{confirmedField.length}<span className="text-[10px] text-white/30 ml-1">/{fieldSlots}</span></span>
                 </div>
-                <div className="h-2 w-full bg-white rounded-full overflow-hidden border border-slate-200">
-                  <div className="h-full bg-primary rounded-full transition-all duration-1000 ease-out" style={{ width: `${fieldPercent}%` }}></div>
+                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(237,29,35,0.5)]" style={{ width: `${lineProgress}%` }}></div>
                 </div>
               </div>
-              <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-100 animate-slide-up delay-2">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-[9px] font-black uppercase text-slate-400">GKs</span>
-                  <span className="text-xs font-black text-navy">{confirmedGKs.length}/{gkSlotsLimit}</span>
+              <div className="bg-white/5 backdrop-blur-md rounded-[2rem] p-5 border border-white/10">
+                <div className="flex justify-between items-end mb-3">
+                  <span className="text-[9px] font-black uppercase text-white/40">GKs</span>
+                  <span className="text-lg font-black">{confirmedGKs.length}<span className="text-[10px] text-white/30 ml-1">/{gkSlots}</span></span>
                 </div>
-                <div className="h-2 w-full bg-white rounded-full overflow-hidden border border-slate-200">
-                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000 ease-out" style={{ width: `${gkPercent}%` }}></div>
+                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(16,185,129,0.5)]" style={{ width: `${gkProgress}%` }}></div>
                 </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-6 mb-10 px-2">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">event</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">
+                  {match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '---'}
+                </span>
+              </div>
+              <div className="w-1.5 h-1.5 bg-white/10 rounded-full"></div>
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-2xl">schedule</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-white/80">{match?.time || '--:--'}H</span>
               </div>
             </div>
 
             <button 
               onClick={togglePresence}
               disabled={isUpdating}
-              className={`w-full h-18 rounded-[1.5rem] flex items-center justify-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-xl active:scale-95 z-30 relative ${isConfirmed ? 'bg-emerald-500 text-white shadow-emerald-500/30' : 'bg-primary text-white shadow-primary/30 animate-pulse'}`}
+              className={`w-full h-20 rounded-[2rem] flex items-center justify-center gap-4 font-black uppercase text-xs tracking-[0.3em] transition-all shadow-2xl active:scale-95 ${isConfirmed ? 'bg-emerald-500 text-white' : 'bg-primary text-white shadow-primary/30'}`}
             >
-              <span className="material-symbols-outlined text-2xl">{isConfirmed ? 'check_circle' : 'person_add'}</span>
-              {isConfirmed ? 'VOCÊ ESTÁ NA LISTA' : 'CONFIRMAR PRESENÇA'}
+              {isUpdating ? (
+                <div className="w-6 h-6 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-3xl">{isConfirmed ? 'verified' : 'stadium'}</span>
+                  {isConfirmed ? 'PRESENÇA CONFIRMADA' : 'CONFIRMAR AGORA'}
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Top Artilheiros Section */}
-        <div className="space-y-6 animate-fade-in delay-3">
-           <div className="flex items-center gap-3 px-2">
-             <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-navy italic">LÍDERES DA TEMPORADA</h3>
-           </div>
+        {/* INDICADORES DE LÍDERES */}
+        <div className="mt-16 space-y-8">
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-8 bg-navy rounded-full"></div>
+              <h3 className="text-xs font-black uppercase tracking-[0.4em] text-navy italic">RANKING ELITE</h3>
+            </div>
+            <button onClick={() => onPageChange(Page.PlayerList)} className="text-[9px] font-black text-primary uppercase tracking-widest border-b-2 border-primary/20 pb-0.5">VER TODOS</button>
+          </div>
 
-           <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-soft">
-              <div className="flex items-center justify-between mb-6">
-                 <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary text-xl">emoji_events</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-navy">ARTILHARIA ELITE</span>
-                 </div>
+          <div className="grid grid-cols-1 gap-4">
+            {players.filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 3).map((p, i) => (
+              <div key={p.id} className="bg-white rounded-[2rem] p-5 border border-slate-100 shadow-pro flex items-center justify-between animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-slate-50 bg-slate-100">
+                      <img 
+                        src={p.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=003876&color=fff`} 
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover" 
+                        alt={p.name} 
+                        onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=003876&color=fff`; }}
+                      />
+                    </div>
+                    <div className="absolute -top-1 -left-1 w-6 h-6 bg-navy text-white text-[10px] font-black flex items-center justify-center rounded-lg border-2 border-white">{i+1}º</div>
+                  </div>
+                  <div>
+                    <h4 className="text-[13px] font-black text-navy uppercase italic tracking-tight mb-1">{p.name}</h4>
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{p.position}</span>
+                  </div>
+                </div>
+                <div className="text-right bg-slate-50 px-5 py-2 rounded-2xl">
+                   <span className="text-2xl font-black text-primary italic font-condensed">{p.goals}</span>
+                   <p className="text-[7px] font-black text-slate-300 uppercase leading-none">GOLS</p>
+                </div>
               </div>
-              
-              <div className="space-y-4">
-                 {topScorers.length > 0 ? topScorers.map((p, i) => (
-                   <div key={p.id} className="flex items-center justify-between animate-slide-in-right" style={{ animationDelay: `${i * 100}ms` }}>
-                      <div className="flex items-center gap-3">
-                         <div className="relative">
-                            <div className="w-12 h-12 rounded-xl overflow-hidden border border-slate-100 shadow-sm bg-slate-50">
-                               <img 
-                                src={p.photoUrl && p.photoUrl !== "" ? p.photoUrl : `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=003876&color=fff`} 
-                                referrerPolicy="no-referrer"
-                                className="w-full h-full object-cover" 
-                                alt={p.name} 
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=003876&color=fff`;
-                                }}
-                               />
-                            </div>
-                            <div className="absolute -top-1 -left-1 w-5 h-5 bg-navy text-white text-[8px] font-black flex items-center justify-center rounded-lg border-2 border-white">{i + 1}º</div>
-                         </div>
-                         <div>
-                            <h4 className="text-[12px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
-                            <p className="text-[8px] font-bold text-slate-400 uppercase">{p.position}</p>
-                         </div>
-                      </div>
-                      <div className="text-right">
-                         <span className="text-xl font-black text-primary italic leading-none">{p.goals}</span>
-                         <p className="text-[7px] font-black text-slate-300 uppercase">GOLS</p>
-                      </div>
-                   </div>
-                 )) : (
-                   <div className="py-8 text-center opacity-30">
-                     <p className="text-[8px] font-black uppercase tracking-widest italic">Aguardando início da contagem</p>
-                   </div>
-                 )}
-              </div>
-              
-              <button 
-                onClick={() => onPageChange(Page.PlayerList)}
-                className="w-full mt-6 py-3 bg-slate-50 rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-widest hover:bg-navy hover:text-white transition-all"
-              >
-                VER RANKING COMPLETO
-              </button>
-           </div>
+            ))}
+          </div>
         </div>
-      </section>
+      </main>
     </div>
   );
 };

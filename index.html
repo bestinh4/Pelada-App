@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Ousadia & Alegria</title>
+    <title>O&A Elite Pro - Edição Croácia</title>
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
@@ -29,11 +29,11 @@
     "firebase/firestore": "https://esm.sh/firebase@10.7.1/firestore",
     "firebase/messaging": "https://esm.sh/firebase@10.7.1/messaging",
     "@google/genai": "https://esm.sh/@google/genai",
-    "react/": "https://esm.sh/react@^19.2.4/",
     "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "firebase/": "https://esm.sh/firebase@^12.9.0/",
     "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
-    "firebase/": "https://esm.sh/firebase@^12.9.0/"
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4"
   }
 }
 </script>
@@ -53,8 +53,8 @@
               "primary": "#ed1d23",
               "navy": "#003876",
               "navy-deep": "#050A18",
-              "surface": "#ffffff",
-              "background": "#fdfdfd",
+              "slate-bg": "#F8FAFC",
+              "success": "#10B981"
             },
             fontFamily: {
               "display": ["Lexend", "sans-serif"],
@@ -66,32 +66,27 @@
               "apple-xl": "2.5rem"
             },
             animation: {
-              'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-              'slide-in-right': 'slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+              'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
               'fade-in': 'fadeIn 0.5s ease-out',
-              'scale-in': 'scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              'shimmer': 'shimmer 2s infinite linear'
+              'scale-in': 'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+              'float': 'float 3s ease-in-out infinite'
             },
             keyframes: {
               slideUp: {
-                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                '0%': { transform: 'translateY(30px)', opacity: '0' },
                 '100%': { transform: 'translateY(0)', opacity: '1' }
-              },
-              slideInRight: {
-                '0%': { transform: 'translateX(30px)', opacity: '0' },
-                '100%': { transform: 'translateX(0)', opacity: '1' }
               },
               fadeIn: {
                 '0%': { opacity: '0' },
                 '100%': { opacity: '1' }
               },
               scaleIn: {
-                '0%': { transform: 'scale(0.9)', opacity: '0' },
+                '0%': { transform: 'scale(0.95)', opacity: '0' },
                 '100%': { transform: 'scale(1)', opacity: '1' }
               },
-              shimmer: {
-                '0%': { backgroundPosition: '-1000px 0' },
-                '100%': { backgroundPosition: '1000px 0' }
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-10px)' }
               }
             }
           },
@@ -101,28 +96,25 @@
     <style type="text/tailwindcss">
       @layer utilities {
         .bg-croatia {
-          background-image: 
-            linear-gradient(45deg, rgba(237, 29, 35, 0.03) 25%, transparent 25%), 
-            linear-gradient(-45deg, rgba(237, 29, 35, 0.03) 25%, transparent 25%), 
-            linear-gradient(45deg, transparent 75%, rgba(237, 29, 35, 0.03) 75%), 
-            linear-gradient(-45deg, transparent 75%, rgba(237, 29, 35, 0.03) 75%);
-          background-size: 30px 30px;
+          background-color: #ffffff;
+          background-image:  
+            linear-gradient(45deg, rgba(237, 29, 35, 0.05) 25%, transparent 25%), 
+            linear-gradient(-45deg, rgba(237, 29, 35, 0.05) 25%, transparent 25%), 
+            linear-gradient(45deg, transparent 75%, rgba(237, 29, 35, 0.05) 75%), 
+            linear-gradient(-45deg, transparent 75%, rgba(237, 29, 35, 0.05) 75%);
+          background-size: 60px 60px;
+          background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
         }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        .shadow-soft { box-shadow: 0 10px 40px -10px rgba(0, 56, 118, 0.08); }
-        .text-glow { text-shadow: 0 0 15px rgba(237, 29, 35, 0.2); }
-        
-        .delay-1 { animation-delay: 100ms; }
-        .delay-2 { animation-delay: 200ms; }
-        .delay-3 { animation-delay: 300ms; }
-        .delay-4 { animation-delay: 400ms; }
-        .delay-5 { animation-delay: 500ms; }
+        .shadow-pro { box-shadow: 0 20px 60px -15px rgba(0, 56, 118, 0.12); }
+        .glass { @apply bg-white/80 backdrop-blur-2xl border border-white/50; }
+        .text-gradient-cro { @apply bg-clip-text text-transparent bg-gradient-to-br from-navy via-primary to-navy; }
       }
     </style>
   </head>
-  <body class="bg-slate-50 font-display text-slate-900 overflow-x-hidden">
+  <body class="bg-slate-bg font-display text-slate-900 overflow-x-hidden antialiased bg-croatia">
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
   </body>
