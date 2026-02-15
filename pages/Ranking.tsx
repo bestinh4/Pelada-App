@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
+import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { db, doc, updateDoc, setDoc, onSnapshot } from '../services/firebase.ts';
 
 const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (page: Page) => void }> = ({ players, currentUser, onPageChange }) => {
@@ -9,7 +10,8 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
   const [prices, setPrices] = useState({ mensalista: 60, avulso: 40 });
 
   const currentPlayer = players.find(p => p.id === currentUser?.uid);
-  const isAdmin = currentPlayer?.role === 'admin';
+  // Correção: Administrador Mestre deve ter acesso mesmo que o campo role no DB não esteja setado
+  const isAdmin = currentPlayer?.role === 'admin' || currentUser?.email === MASTER_ADMIN_EMAIL;
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
@@ -53,7 +55,12 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
       } else {
         await updateDoc(playerRef, { paymentStatus: player.paymentStatus === 'pago' ? 'pendente' : 'pago' });
       }
-    } catch (e) { alert("Erro."); } finally { setLoadingId(null); }
+    } catch (e) { 
+      console.error("Erro ao atualizar pagamento:", e);
+      alert("Erro ao processar pagamento."); 
+    } finally { 
+      setLoadingId(null); 
+    }
   };
 
   return (
@@ -69,7 +76,7 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
       </header>
 
       <main className="px-5 mt-8 space-y-8">
-        {/* SUMMARY CARD - REFINED */}
+        {/* SUMMARY CARD */}
         <div className="bg-navy rounded-[2rem] p-7 text-white relative overflow-hidden shadow-elite">
           <div className="absolute top-0 right-0 h-full w-1.5 bg-primary"></div>
           <div className="space-y-0.5 mb-6">
@@ -85,26 +92,26 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
           </div>
         </div>
 
-        {/* TABS - REFINED */}
-        <div className="flex bg-white p-1 rounded-xl border border-slate-100 shadow-sm">
+        {/* TABS */}
+        <div className="flex bg-white p-1 rounded-xl border border-slate-100 shadow-sm relative z-10">
           {(['todos', 'pendentes', 'pagos'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`flex-1 py-2.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${filter === f ? 'bg-navy text-white shadow-lg shadow-navy/20' : 'text-slate-300'}`}
+              className={`flex-1 py-3 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all active:scale-95 ${filter === f ? 'bg-navy text-white shadow-lg shadow-navy/20' : 'text-slate-300'}`}
             >
               {f === 'todos' ? 'TODOS' : f === 'pendentes' ? 'DÉBITO' : 'PAGOS'}
             </button>
           ))}
         </div>
 
-        {/* COMPACT PLAYER LIST */}
+        {/* PLAYER LIST */}
         <div className="space-y-2">
-          {filteredPlayers.map((p, i) => {
+          {filteredPlayers.length > 0 ? filteredPlayers.map((p) => {
             const isGoleiro = p.position === 'Goleiro';
             const isPaid = isGoleiro || (p.playerType === 'mensalista' ? p.monthlyPaid : p.paymentStatus === 'pago');
             return (
-              <div key={p.id} className="bg-white rounded-2xl p-3 border border-slate-100 flex items-center justify-between group transition-all">
+              <div key={p.id} className="bg-white rounded-2xl p-3 border border-slate-100 flex items-center justify-between group transition-all animate-slide-up">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <img src={p.photoUrl} className="w-9 h-9 rounded-lg object-cover grayscale opacity-80" alt="" />
@@ -120,15 +127,19 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
                 {isAdmin && (
                   <button 
                     onClick={() => handleTogglePayment(p)}
-                    disabled={isGoleiro}
-                    className={`h-9 px-4 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${isPaid ? 'bg-slate-50 text-slate-300' : 'bg-primary text-white shadow-lg shadow-primary/10'}`}
+                    disabled={isGoleiro || loadingId === p.id}
+                    className={`h-9 px-4 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all active:scale-90 ${isPaid ? 'bg-slate-50 text-slate-300' : 'bg-primary text-white shadow-lg shadow-primary/10'}`}
                   >
-                    {isGoleiro ? 'FREE' : (isPaid ? 'OK' : 'COBRAR')}
+                    {loadingId === p.id ? '...' : (isGoleiro ? 'FREE' : (isPaid ? 'OK' : 'PAGAR'))}
                   </button>
                 )}
               </div>
             );
-          })}
+          }) : (
+            <div className="py-10 text-center">
+              <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Nenhum atleta encontrado</p>
+            </div>
+          )}
         </div>
       </main>
     </div>

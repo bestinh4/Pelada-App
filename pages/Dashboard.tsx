@@ -36,16 +36,30 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   }, [confirmedField.length, confirmedGKs.length, fieldSlots, gkSlots]);
 
   const togglePresence = async () => {
-    if (!user || isUpdating || !currentPlayer) return;
+    if (!user || isUpdating) return;
+    
+    // Se o jogador ainda não existe na lista (onboarding incompleto), redireciona
+    if (!currentPlayer) {
+      onPageChange(Page.Profile);
+      return;
+    }
+
     setIsUpdating(true);
     try {
       const playerRef = doc(db, "players", user.uid);
-      await updateDoc(playerRef, { status: isConfirmed ? 'pendente' : 'presente' });
-    } catch (e) { alert("Falha na arena."); } finally { setIsUpdating(false); }
+      await updateDoc(playerRef, { 
+        status: isConfirmed ? 'pendente' : 'presente' 
+      });
+    } catch (e) { 
+      console.error("Erro ao atualizar presença:", e);
+      alert("Falha ao comunicar com a Arena. Tente novamente."); 
+    } finally { 
+      setIsUpdating(false); 
+    }
   };
 
-  const topScorers = players.filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 3);
-  const topAssists = players.filter(p => p.assists > 0).sort((a,b) => b.assists - a.assists).slice(0, 3);
+  const topScorers = [...players].filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 3);
+  const topAssists = [...players].filter(p => p.assists > 0).sort((a,b) => b.assists - a.assists).slice(0, 3);
 
   return (
     <div className="flex flex-col animate-fade-in">
@@ -64,7 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <main className="px-5 mt-6 space-y-8">
-        {/* MATCH HERO CARD - REFINED */}
+        {/* MATCH HERO CARD */}
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-elite overflow-hidden animate-scale-up hover:shadow-heavy transition-all duration-500">
           <div className="h-1 bg-primary w-full animate-pulse-soft"></div>
           <div className="p-6">
@@ -73,7 +87,14 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                 <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest animate-slide-up stagger-1 block">PRÓXIMO CONFRONTO</span>
                 <h2 className="text-2xl font-condensed tracking-tighter uppercase italic leading-none text-navy animate-slide-up stagger-2">{match?.location || "ARENA ELITE"}</h2>
               </div>
-              <button className="w-10 h-10 bg-slate-50 text-navy rounded-lg flex items-center justify-center active:scale-90 hover:bg-slate-100 transition-all border border-slate-100 animate-slide-up stagger-2">
+              <button 
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: 'Pelada O&A Elite', text: `Partiu jogo em ${match?.location || 'Arena Elite'}?`, url: window.location.href });
+                  }
+                }}
+                className="w-10 h-10 bg-slate-50 text-navy rounded-lg flex items-center justify-center active:scale-90 hover:bg-slate-100 transition-all border border-slate-100 animate-slide-up stagger-2"
+              >
                 <span className="material-symbols-outlined text-xl">share</span>
               </button>
             </div>
@@ -120,14 +141,14 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
               {isUpdating ? <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : (
                 <>
                   <span className={`material-symbols-outlined text-xl transition-transform ${isConfirmed ? 'rotate-0' : 'group-hover:rotate-12'}`}>{isConfirmed ? 'verified' : 'stadium'}</span>
-                  {isConfirmed ? 'CONVOCADO' : 'CONFIRMAR PRESENÇA'}
+                  {isConfirmed ? 'PRESENÇA CONFIRMADA' : 'CONFIRMAR PRESENÇA'}
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* ARTILHARIA - TOP 3 */}
+        {/* ARTILHARIA */}
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-navy italic animate-slide-up">ARTILHARIA</h3>
@@ -142,7 +163,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </div>
         </div>
 
-        {/* GARÇONS - TOP 3 */}
+        {/* GARÇONS */}
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-navy italic animate-slide-up">GARÇONS (ASSIST.)</h3>
