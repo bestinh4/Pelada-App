@@ -17,7 +17,13 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const [isAddingPlayer, setIsAddingPlayer] = useState(false);
   const [newPlayer, setNewPlayer] = useState({ name: '', position: 'Atacante', playerType: 'avulso' as const });
   const [selectedPlayerForStats, setSelectedPlayerForStats] = useState<Player | null>(null);
-  const [statsData, setStatsData] = useState({ goals: 0, assists: 0, concededGoals: 0, role: 'player' as 'admin' | 'player' });
+  const [statsData, setStatsData] = useState({ 
+    goals: 0, 
+    assists: 0, 
+    concededGoals: 0, 
+    role: 'player' as 'admin' | 'player',
+    playerType: 'avulso' as 'mensalista' | 'avulso'
+  });
   const [isSavingStats, setIsSavingStats] = useState(false);
 
   const adminUser = players.find(p => p.id === currentUser?.uid);
@@ -49,7 +55,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       goals: player.goals || 0, 
       assists: player.assists || 0, 
       concededGoals: player.concededGoals || 0,
-      role: player.role || 'player'
+      role: player.role || 'player',
+      playerType: player.playerType || 'avulso'
     });
   };
 
@@ -61,7 +68,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         goals: Number(statsData.goals),
         assists: Number(statsData.assists),
         concededGoals: Number(statsData.concededGoals),
-        role: statsData.role
+        role: statsData.role,
+        playerType: statsData.playerType
       });
       setSelectedPlayerForStats(null);
     } catch (e) { alert("Falha na atualização."); } finally { setIsSavingStats(false); }
@@ -142,6 +150,14 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                     <option value="Meia">Meia</option>
                     <option value="Atacante">Atacante</option>
                  </select>
+                 <select 
+                  value={newPlayer.playerType}
+                  onChange={e => setNewPlayer({...newPlayer, playerType: e.target.value as 'mensalista' | 'avulso'})}
+                  className="w-full h-12 bg-slate-50 rounded-xl border border-slate-100 px-4 font-bold text-navy"
+                 >
+                    <option value="mensalista">Mensalista</option>
+                    <option value="avulso">Avulso</option>
+                 </select>
                  <button 
                   onClick={handleCreatePlayer}
                   disabled={isSavingStats}
@@ -165,7 +181,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                  </div>
                  <button onClick={() => setSelectedPlayerForStats(null)} className="material-symbols-outlined text-white/40">close</button>
               </div>
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-5">
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                        <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block px-1">GOLS</label>
@@ -177,7 +193,18 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                     </div>
                  </div>
 
-                 {/* CARGO SELECTOR - PROMOÇÃO ADM */}
+                 <div className="space-y-1">
+                    <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block px-1">TIPO DE CONTRATO</label>
+                    <select 
+                      value={statsData.playerType}
+                      onChange={e => setStatsData({...statsData, playerType: e.target.value as 'mensalista' | 'avulso'})}
+                      className="w-full h-12 bg-slate-50 rounded-xl border border-slate-100 font-black text-navy px-4"
+                    >
+                      <option value="mensalista">MENSALISTA</option>
+                      <option value="avulso">AVULSO / CONVIDADO</option>
+                    </select>
+                 </div>
+
                  <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block px-1">CARGO NA ARENA</label>
                     <select 
@@ -190,7 +217,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                     </select>
                  </div>
 
-                 <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-14 bg-primary text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20">
+                 <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-14 bg-primary text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 mt-2">
                     ATUALIZAR DADOS
                  </button>
               </div>
@@ -218,7 +245,7 @@ const Section = ({ title, list, isAdmin, onEdit, onDelete, isDeletingId, current
               <h4 className="text-[11px] font-black text-navy uppercase italic leading-none mb-0.5">{p.name}</h4>
               <div className="flex items-center gap-1.5">
                 <span className="text-[7px] font-black text-slate-300 uppercase tracking-widest">{p.position}</span>
-                {p.role === 'admin' && <span className="w-1.5 h-1.5 bg-primary rounded-full" title="Administrador"></span>}
+                <span className="text-[7px] font-black text-primary uppercase tracking-widest">• {p.playerType === 'mensalista' ? 'MENSAL' : 'AVULSO'}</span>
               </div>
             </div>
           </div>

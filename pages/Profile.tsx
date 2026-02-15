@@ -10,6 +10,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
   const [isPromoting, setIsPromoting] = useState(false);
   const [editedName, setEditedName] = useState(player.name);
   const [editedPosition, setEditedPosition] = useState(player.position);
+  const [editedPlayerType, setEditedPlayerType] = useState(player.playerType || 'avulso');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,10 +27,11 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
   useEffect(() => {
     setEditedName(player.name);
     setEditedPosition(player.position);
+    setEditedPlayerType(player.playerType || 'avulso');
     setPreviewUrl(null);
-  }, [player.id, player.name, player.position, player.photoUrl]);
+  }, [player.id, player.name, player.position, player.photoUrl, player.playerType]);
 
-  const isDirty = editedName !== player.name || editedPosition !== player.position;
+  const isDirty = editedName !== player.name || editedPosition !== player.position || editedPlayerType !== player.playerType;
 
   const handleLogout = async () => {
     if (confirm("Deseja realmente sair da Arena O&A?")) {
@@ -89,7 +91,8 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
       const playerDocRef = doc(db, "players", player.id);
       await updateDoc(playerDocRef, { 
         name: editedName, 
-        position: editedPosition
+        position: editedPosition,
+        playerType: editedPlayerType
       });
       alert("Perfil atualizado!");
     } catch (error) {
@@ -116,7 +119,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
       </header>
 
       <section className="px-6 mt-6 flex flex-col items-center">
-        {/* Avatar Section - Animated */}
+        {/* Avatar Section */}
         <div className="relative mb-5 animate-scale-up">
            <div className={`w-28 h-28 rounded-[2rem] border-[4px] ${isMaster ? 'border-primary' : 'border-white'} shadow-heavy overflow-hidden relative z-10 bg-slate-100 cursor-pointer group`} onClick={handleUploadClick}>
              <img 
@@ -176,22 +179,45 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
           </div>
         </div>
 
+        {/* TIPO DE ATLETA SELECTOR */}
+        <div className="w-full mb-8 animate-slide-up stagger-3">
+          <label className="text-[8px] font-black text-slate-300 uppercase tracking-widest block text-center mb-3">TIPO DE ATLETA</label>
+          <div className="grid grid-cols-2 gap-3">
+             <button 
+              type="button" 
+              onClick={() => setEditedPlayerType('mensalista')}
+              className={`h-14 rounded-xl border flex flex-col items-center justify-center transition-all active:scale-95 ${editedPlayerType === 'mensalista' ? 'bg-navy border-navy text-white shadow-lg' : 'bg-white border-slate-100 text-slate-300'}`}
+             >
+               <span className="material-symbols-outlined text-lg mb-0.5">calendar_month</span>
+               <span className="text-[8px] font-black uppercase tracking-wider">Mensalista</span>
+             </button>
+             <button 
+              type="button" 
+              onClick={() => setEditedPlayerType('avulso')}
+              className={`h-14 rounded-xl border flex flex-col items-center justify-center transition-all active:scale-95 ${editedPlayerType === 'avulso' ? 'bg-primary border-primary text-white shadow-lg' : 'bg-white border-slate-100 text-slate-300'}`}
+             >
+               <span className="material-symbols-outlined text-lg mb-0.5">confirmation_number</span>
+               <span className="text-[8px] font-black uppercase tracking-wider">Avulso</span>
+             </button>
+          </div>
+        </div>
+
         {!isMaster && player.role !== 'admin' && (
           <button 
             onClick={handleClaimAdmin}
             disabled={isPromoting}
-            className="w-full mb-6 py-3 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400 text-[8px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all animate-slide-up stagger-3"
+            className="w-full mb-6 py-3 bg-slate-50 border border-dashed border-slate-200 rounded-2xl text-slate-400 text-[8px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all animate-slide-up stagger-4"
           >
             {isPromoting ? "PROCESSANDO..." : "REIVINDICAR ACESSO ADM"}
           </button>
         )}
 
         <div className="grid grid-cols-2 gap-3 w-full mb-6">
-           <div className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-sm text-center hover:shadow-heavy hover:translate-y-[-2px] transition-all duration-300 animate-slide-up stagger-3">
+           <div className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-sm text-center hover:shadow-heavy hover:translate-y-[-2px] transition-all duration-300 animate-slide-up stagger-5">
               <span className="text-[7px] font-black text-slate-300 uppercase tracking-widest block mb-1">GOLS</span>
               <span className="text-2xl font-condensed italic font-black text-navy">{player.goals || 0}</span>
            </div>
-           <div className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-sm text-center hover:shadow-heavy hover:translate-y-[-2px] transition-all duration-300 animate-slide-up stagger-4">
+           <div className="bg-white rounded-[1.5rem] p-4 border border-slate-100 shadow-sm text-center hover:shadow-heavy hover:translate-y-[-2px] transition-all duration-300 animate-slide-up stagger-5">
               <span className="text-[7px] font-black text-slate-300 uppercase tracking-widest block mb-1">ASSISTS</span>
               <span className="text-2xl font-condensed italic font-black text-navy">{player.assists || 0}</span>
            </div>
