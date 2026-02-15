@@ -22,7 +22,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     assists: 0, 
     concededGoals: 0, 
     role: 'player' as 'admin' | 'player',
-    playerType: 'avulso' as 'mensalista' | 'avulso'
+    playerType: 'avulso' as 'mensalista' | 'avulso',
+    status: 'pendente' as 'presente' | 'pendente'
   });
   const [isSavingStats, setIsSavingStats] = useState(false);
 
@@ -112,6 +113,18 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     } catch (e) { alert("Erro ao criar."); } finally { setIsSavingStats(false); }
   };
 
+  const handleOpenEditModal = (p: Player) => {
+    setSelectedPlayerForStats(p);
+    setStatsData({ 
+      goals: p.goals || 0, 
+      assists: p.assists || 0, 
+      concededGoals: p.concededGoals || 0, 
+      role: p.role || 'player', 
+      playerType: p.playerType || 'avulso',
+      status: p.status || 'pendente'
+    });
+  };
+
   const handleSaveStats = async () => {
     if (!selectedPlayerForStats || isSavingStats) return;
     setIsSavingStats(true);
@@ -121,7 +134,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         assists: Number(statsData.assists),
         concededGoals: Number(statsData.concededGoals),
         role: statsData.role,
-        playerType: statsData.playerType
+        playerType: statsData.playerType,
+        status: statsData.status
       });
       setSelectedPlayerForStats(null);
     } catch (e) { alert("Falha na atualização."); } finally { setIsSavingStats(false); }
@@ -140,7 +154,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         <div className="flex items-center justify-between mb-6">
            <div className="flex flex-col">
              <h2 className="text-base font-black text-navy uppercase italic tracking-tighter">CONVOCAÇÃO</h2>
-             <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em]">LISTA OFICIAL</span>
+             <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em]">DIRETORIA ARENA</span>
            </div>
            <div className="flex gap-2">
              <button onClick={handleShareList} className="w-10 h-10 bg-success text-white rounded-xl flex items-center justify-center shadow-lg shadow-success/20 active:scale-90 transition-all">
@@ -156,7 +170,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         <div className="relative">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">search</span>
           <input 
-            type="text" placeholder="Buscar atleta..." value={searchQuery} 
+            type="text" placeholder="Buscar atleta na base..." value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-11 bg-slate-50 border border-slate-100 rounded-xl pl-11 pr-4 text-xs font-bold text-navy outline-none" 
           />
@@ -164,19 +178,49 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       </header>
 
       <main className="px-5 mt-8 space-y-10 pb-32">
-        {/* TITULARES (GOLEIROS + LINHA) */}
-        <Section title="CONVOCADOS (TITULARES)" list={[...gksTitulares, ...fieldTitulares]} isAdmin={isCurrentUserAdmin} onEdit={(p: Player) => { setSelectedPlayerForStats(p); setStatsData({ goals: p.goals, assists: p.assists, concededGoals: p.concededGoals, role: p.role || 'player', playerType: p.playerType }); }} onDelete={handleDeletePlayer} isDeletingId={isDeletingId} currentUser={currentUser} type="confirmed" badge="TITULAR" />
+        {/* TITULARES */}
+        <Section 
+          title="CONVOCADOS (TITULARES)" 
+          list={[...gksTitulares, ...fieldTitulares]} 
+          isAdmin={isCurrentUserAdmin} 
+          onEdit={handleOpenEditModal} 
+          onDelete={handleDeletePlayer} 
+          isDeletingId={isDeletingId} 
+          currentUser={currentUser} 
+          type="confirmed" 
+          badge="TITULAR" 
+        />
 
         {/* LISTA DE ESPERA */}
         {(gksEspera.length > 0 || fieldEspera.length > 0) && (
-          <Section title="LISTA DE ESPERA (AQUECIMENTO)" list={[...gksEspera, ...fieldEspera]} isAdmin={isCurrentUserAdmin} onEdit={() => {}} onDelete={handleDeletePlayer} isDeletingId={isDeletingId} currentUser={currentUser} type="waiting" badge="ESPERA" />
+          <Section 
+            title="LISTA DE ESPERA (AQUECIMENTO)" 
+            list={[...gksEspera, ...fieldEspera]} 
+            isAdmin={isCurrentUserAdmin} 
+            onEdit={handleOpenEditModal} 
+            onDelete={handleDeletePlayer} 
+            isDeletingId={isDeletingId} 
+            currentUser={currentUser} 
+            type="waiting" 
+            badge="ESPERA" 
+          />
         )}
 
-        {/* AUSENTES */}
-        <Section title="AUSENTES / PENDENTES" list={pending} isAdmin={isCurrentUserAdmin} onEdit={() => {}} onDelete={handleDeletePlayer} isDeletingId={isDeletingId} currentUser={currentUser} type="pending" badge="FORA" />
+        {/* AUSENTES / PENDENTES - Agora totalmente editável pela diretoria */}
+        <Section 
+          title="BASE DE DADOS / AUSENTES" 
+          list={pending} 
+          isAdmin={isCurrentUserAdmin} 
+          onEdit={handleOpenEditModal} 
+          onDelete={handleDeletePlayer} 
+          isDeletingId={isDeletingId} 
+          currentUser={currentUser} 
+          type="pending" 
+          badge="FORA" 
+        />
       </main>
 
-      {/* MODALS (ADD PLAYER & EDIT STATS) mantidos da versão anterior */}
+      {/* MODAL ADICIONAR ATLETA */}
       {isAddingPlayer && (
         <div className="fixed inset-0 bg-navy/80 backdrop-blur-md z-[110] flex items-center justify-center p-6">
            <div className="w-full max-w-[340px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95">
@@ -206,6 +250,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         </div>
       )}
 
+      {/* MODAL EDITAR ATLETA (CONTROLE TOTAL) */}
       {selectedPlayerForStats && (
         <div className="fixed inset-0 bg-navy/80 backdrop-blur-md z-[110] flex items-center justify-center p-6">
            <div className="w-full max-w-[340px] bg-white rounded-[2rem] shadow-2xl overflow-hidden animate-in zoom-in-95">
@@ -227,6 +272,16 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                        <input type="number" value={statsData.assists} onChange={e => setStatsData({...statsData, assists: Number(e.target.value)})} className="w-full h-12 bg-slate-50 rounded-xl border border-slate-100 font-black text-navy text-center" />
                     </div>
                  </div>
+
+                 {/* CONTROLE DE PRESENÇA (ADM) */}
+                 <div className="space-y-1">
+                    <label className="text-[8px] font-black text-primary uppercase tracking-widest block px-1">DISPONIBILIDADE (PRESENÇA)</label>
+                    <select value={statsData.status} onChange={e => setStatsData({...statsData, status: e.target.value as any})} className="w-full h-12 bg-slate-50 rounded-xl border-2 border-primary/20 font-black text-navy px-4">
+                      <option value="presente">✅ CONFIRMADO NO JOGO</option>
+                      <option value="pendente">❌ FORA DA PELADA (PENDENTE)</option>
+                    </select>
+                 </div>
+
                  <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block px-1">TIPO DE CONTRATO</label>
                     <select value={statsData.playerType} onChange={e => setStatsData({...statsData, playerType: e.target.value as any})} className="w-full h-12 bg-slate-50 rounded-xl border border-slate-100 font-black text-navy px-4">
@@ -242,7 +297,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                     </select>
                  </div>
                  <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-14 bg-primary text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-primary/20 mt-2">
-                    ATUALIZAR DADOS
+                    {isSavingStats ? "ATUALIZANDO..." : "SALVAR ALTERAÇÕES ADM"}
                  </button>
               </div>
            </div>
@@ -263,7 +318,7 @@ const Section = ({ title, list, isAdmin, onEdit, onDelete, isDeletingId, current
     </div>
     <div className="grid grid-cols-1 gap-2">
       {list.length > 0 ? list.map((p: Player, i: number) => (
-        <div key={p.id} className={`bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex items-center justify-between group transition-all duration-300 ${type === 'pending' ? 'opacity-60' : ''}`}>
+        <div key={p.id} className={`bg-white rounded-2xl p-3 border border-slate-100 shadow-sm flex items-center justify-between group transition-all duration-300 ${type === 'pending' ? 'opacity-80' : ''}`}>
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl overflow-hidden border-2 ${p.role === 'admin' ? 'border-primary/20' : 'border-slate-50'}`}>
               <img src={p.photoUrl} className="w-full h-full object-cover" alt="" />
@@ -283,7 +338,9 @@ const Section = ({ title, list, isAdmin, onEdit, onDelete, isDeletingId, current
           </div>
           {isAdmin && (
             <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-               <button onClick={() => onEdit(p)} className="w-8 h-8 rounded-lg bg-slate-50 text-navy flex items-center justify-center border border-slate-100"><span className="material-symbols-outlined text-base">edit</span></button>
+               <button onClick={() => onEdit(p)} className="w-8 h-8 rounded-lg bg-slate-50 text-navy flex items-center justify-center border border-slate-100">
+                  <span className="material-symbols-outlined text-base">edit</span>
+               </button>
                {p.id !== currentUser?.uid && (
                 <button onClick={() => onDelete(p)} disabled={isDeletingId === p.id} className="w-8 h-8 rounded-lg bg-red-50 text-primary flex items-center justify-center border border-red-100">
                   <span className={`material-symbols-outlined text-base ${isDeletingId === p.id ? 'animate-spin' : ''}`}>delete</span>
