@@ -52,9 +52,40 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   const handleShareMatch = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '---';
-    const text = `🏆 *O&A ELITE CHAMPIONS* 🇭🇷\n\n📍 ${match?.location || 'Elite Arena'}\n🗓️ ${dateStr} às ${match?.time || '--:--'}h\n\n📢 *STATUS:* ${confirmedPlayers.length} convocados!\n🔗 ${window.location.origin}`;
-    if (navigator.share) navigator.share({ title: 'O&A Elite Pro', text, url: window.location.origin });
-    else window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    const remaining = fieldSlots - confirmedField.slice(0, fieldSlots).length;
+    
+    let message = `🏆 *MATCHDAY O&A ELITE PRO* 🇭🇷\n`;
+    message += `🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ELITE ARENA'}\n`;
+    message += `🗓️ *DATA:* ${dateStr}\n`;
+    message += `⏱️ *KICK-OFF:* ${match?.time || '--:--'}H\n`;
+    message += `────────────────────\n\n`;
+    
+    message += `🧤 *PAREDÕES* (${confirmedGKs.length}/${gkSlots})\n`;
+    if (confirmedGKs.length > 0) {
+      confirmedGKs.forEach((p, i) => message += `*${i + 1}.* ${p.name.toUpperCase()}\n`);
+    } else {
+      message += `_Aguardando goleiros..._\n`;
+    }
+    
+    message += `\n🏃 *LINE-UP* (${confirmedField.length}/${fieldSlots})\n`;
+    if (confirmedField.length > 0) {
+      confirmedField.slice(0, fieldSlots).forEach((p, i) => message += `*${String(i + 1).padStart(2, '0')}.* ${p.name.toUpperCase()}\n`);
+      
+      const espera = confirmedField.slice(fieldSlots);
+      if (espera.length > 0) {
+        message += `\n⏳ *LISTA DE ESPERA*\n`;
+        espera.forEach((p) => message += `• ${p.name.toUpperCase()}\n`);
+      }
+    } else {
+      message += `_Lista aberta! Confirme agora!_\n`;
+    }
+    
+    message += `\n────────────────────\n`;
+    message += `📢 *STATUS:* ${confirmedPlayers.length} CONVOCADOS\n`;
+    message += `🔗 *APP:* ${window.location.origin}`;
+
+    const encoded = encodeURIComponent(message);
+    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
   };
 
   const topScorers = [...players].filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 3);
@@ -75,7 +106,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <main className="space-y-10">
-        {/* MATCH HERO CARD */}
         <GlassCard className="relative overflow-hidden pt-12 pb-10 px-8">
           <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-[2.5] pointer-events-none rotate-12">
              <span className="material-symbols-outlined text-[100px]">sports_soccer</span>
@@ -123,7 +153,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           </GlassButton>
         </GlassCard>
 
-        {/* RANKING EDITORIAL SECTION */}
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA ELITE</h3>
