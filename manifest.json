@@ -1,13 +1,14 @@
+
 {
-  "name": "O&A Elite Pro",
-  "short_name": "O&A Elite",
-  "description": "Plataforma de Gestão Esportiva Ousadia & Alegria",
+  "name": "Ousadia & Alegria",
+  "short_name": "O&A Pelada",
+  "description": "Gestão da pelada Ousadia & Alegria",
   "start_url": ".",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#ed1d23",
+  "theme_color": "#C8102E",
   "icons": [
     {
       "src": "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png",

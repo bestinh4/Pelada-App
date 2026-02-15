@@ -1,6 +1,6 @@
 {
-  "name": "O&A Elite Pro - Soccer Management",
-  "description": "A high-performance soccer management platform for organizing matches, tracking player stats, and AI-powered team balancing.",
+  "name": "Ousadia & Alegria - App da Pelada",
+  "description": "Aplicativo para organização da pelada Ousadia & Alegria, com gestão de presença e financeiro.",
   "requestFramePermissions": [
     "camera"
   ]

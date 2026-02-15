@@ -68,10 +68,10 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
       <header className="py-12 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter">COFRE ELITE</h2>
+          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter">COFRE O&A</h2>
         </div>
         <div className="bg-navy/5 px-3 py-1 rounded-full">
-           <span className="text-[8px] font-black text-navy uppercase tracking-widest">{activePlayers.length} ATIVOS</span>
+           <span className="text-[8px] font-black text-navy uppercase tracking-widest">{activePlayers.length} PRESENTES</span>
         </div>
       </header>
 
@@ -80,14 +80,14 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
         <div className="bg-navy rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-elite">
           <div className="absolute top-0 right-0 h-full w-2 bg-primary"></div>
           <div className="relative z-10">
-            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] block mb-2">SALDO EM CAIXA</span>
+            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] block mb-2">SALDO ARRECADADO</span>
             <h2 className="text-5xl font-condensed italic leading-none tracking-tighter mb-8">
               R$ {totals.paid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </h2>
             
             <div className="flex justify-between items-center pt-8 border-t border-white/10">
               <div className="space-y-1">
-                 <span className="text-[9px] font-black text-primary-bright uppercase tracking-widest">A RECEBER</span>
+                 <span className="text-[9px] font-black text-primary-bright uppercase tracking-widest">PENDENTE</span>
                  <p className="text-xl font-condensed italic font-black">R$ {totals.pending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
               </div>
               <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center">
@@ -105,7 +105,7 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
               onClick={() => setFilter(f)}
               className={`flex-1 py-3 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all active:scale-95 ${filter === f ? 'bg-navy text-white shadow-lg shadow-navy/20' : 'text-slate-400'}`}
             >
-              {f === 'todos' ? 'FULL' : f === 'pendentes' ? 'DÉBITO' : 'OK'}
+              {f === 'todos' ? 'TODOS' : f === 'pendentes' ? 'DÉBITO' : 'PAGO'}
             </button>
           ))}
         </div>
@@ -126,7 +126,7 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
                   </div>
                   <div>
                     <h4 className="text-[12px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</h4>
-                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{isGoleiro ? 'ISENTO' : (p.playerType === 'mensalista' ? 'MENSALISTA' : 'AVULSO')}</span>
+                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{isGoleiro ? 'ISENTO 🧤' : (p.playerType === 'mensalista' ? 'MENSALISTA' : 'AVULSO')}</span>
                   </div>
                 </div>
                 {isAdmin && (
@@ -143,7 +143,7 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
           }) : (
             <div className="py-20 text-center glass-surface rounded-[2rem] border-dashed">
               <span className="material-symbols-outlined text-slate-200 text-4xl mb-4">search_off</span>
-              <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-relaxed">Nenhum registro<br/>encontrado nesta categoria</p>
+              <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-relaxed">Vazio por aqui...</p>
             </div>
           )}
         </div>

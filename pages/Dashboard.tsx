@@ -54,19 +54,19 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
     
     let message = `🏆 *OUSADIA & ALEGRIA* 🇭🇷\n`;
-    message += `🏟️ *LOCAL:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n`;
+    message += `🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n`;
     message += `🗓️ *DATA:* ${dateStr}\n`;
-    message += `⏱️ *HORÁRIO:* ${match?.time || '--:--'}H\n`;
+    message += `⏱️ *HORA:* ${match?.time || '--:--'}H\n`;
     message += `────────────────────\n\n`;
     
     message += `🧤 *GOLEIROS* (${confirmedGKs.length}/${gkSlots})\n`;
     if (confirmedGKs.length > 0) {
       confirmedGKs.forEach((p, i) => message += `*${i + 1}.* ${p.name.toUpperCase()}\n`);
     } else {
-      message += `_Aguardando goleiros..._\n`;
+      message += `_Aguardando paredões..._\n`;
     }
     
-    message += `\n🏃 *LISTA DE PRESENÇA* (${confirmedField.length}/${fieldSlots})\n`;
+    message += `\n🏃 *QUEM VAI PRO JOGO* (${confirmedField.length}/${fieldSlots})\n`;
     if (confirmedField.length > 0) {
       const titulares = confirmedField.slice(0, fieldSlots);
       const espera = confirmedField.slice(fieldSlots);
@@ -97,10 +97,10 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         <div className="flex items-center gap-4">
           <img src={mainLogoUrl} className="w-12 h-12 object-contain grayscale opacity-10" alt="O&A" />
           <div className="space-y-1">
-            <h1 className="text-xl font-black tracking-tighter text-navy uppercase italic leading-none">PRÓXIMA PELADA</h1>
+            <h1 className="text-xl font-black tracking-tighter text-navy uppercase italic leading-none">PRÓXIMO RACHA</h1>
             <div className="flex items-center gap-2">
                <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-glow-red"></span>
-               <p className="text-[8px] font-extrabold text-primary uppercase tracking-[0.4em]">ARENA AO VIVO</p>
+               <p className="text-[8px] font-extrabold text-primary uppercase tracking-[0.4em]">LISTA ABERTA</p>
             </div>
           </div>
         </div>
@@ -114,7 +114,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
           
           <div className="flex justify-between items-start mb-12 relative z-10">
             <div className="space-y-2">
-              <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] block">PARTIDA MARCADA</span>
+              <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] block">OUSADIA & ALEGRIA</span>
               <h2 className="text-4xl font-condensed tracking-tight uppercase italic leading-none text-navy">{match?.location || "ARENA OUSADIA"}</h2>
             </div>
             <button onClick={handleShareMatch} className="w-12 h-12 bg-white/60 border border-white/80 rounded-2xl flex items-center justify-center active:scale-90 transition-all shadow-glass">
@@ -129,11 +129,11 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
           <div className="flex items-center gap-12 mb-12 py-6 border-y border-navy/5 relative z-10">
              <div className="space-y-1">
-               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">DATA</p>
+               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">DIA</p>
                <p className="text-xs font-extrabold text-navy uppercase italic">{match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '---'}</p>
              </div>
              <div className="space-y-1">
-               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">HORÁRIO</p>
+               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">HORA</p>
                <p className="text-xs font-extrabold text-navy uppercase italic">{match?.time || '--:--'}H</p>
              </div>
           </div>
@@ -148,7 +148,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
             {isUpdating ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : (
               <>
                 <span className="material-symbols-outlined text-xl">{isConfirmed ? 'verified' : 'stadium'}</span>
-                {isConfirmed ? 'PRESENÇA CONFIRMADA' : 'GARANTIR MINHA VAGA'}
+                {isConfirmed ? 'DENTRO DO JOGO' : 'CONFIRMAR PRESENÇA'}
               </>
             )}
           </GlassButton>
@@ -156,7 +156,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-navy italic">DESTAQUES DA ARENA</h3>
+            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA DO GRUPO</h3>
             <button onClick={() => onPageChange(Page.PlayerList)} className="text-[9px] font-extrabold text-primary uppercase tracking-widest border-b border-primary/20 pb-1">VER TODOS</button>
           </div>
           <div className="space-y-3">
@@ -183,7 +183,7 @@ const ProgressBlock = ({ label, current, max, progress, color }: any) => (
 );
 
 const StatRow = ({ player, value, rank, label }: any) => (
-  <GlassCard className="!p-4 border-white/80 flex items-center justify-between hover:scale-[1.02] active:scale-95 transition-all">
+  <GlassCard key={player.id} className="!p-4 border-white/80 flex items-center justify-between hover:scale-[1.02] active:scale-95 transition-all">
     <div className="flex items-center gap-4">
       <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-condensed font-black italic text-navy border border-white shadow-sm">{rank}</div>
       <div className="w-12 h-12 rounded-[1rem] overflow-hidden border-2 border-white shadow-glass">
