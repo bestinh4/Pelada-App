@@ -13,26 +13,25 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
   className = '', 
   ...props 
 }) => {
-  const base = "font-extrabold uppercase tracking-[0.15em] transition-all flex items-center justify-center gap-3 rounded-[1.25rem] relative overflow-hidden group";
+  const base = "font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 rounded-full relative overflow-hidden group";
   
   const variants = {
-    primary: "btn-elite-primary",
-    secondary: "btn-elite-secondary",
-    outline: "border-2 border-primary text-primary hover:bg-primary/5 shadow-none",
-    glass: "bg-white/40 backdrop-blur-md border border-white/60 text-navy hover:bg-white/60 shadow-glass"
+    primary: "btn-croatia-primary shadow-glow-red",
+    secondary: "btn-croatia-secondary",
+    outline: "border-2 border-primary text-primary hover:bg-primary/5",
+    glass: "bg-white/80 backdrop-blur-md border border-slate-100 text-navy shadow-glass hover:bg-white"
   };
 
   const sizes = {
-    sm: "px-4 h-10 text-[8px]",
-    md: "px-6 h-12 text-[10px]",
-    lg: "px-8 h-14 text-[11px]",
-    xl: "px-10 h-16 text-[12px]"
+    sm: "px-5 h-11 text-[9px]",
+    md: "px-7 h-13 text-[10px]",
+    lg: "px-9 h-15 text-[11px]",
+    xl: "px-12 h-18 text-[12px]"
   };
 
   return (
     <button className={`${base} ${variants[variant]} ${sizes[size]} ${className}`} {...props}>
       <span className="relative z-10 flex items-center gap-2">{children}</span>
-      <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
     </button>
   );
 };

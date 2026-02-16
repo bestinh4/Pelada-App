@@ -8,13 +8,13 @@ interface GlassCardProps {
 }
 
 export const GlassCard: React.FC<GlassCardProps> = ({ children, className = '', variant = 'light' }) => {
-  const baseStyle = "rounded-[2rem] p-6 transition-all duration-500 glass-surface";
+  const baseStyle = "rounded-[2.5rem] p-8 transition-all duration-500 overflow-hidden relative";
   
   const variants = {
-    light: "",
-    dark: "bg-navy-deep/90 border-white/10 text-white shadow-2xl",
-    red: "bg-primary/90 border-white/20 text-white shadow-glow-red",
-    blue: "bg-navy/90 border-white/20 text-white shadow-elite"
+    light: "bg-white border border-slate-100 shadow-glass",
+    dark: "bg-navy text-white shadow-2xl",
+    red: "bg-primary text-white shadow-glow-red",
+    blue: "bg-navy-deep text-white shadow-elite"
   };
 
   return (

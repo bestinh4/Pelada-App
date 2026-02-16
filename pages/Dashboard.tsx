@@ -47,44 +47,12 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     try {
       const playerRef = doc(db, "players", user.uid);
       await updateDoc(playerRef, { status: isConfirmed ? 'pendente' : 'presente' });
-    } catch (e) { alert("Erro de conexão com a arena."); } finally { setIsUpdating(false); }
+    } catch (e) { alert("Erro de conexão."); } finally { setIsUpdating(false); }
   };
 
   const handleShareMatch = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
-    
-    let message = `🏆 *OUSADIA & ALEGRIA* 🇭🇷\n`;
-    message += `🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n`;
-    message += `🗓️ *DATA:* ${dateStr}\n`;
-    message += `⏱️ *HORA:* ${match?.time || '--:--'}H\n`;
-    message += `────────────────────\n\n`;
-    
-    message += `🧤 *GOLEIROS* (${confirmedGKs.length}/${gkSlots})\n`;
-    if (confirmedGKs.length > 0) {
-      confirmedGKs.forEach((p, i) => message += `*${i + 1}.* ${p.name.toUpperCase()}\n`);
-    } else {
-      message += `_Aguardando paredões..._\n`;
-    }
-    
-    message += `\n🏃 *QUEM VAI PRO JOGO* (${confirmedField.length}/${fieldSlots})\n`;
-    if (confirmedField.length > 0) {
-      const titulares = confirmedField.slice(0, fieldSlots);
-      const espera = confirmedField.slice(fieldSlots);
-
-      titulares.forEach((p, i) => message += `*${String(i + 1).padStart(2, '0')}.* ${p.name.toUpperCase()}\n`);
-      
-      if (espera.length > 0) {
-        message += `\n⏳ *LISTA DE ESPERA*\n`;
-        espera.forEach((p) => message += `• ${p.name.toUpperCase()}\n`);
-      }
-    } else {
-      message += `_Lista aberta! Garanta sua vaga no App!_\n`;
-    }
-    
-    message += `\n────────────────────\n`;
-    message += `📢 *STATUS:* ${confirmedPlayers.length} CONFIRMADOS ✅\n`;
-    message += `🔗 *APP:* ${window.location.origin}`;
-
+    let message = `🏆 *OUSADIA & ALEGRIA* 🇭🇷\n🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n🗓️ *DATA:* ${dateStr}\n⏱️ *HORA:* ${match?.time || '--:--'}H\n\n📢 *STATUS:* ${confirmedPlayers.length} CONFIRMADOS ✅\n🔗 *APP:* ${window.location.origin}`;
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
   };
@@ -93,71 +61,74 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   return (
     <div className="flex flex-col animate-fade-in px-6">
-      <header className="py-12 flex items-center justify-between">
+      <header className="py-10 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={mainLogoUrl} className="w-12 h-12 object-contain grayscale opacity-10" alt="O&A" />
-          <div className="space-y-1">
-            <h1 className="text-xl font-black tracking-tighter text-navy uppercase italic leading-none">PRÓXIMO RACHA</h1>
+          <img src={mainLogoUrl} className="w-14 h-14 object-contain" alt="O&A" />
+          <div className="space-y-0.5">
+            <h1 className="text-2xl font-black tracking-tighter text-navy uppercase italic leading-none">PRÓXIMO RACHA</h1>
             <div className="flex items-center gap-2">
-               <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-glow-red"></span>
-               <p className="text-[8px] font-extrabold text-primary uppercase tracking-[0.4em]">LISTA ABERTA</p>
+               <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+               <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">LISTA ABERTA</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="space-y-10">
-        <GlassCard className="relative overflow-hidden pt-12 pb-10 px-8">
-          <div className="absolute top-0 right-0 p-8 opacity-[0.03] scale-[2.5] pointer-events-none rotate-12">
-             <span className="material-symbols-outlined text-[100px]">sports_soccer</span>
+      <main className="space-y-8">
+        {/* HERO MESH GRADIENT CARD */}
+        <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] pt-12 pb-10 px-8 text-white shadow-elite">
+          {/* STARBALL SVG WATERMARK */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.15] scale-[1.5] pointer-events-none select-none">
+            <svg viewBox="0 0 100 100" className="w-full h-full text-white fill-current">
+              <path d="M50 0L61.2 35.5L97.6 35.5L68.1 57.4L79.3 92.9L50 71L20.7 92.9L31.9 57.4L2.4 35.5L38.8 35.5L50 0Z" />
+            </svg>
           </div>
           
-          <div className="flex justify-between items-start mb-12 relative z-10">
+          <div className="flex justify-between items-start mb-10 relative z-10">
             <div className="space-y-2">
-              <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] block">OUSADIA & ALEGRIA</span>
-              <h2 className="text-4xl font-condensed tracking-tight uppercase italic leading-none text-navy">{match?.location || "ARENA OUSADIA"}</h2>
+              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em] block">CROATIA EDITION</span>
+              <h2 className="text-4xl font-condensed tracking-tight uppercase italic leading-none">{match?.location || "ARENA OUSADIA"}</h2>
             </div>
-            <button onClick={handleShareMatch} className="w-12 h-12 bg-white/60 border border-white/80 rounded-2xl flex items-center justify-center active:scale-90 transition-all shadow-glass">
-              <span className="material-symbols-outlined text-navy font-light">share</span>
+            <button onClick={handleShareMatch} className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl flex items-center justify-center active:scale-90 transition-all">
+              <span className="material-symbols-outlined text-white font-light">share</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 mb-12 relative z-10">
-             <ProgressBlock label="JOGADORES" current={confirmedField.length} max={fieldSlots} progress={lineProgress} color="primary" />
-             <ProgressBlock label="GOLEIROS" current={confirmedGKs.length} max={gkSlots} progress={gkProgress} color="navy" />
+          <div className="grid grid-cols-1 gap-8 mb-10 relative z-10">
+             <ProgressBlock label="JOGADORES" current={confirmedField.length} max={fieldSlots} progress={lineProgress} isWhite />
+             <ProgressBlock label="GOLEIROS" current={confirmedGKs.length} max={gkSlots} progress={gkProgress} isWhite />
           </div>
 
-          <div className="flex items-center gap-12 mb-12 py-6 border-y border-navy/5 relative z-10">
+          <div className="flex items-center gap-12 mb-10 py-6 border-y border-white/10 relative z-10">
              <div className="space-y-1">
-               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">DIA</p>
-               <p className="text-xs font-extrabold text-navy uppercase italic">{match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '---'}</p>
+               <p className="text-[9px] font-black text-white/50 uppercase tracking-widest">AGENDA</p>
+               <p className="text-sm font-extrabold uppercase italic">{match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '---'}</p>
              </div>
              <div className="space-y-1">
-               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">HORA</p>
-               <p className="text-xs font-extrabold text-navy uppercase italic">{match?.time || '--:--'}H</p>
+               <p className="text-[9px] font-black text-white/50 uppercase tracking-widest">HORA</p>
+               <p className="text-sm font-extrabold uppercase italic">{match?.time || '--:--'}H</p>
              </div>
           </div>
 
-          <GlassButton 
-            variant={isConfirmed ? 'secondary' : 'primary'} 
-            size="xl" 
+          <button 
             onClick={togglePresence} 
             disabled={isUpdating}
-            className="w-full !rounded-[1.5rem] shadow-elite relative z-10 h-16"
+            className={`w-full h-18 rounded-[1.75rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl transition-all active:scale-95 relative z-10 flex items-center justify-center gap-3 ${isConfirmed ? 'bg-white text-navy' : 'bg-primary-bright text-white shadow-glow-red'}`}
           >
-            {isUpdating ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : (
+            {isUpdating ? <div className="w-5 h-5 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : (
               <>
-                <span className="material-symbols-outlined text-xl">{isConfirmed ? 'verified' : 'stadium'}</span>
+                <span className="material-symbols-outlined">{isConfirmed ? 'check_circle' : 'stadium'}</span>
                 {isConfirmed ? 'DENTRO DO JOGO' : 'CONFIRMAR PRESENÇA'}
               </>
             )}
-          </GlassButton>
-        </GlassCard>
+          </button>
+        </div>
 
+        {/* RANKING SECTION */}
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA DO GRUPO</h3>
-            <button onClick={() => onPageChange(Page.PlayerList)} className="text-[9px] font-extrabold text-primary uppercase tracking-widest border-b border-primary/20 pb-1">VER TODOS</button>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA</h3>
+            <button onClick={() => onPageChange(Page.PlayerList)} className="text-[10px] font-extrabold text-primary uppercase tracking-widest border-b border-primary/30 pb-1">SQUAD COMPLETO</button>
           </div>
           <div className="space-y-3">
             {topScorers.map((p, i) => (
@@ -170,35 +141,35 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   );
 };
 
-const ProgressBlock = ({ label, current, max, progress, color }: any) => (
+const ProgressBlock = ({ label, current, max, progress, isWhite }: any) => (
   <div className="space-y-3">
     <div className="flex justify-between items-end">
-      <span className="text-[10px] font-black text-navy uppercase italic tracking-widest">{label}</span>
-      <span className={`text-2xl font-condensed italic font-black ${color === 'primary' ? 'text-primary' : 'text-navy'}`}>{current}/{max}</span>
+      <span className={`text-[10px] font-black uppercase italic tracking-widest ${isWhite ? 'text-white/70' : 'text-navy/50'}`}>{label}</span>
+      <span className={`text-2xl font-condensed italic font-black ${isWhite ? 'text-white' : 'text-primary'}`}>{current}/{max}</span>
     </div>
-    <div className="h-3 bg-white/50 rounded-full overflow-hidden border border-white/80 shadow-inner">
-      <div className={`h-full transition-all duration-1000 ease-out rounded-full ${color === 'primary' ? 'btn-elite-primary' : 'btn-elite-secondary'}`} style={{ width: `${progress}%` }}></div>
+    <div className={`h-2.5 rounded-full overflow-hidden ${isWhite ? 'bg-white/20' : 'bg-slate-100'}`}>
+      <div className={`h-full transition-all duration-1000 ease-out rounded-full ${isWhite ? 'bg-white' : 'bg-primary'}`} style={{ width: `${progress}%` }}></div>
     </div>
   </div>
 );
 
 const StatRow = ({ player, value, rank, label }: any) => (
-  <GlassCard key={player.id} className="!p-4 border-white/80 flex items-center justify-between hover:scale-[1.02] active:scale-95 transition-all">
+  <div className="bg-white border border-slate-100 rounded-[2rem] p-4 flex items-center justify-between shadow-soft-white hover:shadow-elite hover:-translate-y-1 transition-all animate-slide-up">
     <div className="flex items-center gap-4">
-      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-condensed font-black italic text-navy border border-white shadow-sm">{rank}</div>
-      <div className="w-12 h-12 rounded-[1rem] overflow-hidden border-2 border-white shadow-glass">
+      <div className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center font-condensed font-black italic text-navy border border-slate-100 text-lg">{rank}</div>
+      <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm">
         <img src={player.photoUrl} className="w-full h-full object-cover" alt="" />
       </div>
       <div>
-        <h4 className="text-[12px] font-black text-navy uppercase italic leading-none mb-1">{player.name}</h4>
-        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{player.position}</span>
+        <h4 className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{player.name}</h4>
+        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{player.position}</span>
       </div>
     </div>
     <div className="text-right">
        <span className="text-3xl font-condensed italic font-black text-primary leading-none">{value}</span>
-       <p className="text-[7px] font-black text-slate-300 uppercase tracking-widest">{label}</p>
+       <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{label}</p>
     </div>
-  </GlassCard>
+  </div>
 );
 
 export default Dashboard;

@@ -11,44 +11,44 @@ const Login: React.FC = () => {
   const handleGoogleLogin = async () => {
     setIsLoggingIn(true);
     try { await loginWithGoogle(); }
-    catch (err: any) { alert("Conexão falhou. Verifique sua rede."); }
+    catch (err: any) { alert("Conexão falhou."); }
     finally { setIsLoggingIn(false); }
   };
 
   return (
-    <div className="min-h-screen bg-champions-gradient flex flex-col items-center justify-center p-8 relative overflow-hidden">
-      {/* DECORAÇÃO DE FUNDO */}
-      <div className="absolute top-[-10%] right-[-10%] w-[300px] h-[300px] bg-primary/5 blur-[100px] rounded-full"></div>
-      <div className="absolute bottom-[-10%] left-[-10%] w-[300px] h-[300px] bg-navy/5 blur-[100px] rounded-full"></div>
-
-      <div className="w-full max-w-sm space-y-16 flex flex-col items-center animate-fade-in relative z-10">
+    <div className="min-h-screen bg-neo-dots flex flex-col items-center justify-center p-8 relative overflow-hidden">
+      <div className="w-full max-w-sm space-y-20 flex flex-col items-center animate-fade-in relative z-10">
         <div className="relative group">
-           <div className="absolute inset-0 bg-primary/10 blur-[60px] rounded-full scale-150 group-hover:bg-primary/20 transition-all duration-1000"></div>
-           <img src={logoUrl} alt="Ousadia e Alegria" className="w-56 h-56 object-contain relative z-10 drop-shadow-2xl animate-float" />
+           <div className="absolute inset-0 bg-primary/5 blur-[80px] rounded-full scale-150 transition-all duration-1000"></div>
+           <img src={logoUrl} alt="Ousadia e Alegria" className="w-64 h-64 object-contain relative z-10 drop-shadow-2xl animate-float" />
         </div>
         
-        <div className="text-center space-y-4">
-          <h1 className="text-5xl font-condensed italic font-black tracking-tight text-navy uppercase leading-none">OUSADIA & ALEGRIA</h1>
-          <div className="flex items-center justify-center gap-4">
-             <div className="w-8 h-0.5 bg-primary/20"></div>
-             <p className="text-[11px] font-extrabold uppercase text-primary tracking-[0.5em]">APP DA PELADA</p>
-             <div className="w-8 h-0.5 bg-primary/20"></div>
+        <div className="text-center space-y-5">
+          <h1 className="text-6xl font-condensed italic font-black tracking-tighter text-navy uppercase leading-none">OUSADIA & ALEGRIA</h1>
+          <div className="flex items-center justify-center gap-6">
+             <div className="w-12 h-0.5 bg-primary/20"></div>
+             <p className="text-[12px] font-black uppercase text-primary tracking-[0.6em]">ESTÁDIO DIGITAL</p>
+             <div className="w-12 h-0.5 bg-primary/20"></div>
           </div>
         </div>
 
-        <div className="w-full space-y-6">
-          <GlassButton onClick={handleGoogleLogin} disabled={isLoggingIn} variant="primary" size="xl" className="w-full h-20 !rounded-[2.5rem] shadow-elite text-sm tracking-[0.3em]">
-            {isLoggingIn ? 'ENTRANDO...' : 'ACESSAR RACHA'}
-          </GlassButton>
-          <div className="flex flex-col items-center gap-4">
-             <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest text-center">Gestão de Presença e Sorteio</p>
-             <div className="w-1 h-1 bg-navy/20 rounded-full"></div>
+        <div className="w-full space-y-8">
+          <button 
+            onClick={handleGoogleLogin} 
+            disabled={isLoggingIn}
+            className="w-full h-20 bg-primary text-white rounded-full font-black uppercase text-[12px] tracking-[0.4em] shadow-glow-red shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4"
+          >
+            {isLoggingIn ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : 'ENTRAR NO RACHA'}
+          </button>
+          
+          <div className="text-center">
+             <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Sincronizado com Arena Cloud v3.5</p>
           </div>
         </div>
       </div>
       
-      <div className="absolute bottom-12 flex flex-col items-center gap-3 opacity-20">
-         <span className="text-[9px] font-black tracking-[0.4em] uppercase text-navy">Ousadia & Alegria © 2024</span>
+      <div className="absolute bottom-12 opacity-30">
+         <span className="text-[10px] font-black tracking-[0.5em] uppercase text-navy">CROATIA ELITE SERIES</span>
       </div>
     </div>
   );
