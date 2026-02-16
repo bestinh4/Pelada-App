@@ -90,8 +90,8 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       <main className="space-y-8">
         {match ? (
           <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] p-8 text-white shadow-elite min-h-[380px] flex flex-col justify-between">
-            {/* LOGO FLUTUANTE DE FUNDO */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 opacity-[0.15] pointer-events-none animate-float select-none">
+            {/* LOGO FLUTUANTE DE FUNDO (MARCA D'ÁGUA) */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 opacity-[0.12] pointer-events-none animate-float select-none">
                 <img src={mainLogoUrl} className="w-full h-full object-contain brightness-[200%] grayscale" />
             </div>
 

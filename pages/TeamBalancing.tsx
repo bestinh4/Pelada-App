@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
-import { balanceTeams } from '../services/geminiService.ts';
 
 interface TeamBalancingProps {
   players: Player[];
@@ -26,23 +25,44 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
     setSelectedIds(new Set(confirmedPlayers.map(p => p.id)));
   }, [players]);
 
-  const handleGenerate = async () => {
+  const handleGenerateNormal = () => {
     const selectedPlayers = players.filter(p => selectedIds.has(p.id));
     if (selectedPlayers.length < 4) return alert("Selecione pelo menos 4 atletas.");
     
     setIsGenerating(true);
-    try {
-      const result = await balanceTeams(selectedPlayers);
-      if (result && result.teams) {
-        setTeamsResult(result.teams);
-      } else {
-        alert("Resposta da IA inválida. Tente novamente.");
+    
+    // Simula um pequeno delay para o "clima" de sorteio
+    setTimeout(() => {
+      const gks = selectedPlayers.filter(p => p.position === 'Goleiro');
+      const field = selectedPlayers.filter(p => p.position !== 'Goleiro');
+
+      // Embaralha ambos
+      const shuffledGks = [...gks].sort(() => Math.random() - 0.5);
+      const shuffledField = [...field].sort(() => Math.random() - 0.5);
+
+      const playersPerTeam = 7;
+      const numTeams = Math.ceil(selectedPlayers.length / playersPerTeam);
+      const teams: TeamData[] = [];
+
+      for (let i = 0; i < numTeams; i++) {
+        const teamGk = shuffledGks.pop() || null;
+        const teamField: string[] = [];
+        
+        while (teamField.length < (teamGk ? 6 : 7) && shuffledField.length > 0) {
+          const p = shuffledField.pop();
+          if (p) teamField.push(p.id);
+        }
+
+        teams.push({
+          name: `ESQUADRÃO ${String.fromCharCode(65 + i)}`,
+          fieldIds: teamField,
+          goalkeeperId: teamGk ? teamGk.id : null
+        });
       }
-    } catch (e) {
-      alert("Falha no servidor de IA. Usando sorteio local...");
-    } finally {
+
+      setTeamsResult(teams);
       setIsGenerating(false);
-    }
+    }, 800);
   };
 
   return (
@@ -52,29 +72,31 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
           <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-sm">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">EQUILÍBRIO IA</h2>
+          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO RÁPIDO</h2>
         </div>
-        <img src={mainLogoUrl} className="w-10 h-10 opacity-20 animate-float" />
+        <img src={mainLogoUrl} className="w-12 h-12 animate-float" />
       </header>
 
       <main className="pb-40">
         {!teamsResult ? (
           <div className="space-y-8">
-            <div className="bg-navy rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-elite">
-               <div className="absolute top-0 right-0 h-full w-2 bg-primary"></div>
+            <div className="mesh-gradient-champions rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-elite">
+               {/* WATERMARK BACKGROUND */}
+               <img src={mainLogoUrl} className="absolute -right-10 -bottom-10 w-48 h-48 opacity-10 rotate-12 grayscale brightness-200" />
+               
                <div className="relative z-10">
-                <p className="text-[10px] font-black opacity-40 uppercase tracking-widest mb-2">PARTIDA EQUILIBRADA</p>
-                <h3 className="text-4xl font-condensed italic font-black mb-10">{selectedIds.size} JOGADORES</h3>
+                <p className="text-[10px] font-black opacity-60 uppercase tracking-widest mb-2">GERENCIADOR DE TIMES</p>
+                <h3 className="text-4xl font-condensed italic font-black mb-10">{selectedIds.size} CONVOCADOS</h3>
                 
                 <button 
-                  onClick={handleGenerate}
+                  onClick={handleGenerateNormal}
                   disabled={isGenerating || selectedIds.size < 4}
-                  className="w-full h-18 bg-primary text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-glow-red flex items-center justify-center gap-4 active:scale-95 transition-all"
+                  className="w-full h-18 bg-white text-navy rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all"
                 >
-                  {isGenerating ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : (
+                  {isGenerating ? <div className="w-6 h-6 border-3 border-navy/20 border-t-navy rounded-full animate-spin"></div> : (
                     <>
-                      <span className="material-symbols-outlined">auto_awesome</span>
-                      SORTEAR COM IA
+                      <span className="material-symbols-outlined">shuffle</span>
+                      REALIZAR SORTEIO
                     </>
                   )}
                 </button>
@@ -82,7 +104,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">CONFIRMADOS</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">LISTA DE PRESENÇA</h4>
               <div className="grid grid-cols-1 gap-3">
                 {confirmedPlayers.map(p => (
                   <div 
@@ -112,8 +134,8 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
         ) : (
           <div className="space-y-8 animate-slide-up">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">RESULTADO DO SORTEIO</h3>
-              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER</button>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">TIMES DEFINIDOS</h3>
+              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER SORTEIO</button>
             </div>
 
             <div className="space-y-6">
@@ -121,7 +143,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                 <div key={idx} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-soft-white overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 0.1}s` }}>
                   <div className={`px-8 py-5 flex justify-between items-center ${idx % 2 === 0 ? 'bg-navy' : 'bg-primary'} text-white`}>
                     <h4 className="font-black uppercase italic tracking-tighter">{team.name}</h4>
-                    <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">CROATIA EDITION</span>
+                    <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">O&A ELITE</span>
                   </div>
                   <div className="p-8 space-y-6">
                     {team.goalkeeperId && (
@@ -152,7 +174,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
               className="w-full h-20 bg-success text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4"
             >
               <span className="material-symbols-outlined">share</span>
-              ENVIAR NO WHATSAPP
+              ENVIAR ESCALAÇÃO
             </button>
           </div>
         )}
