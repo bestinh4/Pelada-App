@@ -36,7 +36,7 @@ const Login: React.FC = () => {
             disabled={isLoggingIn}
             className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-[0.4em] shadow-elite active:scale-95 transition-all flex items-center justify-center gap-4"
           >
-            {isLoggingIn ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : 'ENTRAR NA DIGITAL'}
+            {isLoggingIn ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : 'ENTRAR NA PELADA'}
           </button>
           
           <div className="text-center">
