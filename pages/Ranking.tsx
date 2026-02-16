@@ -10,7 +10,8 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
   const [prices, setPrices] = useState({ mensalista: 60, avulso: 40 });
 
   const currentPlayer = players.find(p => p.id === currentUser?.uid);
-  const isAdmin = currentPlayer?.role === 'admin' || currentUser?.email === MASTER_ADMIN_EMAIL;
+  const isMasterUser = currentUser?.email === MASTER_ADMIN_EMAIL;
+  const isUserAdmin = currentPlayer?.role === 'admin' || isMasterUser;
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
   useEffect(() => {
@@ -21,13 +22,29 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
   }, []);
 
   const activePlayers = players.filter(p => p.status === 'presente');
+  
+  // REGRA: Goleiros e ADMs (exceto o Master) são isentos
+  const checkIsExempt = (p: Player) => {
+    const isGoleiro = p.position === 'Goleiro';
+    const isAdminExempt = p.role === 'admin' && p.email !== MASTER_ADMIN_EMAIL;
+    return isGoleiro || isAdminExempt;
+  };
+
   const totals = activePlayers.reduce((acc, p) => {
-    if (p.position === 'Goleiro') return acc;
+    if (checkIsExempt(p)) return acc;
     const val = p.playerType === 'mensalista' ? prices.mensalista : prices.avulso;
     const paid = p.playerType === 'mensalista' ? p.monthlyPaid : p.paymentStatus === 'pago';
     if (paid) acc.paid += val; else acc.pending += val;
     return acc;
   }, { paid: 0, pending: 0 });
+
+  const filteredPlayers = activePlayers.filter(p => {
+    if (filter === 'todos') return true;
+    const isExempt = checkIsExempt(p);
+    if (isExempt) return filter === 'pagos'; // Isentos aparecem como "pagos/quitados"
+    const isPaid = p.playerType === 'mensalista' ? p.monthlyPaid : p.paymentStatus === 'pago';
+    return filter === 'pagos' ? isPaid : !isPaid;
+  });
 
   return (
     <div className="flex flex-col animate-fade-in px-6">
@@ -76,9 +93,11 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
         </div>
 
         <div className="space-y-4 pb-48">
-          {activePlayers.map((p) => {
-            const isGoleiro = p.position === 'Goleiro';
-            const isPaid = isGoleiro || (p.playerType === 'mensalista' ? p.monthlyPaid : p.paymentStatus === 'pago');
+          {filteredPlayers.map((p) => {
+            const isExempt = checkIsExempt(p);
+            const isPaid = isExempt || (p.playerType === 'mensalista' ? p.monthlyPaid : p.paymentStatus === 'pago');
+            const isAdm = p.role === 'admin';
+            
             return (
               <div key={p.id} className="bg-white border border-slate-100 rounded-[2.5rem] p-5 flex items-center justify-between shadow-soft-white group hover:border-navy/20 transition-all">
                 <div className="flex items-center gap-5">
@@ -90,10 +109,13 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
                   </div>
                   <div>
                     <h4 className="text-[15px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</h4>
-                    <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{isGoleiro ? 'ISENTO 🧤' : p.playerType.toUpperCase()}</p>
+                    <div className="flex items-center gap-2">
+                       <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{isExempt ? (p.position === 'Goleiro' ? 'GOLEIRO' : 'DIRETORIA') : p.playerType.toUpperCase()}</p>
+                       {isExempt && <span className="text-[9px] font-black text-primary uppercase">ISENTO 💼</span>}
+                    </div>
                   </div>
                 </div>
-                {isAdmin && !isGoleiro && (
+                {isUserAdmin && !isExempt && (
                   <button 
                     onClick={async () => {
                       setLoadingId(p.id);
@@ -106,6 +128,11 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
                   >
                     {loadingId === p.id ? '...' : (isPaid ? 'REVERTER' : 'QUITAR')}
                   </button>
+                )}
+                {isExempt && (
+                   <div className="h-12 px-6 flex items-center text-[10px] font-black text-slate-200 uppercase tracking-widest">
+                      LIBERADO
+                   </div>
                 )}
               </div>
             );

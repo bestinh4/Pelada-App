@@ -135,8 +135,11 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                  </button>
               </div>
               
-              <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto hide-scrollbar">
-                 <div className="grid grid-cols-2 gap-4">
+              <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto hide-scrollbar relative">
+                 {/* MARCA D'ÁGUA NO MODAL */}
+                 <img src="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-[0.05] grayscale pointer-events-none" />
+
+                 <div className="grid grid-cols-2 gap-4 relative z-10">
                     <div className="space-y-2">
                        <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">GOLS</label>
                        <input type="number" value={statsData.goals} onChange={e => setStatsData({...statsData, goals: Number(e.target.value)})} className="w-full h-16 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy text-center text-2xl outline-none focus:border-primary" />
@@ -147,7 +150,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                     </div>
                  </div>
 
-                 <div className="space-y-4">
+                 <div className="space-y-4 relative z-10">
                     <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">MODALIDADE FINANCEIRA</label>
                     <div className="grid grid-cols-2 gap-3">
                        <button onClick={() => setStatsData({...statsData, playerType: 'mensalista'})} className={`h-14 rounded-xl border-2 font-black text-[10px] uppercase tracking-widest transition-all ${statsData.playerType === 'mensalista' ? 'bg-navy border-navy text-white shadow-elite' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>MENSALISTA</button>
@@ -156,12 +159,15 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                  </div>
 
                  {isCurrentUserAdmin && (
-                   <div className="space-y-4">
-                      <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">NÍVEL DE ACESSO (PERMISSÕES)</label>
+                   <div className="space-y-4 relative z-10">
+                      <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">CARGO NA ARENA</label>
                       <div className="grid grid-cols-2 gap-3">
                          <button onClick={() => setStatsData({...statsData, role: 'player'})} className={`h-14 rounded-xl border-2 font-black text-[10px] uppercase tracking-widest transition-all ${statsData.role === 'player' ? 'bg-navy border-navy text-white shadow-elite' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>ATLETA</button>
-                         <button onClick={() => setStatsData({...statsData, role: 'admin'})} className={`h-14 rounded-xl border-2 font-black text-[10px] uppercase tracking-widest transition-all ${statsData.role === 'admin' ? 'bg-primary border-primary text-white shadow-glow-red' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>DIRETORIA (ADM)</button>
+                         <button onClick={() => setStatsData({...statsData, role: 'admin'})} className={`h-14 rounded-xl border-2 font-black text-[10px] uppercase tracking-widest transition-all ${statsData.role === 'admin' ? 'bg-primary border-primary text-white shadow-glow-red' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>DIRETOR (ADM)</button>
                       </div>
+                      {statsData.role === 'admin' && selectedPlayerForStats.email !== MASTER_ADMIN_EMAIL && (
+                        <p className="text-[9px] font-bold text-primary uppercase text-center animate-pulse">Este ADM será isento de pagamentos 💼</p>
+                      )}
                    </div>
                  )}
                  
@@ -177,7 +183,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                       setIsSavingStats(false);
                     }
                   }}
-                  className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-[0.2em] shadow-elite active:scale-95 transition-all mt-4"
+                  className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-[0.2em] shadow-elite active:scale-95 transition-all mt-4 relative z-10"
                  >
                     {isSavingStats ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto"></div> : "CONFIRMAR ALTERAÇÕES"}
                  </button>
@@ -217,7 +223,11 @@ const PlayerSection = ({ title, list, isAdmin, onQuickToggle, onEdit, onDelete, 
             <div>
               <div className="flex items-center gap-2 mb-1.5">
                 <h4 className="text-[16px] font-black text-navy uppercase italic leading-none">{p.name}</h4>
-                {p.role === 'admin' && <span className="bg-primary text-white text-[7px] font-black px-2 py-0.5 rounded-md uppercase animate-pulse shadow-glow-red">ADM</span>}
+                {p.role === 'admin' && (
+                  <span className={`text-white text-[7px] font-black px-2 py-0.5 rounded-md uppercase animate-pulse ${p.email === MASTER_ADMIN_EMAIL ? 'bg-navy shadow-elite' : 'bg-primary shadow-glow-red'}`}>
+                    {p.email === MASTER_ADMIN_EMAIL ? 'MASTER' : 'DIRETORIA'}
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
