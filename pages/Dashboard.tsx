@@ -30,179 +30,146 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const confirmedField = confirmedPlayers.filter(p => p.position !== 'Goleiro');
 
   useEffect(() => {
+    if (!match) {
+      setLineProgress(0);
+      setGkProgress(0);
+      return;
+    }
     const timer = setTimeout(() => {
       setLineProgress(Math.min(100, (confirmedField.length / fieldSlots) * 100));
       setGkProgress(Math.min(100, (confirmedGKs.length / gkSlots) * 100));
     }, 400);
     return () => clearTimeout(timer);
-  }, [confirmedField.length, confirmedGKs.length, fieldSlots, gkSlots]);
+  }, [confirmedField.length, confirmedGKs.length, fieldSlots, gkSlots, match]);
 
   const togglePresence = async () => {
-    if (!user || isUpdating) return;
-    if (!currentPlayer) {
-      onPageChange(Page.Profile);
-      return;
-    }
+    if (!user || isUpdating || !match) return;
     setIsUpdating(true);
     try {
-      const playerRef = doc(db, "players", user.uid);
-      await updateDoc(playerRef, { status: isConfirmed ? 'pendente' : 'presente' });
-    } catch (e) { alert("Conexão falhou."); } finally { setIsUpdating(false); }
+      await updateDoc(doc(db, "players", user.uid), { 
+        status: isConfirmed ? 'pendente' : 'presente' 
+      });
+    } catch (e) { alert("Erro de conexão."); } finally { setIsUpdating(false); }
   };
 
   const handleDeleteMatch = async () => {
     if (!match?.id || isUpdating) return;
-    if (!confirm("Tem certeza que deseja CANCELAR este racha? Esta ação é irreversível e removerá a lista atual.")) return;
+    if (!confirm("Deseja CANCELAR esta pelada definitivamente?")) return;
     setIsUpdating(true);
     try {
       await deleteDoc(doc(db, "matches", match.id));
-      // Reset status de todos os jogadores para pendente ao cancelar
-      const batchUpdates = players.map(p => updateDoc(doc(db, "players", p.id), { status: 'pendente' }));
-      await Promise.all(batchUpdates);
-      alert("Partida cancelada com sucesso!");
-    } catch (e) { alert("Erro ao cancelar partida."); } finally { setIsUpdating(false); }
+      const resets = players.map(p => updateDoc(doc(db, "players", p.id), { status: 'pendente' }));
+      await Promise.all(resets);
+    } catch (e) { alert("Erro ao cancelar."); } finally { setIsUpdating(false); }
   };
-
-  const handleShareMatch = () => {
-    const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
-    let message = `🏆 *OUSADIA & ALEGRIA* 🇭🇷\n🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n🗓️ *DATA:* ${dateStr}\n⏱️ *HORA:* ${match?.time || '--:--'}H\n\n📢 *STATUS:* ${confirmedPlayers.length} CONFIRMADOS ✅\n🔗 *APP:* ${window.location.origin}`;
-    const encoded = encodeURIComponent(message);
-    window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
-  };
-
-  const topScorers = [...players].filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 3);
 
   return (
     <div className="flex flex-col animate-fade-in px-6">
       <header className="py-10 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={mainLogoUrl} className="w-14 h-14 object-contain" alt="O&A" />
-          <div className="space-y-0.5">
-            <h1 className="text-2xl font-black tracking-tighter text-navy uppercase italic leading-none">PRÓXIMO RACHA</h1>
-            <div className="flex items-center gap-2">
-               <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-               <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">
-                 {match ? 'LISTA ABERTA' : 'AGUARDANDO AGENDA'}
-               </p>
-            </div>
-          </div>
+          <img src={mainLogoUrl} className="w-12 h-12 object-contain" />
+          <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA O&A</h1>
         </div>
         {isAdmin && !match && (
-          <button onClick={() => onPageChange(Page.CreateMatch)} className="w-10 h-10 bg-navy text-white rounded-xl flex items-center justify-center shadow-elite active:scale-90 transition-all">
+          <button onClick={() => onPageChange(Page.CreateMatch)} className="w-10 h-10 bg-navy text-white rounded-xl flex items-center justify-center shadow-lg active:scale-90 transition-all">
              <span className="material-symbols-outlined">add</span>
           </button>
         )}
       </header>
 
       <main className="space-y-8">
-        {/* HERO CARD */}
-        <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] pt-12 pb-10 px-8 text-white shadow-elite">
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.12] scale-[1.8] pointer-events-none select-none rotate-[15deg]">
-             <img src={mainLogoUrl} className="w-full h-full object-contain grayscale brightness-[200%]" alt="" />
-          </div>
-          
-          <div className="flex justify-between items-start mb-10 relative z-10">
-            <div className="space-y-2">
-              <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em] block">CROATIA EDITION</span>
-              <h2 className="text-4xl font-condensed tracking-tight uppercase italic leading-none">{match?.location || "ARENA OUSADIA"}</h2>
-            </div>
-            <div className="flex gap-2">
-              {isAdmin && match && (
-                <button onClick={handleDeleteMatch} className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl flex items-center justify-center text-white active:scale-90 transition-all">
-                  <span className="material-symbols-outlined">delete_forever</span>
+        {match ? (
+          <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] p-8 text-white shadow-elite">
+            <div className="flex justify-between items-start mb-8 relative z-10">
+              <div className="space-y-1">
+                <span className="text-[9px] font-black opacity-60 uppercase tracking-widest block">PRÓXIMO JOGO</span>
+                <h2 className="text-3xl font-condensed italic font-black uppercase">{match.location}</h2>
+              </div>
+              {isAdmin && (
+                <button onClick={handleDeleteMatch} className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center border border-white/20 active:scale-90 transition-all">
+                  <span className="material-symbols-outlined text-white">delete</span>
                 </button>
               )}
-              <button onClick={handleShareMatch} className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl flex items-center justify-center active:scale-90 transition-all">
-                <span className="material-symbols-outlined text-white font-light">share</span>
-              </button>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 gap-8 mb-10 relative z-10">
-             <ProgressBlock label="JOGADORES" current={confirmedField.length} max={fieldSlots} progress={lineProgress} isWhite />
-             <ProgressBlock label="GOLEIROS" current={confirmedGKs.length} max={gkSlots} progress={gkProgress} isWhite />
-          </div>
+            <div className="space-y-6 mb-8 relative z-10">
+              <div className="space-y-2">
+                <div className="flex justify-between text-[10px] font-black uppercase opacity-60 italic">
+                  <span>ATLETAS</span>
+                  <span>{confirmedField.length}/{fieldSlots}</span>
+                </div>
+                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-white transition-all duration-1000" style={{ width: `${lineProgress}%` }}></div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[10px] font-black uppercase opacity-60 italic">
+                  <span>GOLEIROS</span>
+                  <span>{confirmedGKs.length}/{gkSlots}</span>
+                </div>
+                <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary-bright transition-all duration-1000" style={{ width: `${gkProgress}%` }}></div>
+                </div>
+              </div>
+            </div>
 
-          <div className="flex items-center gap-12 mb-10 py-6 border-y border-white/10 relative z-10">
-             <div className="space-y-1">
-               <p className="text-[9px] font-black text-white/50 uppercase tracking-widest">AGENDA</p>
-               <p className="text-sm font-extrabold uppercase italic">{match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '---'}</p>
-             </div>
-             <div className="space-y-1">
-               <p className="text-[9px] font-black text-white/50 uppercase tracking-widest">HORA</p>
-               <p className="text-sm font-extrabold uppercase italic">{match?.time || '--:--'}H</p>
-             </div>
-          </div>
+            <div className="flex items-center gap-8 mb-8 pt-6 border-t border-white/10 relative z-10">
+               <div>
+                 <p className="text-[9px] font-black opacity-50 uppercase tracking-widest">DATA</p>
+                 <p className="text-sm font-black italic">{new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase()}</p>
+               </div>
+               <div>
+                 <p className="text-[9px] font-black opacity-50 uppercase tracking-widest">INÍCIO</p>
+                 <p className="text-sm font-black italic">{match.time}H</p>
+               </div>
+            </div>
 
-          {match ? (
             <button 
-              onClick={togglePresence} 
+              onClick={togglePresence}
               disabled={isUpdating}
-              className={`w-full h-18 rounded-[1.75rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl transition-all active:scale-95 relative z-10 flex items-center justify-center gap-3 ${isConfirmed ? 'bg-white text-navy' : 'bg-primary-bright text-white shadow-glow-red'}`}
+              className={`w-full h-16 rounded-[1.5rem] font-black uppercase text-[11px] tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 ${isConfirmed ? 'bg-white text-navy' : 'bg-primary-bright text-white shadow-glow-red'}`}
             >
               {isUpdating ? <div className="w-5 h-5 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : (
-                <>
-                  <span className="material-symbols-outlined">{isConfirmed ? 'check_circle' : 'stadium'}</span>
-                  {isConfirmed ? 'DENTRO DO JOGO' : 'CONFIRMAR PRESENÇA'}
-                </>
+                <>{isConfirmed ? 'CONFIRMADO ✅' : 'EU VOU JOGAR ⚽'}</>
               )}
             </button>
-          ) : (
-            <div className="w-full h-18 bg-white/10 backdrop-blur-sm border border-white/10 rounded-[1.75rem] flex items-center justify-center">
-               <p className="text-[10px] font-black text-white uppercase tracking-widest">AGUARDANDO NOVA DATA</p>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="py-20 flex flex-col items-center justify-center text-center space-y-6 animate-fade-in">
+             <div className="w-20 h-20 bg-slate-50 rounded-[2rem] flex items-center justify-center text-slate-200 border border-slate-100">
+                <span className="material-symbols-outlined text-5xl">event_busy</span>
+             </div>
+             <div>
+                <h3 className="text-xl font-black text-navy uppercase italic tracking-tighter">SEM PELADA AGENDADA</h3>
+                <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mt-2">Aguarde a diretoria definir a nova data.</p>
+             </div>
+          </div>
+        )}
 
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA</h3>
-            <button onClick={() => onPageChange(Page.PlayerList)} className="text-[10px] font-extrabold text-primary uppercase tracking-widest border-b border-primary/30 pb-1">SQUAD COMPLETO</button>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">DESTAQUES</h3>
+            <button onClick={() => onPageChange(Page.PlayerList)} className="text-[10px] font-black text-primary uppercase border-b border-primary/20">VER TUDO</button>
           </div>
           <div className="space-y-3">
-            {topScorers.length > 0 ? topScorers.map((p, i) => (
-              <StatRow key={p.id} player={p} value={p.goals} rank={i+1} label="GOLS" />
-            )) : (
-              <div className="bg-white border border-slate-100 rounded-[2rem] p-10 text-center opacity-40">
-                <p className="text-[9px] font-black uppercase tracking-widest">NENHUM GOL MARCADO</p>
+            {players.filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 3).map((p, i) => (
+              <div key={p.id} className="bg-white border border-slate-100 p-4 rounded-[1.5rem] flex items-center justify-between shadow-soft-white">
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 rounded-full bg-navy text-white flex items-center justify-center font-black italic text-sm">{i+1}</div>
+                  <img src={p.photoUrl} className="w-12 h-12 rounded-xl object-cover" />
+                  <p className="text-sm font-black text-navy uppercase italic">{p.name}</p>
+                </div>
+                <div className="text-right">
+                   <p className="text-2xl font-condensed italic font-black text-primary leading-none">{p.goals}</p>
+                   <p className="text-[8px] font-black text-slate-300 uppercase">GOLS</p>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         </section>
       </main>
     </div>
   );
 };
-
-const ProgressBlock = ({ label, current, max, progress, isWhite }: any) => (
-  <div className="space-y-3">
-    <div className="flex justify-between items-end">
-      <span className={`text-[10px] font-black uppercase italic tracking-widest ${isWhite ? 'text-white/70' : 'text-navy/50'}`}>{label}</span>
-      <span className={`text-2xl font-condensed italic font-black ${isWhite ? 'text-white' : 'text-primary'}`}>{current}/{max}</span>
-    </div>
-    <div className={`h-2.5 rounded-full overflow-hidden ${isWhite ? 'bg-white/20' : 'bg-slate-100'}`}>
-      <div className={`h-full transition-all duration-1000 ease-out rounded-full ${isWhite ? 'bg-white' : 'bg-primary'}`} style={{ width: `${progress}%` }}></div>
-    </div>
-  </div>
-);
-
-const StatRow = ({ player, value, rank, label }: any) => (
-  <div className="bg-white border border-slate-100 rounded-[2rem] p-4 flex items-center justify-between shadow-soft-white hover:shadow-elite hover:-translate-y-1 transition-all animate-slide-up">
-    <div className="flex items-center gap-4">
-      <div className="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center font-condensed font-black italic text-navy border border-slate-100 text-lg">{rank}</div>
-      <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm">
-        <img src={player.photoUrl} className="w-full h-full object-cover" alt="" />
-      </div>
-      <div>
-        <h4 className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{player.name}</h4>
-        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{player.position}</span>
-      </div>
-    </div>
-    <div className="text-right">
-       <span className="text-3xl font-condensed italic font-black text-primary leading-none">{value}</span>
-       <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">{label}</p>
-    </div>
-  </div>
-);
 
 export default Dashboard;
