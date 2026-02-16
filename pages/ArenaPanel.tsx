@@ -3,10 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
 import { MatchSession, Team } from '../domain/types.ts';
 import { db, doc, onSnapshot, updateDoc, setDoc, deleteDoc } from '../services/firebase.ts';
-import { initializeSession } from '../domain/sessionEngine.ts';
 import { registerGoal, finishMatch } from '../domain/matchEngine.ts';
-import { GlassCard } from '../components/ui/GlassCard.tsx';
-import { GlassButton } from '../components/ui/GlassButton.tsx';
 
 interface ArenaPanelProps {
   players: Player[];
@@ -15,7 +12,7 @@ interface ArenaPanelProps {
 
 const MATCH_LIMIT_MINUTES = 10;
 
-const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
+const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, onPageChange }) => {
   const [session, setSession] = useState<MatchSession | null>(null);
   const [timeLeft, setTimeLeft] = useState(MATCH_LIMIT_MINUTES * 60);
   const [timerActive, setTimerActive] = useState(false);
@@ -37,14 +34,6 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
     } else if (timeLeft === 0) { setTimerActive(false); }
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);
-
-  const handleStartNight = async () => {
-    const confirmed = players.filter(p => p.status === 'presente');
-    if (confirmed.length < 7) return alert("Mínimo de 7 jogadores.");
-    const newSession = initializeSession(confirmed as any);
-    await setDoc(doc(db, "sessions", "current"), newSession);
-    setTimeLeft(MATCH_LIMIT_MINUTES * 60);
-  };
 
   const handleGoal = async (side: 'A' | 'B') => {
     if (!session) return;
@@ -84,10 +73,14 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
           </div>
           <div className="space-y-3">
             <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA COMANDO</h2>
-            <p className="text-[10px] font-black text-primary uppercase tracking-[0.5em] leading-relaxed">SESSÃO DE JOGOS</p>
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.5em] leading-relaxed">NENHUMA SESSÃO ATIVA</p>
           </div>
-          <button onClick={handleStartNight} className="w-full h-20 bg-primary text-white rounded-3xl font-black uppercase text-[12px] tracking-widest shadow-glow-red active:scale-95 transition-all">
-            INICIAR PARTIDAS
+          <button 
+            onClick={() => onPageChange(Page.TeamBalancing)} 
+            className="w-full h-20 bg-primary text-white rounded-3xl font-black uppercase text-[12px] tracking-widest shadow-glow-red active:scale-95 transition-all flex items-center justify-center gap-3"
+          >
+            <span className="material-symbols-outlined">shuffle</span>
+            SORTEAR E INICIAR
           </button>
         </div>
       </div>
@@ -104,15 +97,13 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
           <h2 className="text-2xl font-black text-navy uppercase italic tracking-tighter">LIVE CONTROL</h2>
           <div className="flex items-center gap-2">
              <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-glow-red"></span>
-             <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">ONLINE</span>
+             <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">ARENA ONLINE</span>
           </div>
         </div>
-        <button onClick={() => confirm("Fechar a arena?") && deleteDoc(doc(db, "sessions", "current"))} className="text-[10px] font-black text-slate-300 uppercase tracking-widest border-b-2 border-slate-100 pb-1">ENCERRAR</button>
+        <button onClick={() => confirm("Fechar a arena?") && deleteDoc(doc(db, "sessions", "current"))} className="text-[10px] font-black text-slate-300 uppercase tracking-widest border-b-2 border-slate-100 pb-1">FECHAR</button>
       </header>
 
-      {/* PLACAR MESH GRADIENT */}
       <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] pt-12 pb-10 px-8 text-white shadow-elite">
-        {/* LOGO WATERMARK */}
         <div className="absolute inset-0 flex items-center justify-center opacity-[0.1] scale-[1.5] pointer-events-none rotate-[20deg]">
            <img src={mainLogoUrl} className="w-full h-full object-contain grayscale brightness-[200%]" alt="" />
         </div>
@@ -127,7 +118,6 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
                 <span className="material-symbols-outlined text-2xl">shield</span>
              </div>
              <p className="text-[14px] font-black uppercase italic truncate">{teamA?.name || '---'}</p>
-             {teamA?.consecutiveWins > 0 && <span className="text-[9px] font-black bg-white/20 px-2 py-0.5 rounded-full">{teamA.consecutiveWins}W</span>}
            </div>
 
            <div className="flex flex-col items-center">
@@ -143,7 +133,6 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
                 <span className="material-symbols-outlined text-2xl">shield</span>
              </div>
              <p className="text-[14px] font-black uppercase italic truncate">{teamB?.name || '---'}</p>
-             {teamB?.consecutiveWins > 0 && <span className="text-[9px] font-black bg-white/20 px-2 py-0.5 rounded-full">{teamB.consecutiveWins}W</span>}
            </div>
         </div>
 
@@ -165,7 +154,6 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
         </div>
       </div>
 
-      {/* ACTIONS */}
       <div className="grid grid-cols-2 gap-6">
          <div className="space-y-4">
             <button onClick={() => handleGoal('A')} className="w-full h-20 bg-primary text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-glow-red active:scale-95 transition-all">GOL A</button>
@@ -181,11 +169,10 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
          <button onClick={() => handleFinishMatch('draw')} className="w-full h-18 bg-white border border-slate-100 rounded-[2rem] font-black text-navy uppercase text-[11px] tracking-widest shadow-soft-white active:scale-95 transition-all">RESOLVER EMPATE</button>
       )}
 
-      {/* QUEUE */}
       <section className="space-y-6">
         <div className="flex justify-between items-center px-2">
-          <h3 className="text-[11px] font-black text-navy uppercase italic">PRÓXIMOS TIMES</h3>
-          <span className="bg-slate-50 border border-slate-100 px-3 py-1 rounded-full text-[9px] font-black text-navy uppercase">{session.waitingQueue.length} FILA</span>
+          <h3 className="text-[11px] font-black text-navy uppercase italic">NA FILA DE ESPERA</h3>
+          <span className="bg-slate-50 border border-slate-100 px-3 py-1 rounded-full text-[9px] font-black text-navy uppercase">{session.waitingQueue.length} TIMES</span>
         </div>
         <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 px-2 -mx-2">
           {session.waitingQueue.length > 0 ? session.waitingQueue.map((tid, i) => {
@@ -194,12 +181,12 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
               <div key={tid} className={`min-w-[180px] p-8 rounded-[2.5rem] bg-white border flex flex-col items-center gap-5 transition-all shadow-soft-white ${i === 0 ? 'border-primary shadow-elite scale-105' : 'border-slate-100 opacity-60'}`}>
                 <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center font-black italic text-navy border border-slate-100 text-lg">{i+1}</div>
                 <p className="text-[14px] font-black text-navy uppercase italic truncate w-full text-center">{t?.name}</p>
-                {i === 0 && <span className="text-[8px] font-black bg-primary text-white px-3 py-1 rounded-full uppercase animate-bounce">DESAFIANTE</span>}
+                {i === 0 && <span className="text-[8px] font-black bg-primary text-white px-3 py-1 rounded-full uppercase animate-bounce">PRÓXIMO</span>}
               </div>
             );
           }) : (
             <div className="w-full py-16 text-center bg-white border border-dashed border-slate-100 rounded-[2.5rem]">
-               <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest">FILA VAZIA</p>
+               <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest">SEM TIMES AGUARDANDO</p>
             </div>
           )}
         </div>

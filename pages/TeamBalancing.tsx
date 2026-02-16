@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
+import { db, doc, setDoc } from '../services/firebase.ts';
 
 interface TeamBalancingProps {
   players: Player[];
@@ -16,6 +17,7 @@ interface TeamData {
 const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) => {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSavingArena, setIsSavingArena] = useState(false);
   const [teamsResult, setTeamsResult] = useState<TeamData[] | null>(null);
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
@@ -31,12 +33,10 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
     
     setIsGenerating(true);
     
-    // Simula um pequeno delay para o "clima" de sorteio
     setTimeout(() => {
       const gks = selectedPlayers.filter(p => p.position === 'Goleiro');
       const field = selectedPlayers.filter(p => p.position !== 'Goleiro');
 
-      // Embaralha ambos
       const shuffledGks = [...gks].sort(() => Math.random() - 0.5);
       const shuffledField = [...field].sort(() => Math.random() - 0.5);
 
@@ -62,7 +62,45 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
 
       setTeamsResult(teams);
       setIsGenerating(false);
-    }, 800);
+    }, 1200);
+  };
+
+  const handlePushToArena = async () => {
+    if (!teamsResult) return;
+    setIsSavingArena(true);
+    try {
+      const arenaTeams = teamsResult.map((t, idx) => ({
+        id: `team_${idx}_${Date.now()}`,
+        name: t.name,
+        playerIds: t.goalkeeperId ? [t.goalkeeperId, ...t.fieldIds] : t.fieldIds,
+        hasGoalkeeper: !!t.goalkeeperId,
+        consecutiveWins: 0,
+        totalWins: 0,
+        isIncomplete: (t.goalkeeperId ? 1 : 0) + t.fieldIds.length < 7
+      }));
+
+      const newSession = {
+        id: "current",
+        status: "active",
+        teams: arenaTeams,
+        waitingQueue: arenaTeams.slice(2).map(t => t.id),
+        activeMatch: {
+          teamAId: arenaTeams[0]?.id || null,
+          teamBId: arenaTeams[1]?.id || null,
+          scoreA: 0,
+          scoreB: 0,
+          startedAt: Date.now()
+        },
+        createdAt: Date.now()
+      };
+
+      await setDoc(doc(db, "sessions", "current"), newSession);
+      onPageChange(Page.ArenaPanel);
+    } catch (e) {
+      alert("Erro ao enviar para Arena.");
+    } finally {
+      setIsSavingArena(false);
+    }
   };
 
   return (
@@ -72,7 +110,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
           <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-sm">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO RÁPIDO</h2>
+          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO ELITE</h2>
         </div>
         <img src={mainLogoUrl} className="w-12 h-12 animate-float" />
       </header>
@@ -80,14 +118,11 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
       <main className="pb-40">
         {!teamsResult ? (
           <div className="space-y-8">
-            <div className="mesh-gradient-champions rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-elite">
-               {/* WATERMARK BACKGROUND */}
+            <div className="mesh-gradient-champions rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-elite min-h-[220px] flex flex-col justify-center">
                <img src={mainLogoUrl} className="absolute -right-10 -bottom-10 w-48 h-48 opacity-10 rotate-12 grayscale brightness-200" />
-               
                <div className="relative z-10">
                 <p className="text-[10px] font-black opacity-60 uppercase tracking-widest mb-2">GERENCIADOR DE TIMES</p>
-                <h3 className="text-4xl font-condensed italic font-black mb-10">{selectedIds.size} CONVOCADOS</h3>
-                
+                <h3 className="text-4xl font-condensed italic font-black mb-10">{selectedIds.size} ATLETAS PRONTOS</h3>
                 <button 
                   onClick={handleGenerateNormal}
                   disabled={isGenerating || selectedIds.size < 4}
@@ -96,7 +131,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                   {isGenerating ? <div className="w-6 h-6 border-3 border-navy/20 border-t-navy rounded-full animate-spin"></div> : (
                     <>
                       <span className="material-symbols-outlined">shuffle</span>
-                      REALIZAR SORTEIO
+                      GERAR ESQUADRÕES
                     </>
                   )}
                 </button>
@@ -104,7 +139,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">LISTA DE PRESENÇA</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">QUEM VAI PRO SORTEIO?</h4>
               <div className="grid grid-cols-1 gap-3">
                 {confirmedPlayers.map(p => (
                   <div 
@@ -134,8 +169,8 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
         ) : (
           <div className="space-y-8 animate-slide-up">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">TIMES DEFINIDOS</h3>
-              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER SORTEIO</button>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">RESULTADO DO CONFRONTO</h3>
+              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER</button>
             </div>
 
             <div className="space-y-6">
@@ -143,7 +178,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                 <div key={idx} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-soft-white overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 0.1}s` }}>
                   <div className={`px-8 py-5 flex justify-between items-center ${idx % 2 === 0 ? 'bg-navy' : 'bg-primary'} text-white`}>
                     <h4 className="font-black uppercase italic tracking-tighter">{team.name}</h4>
-                    <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">O&A ELITE</span>
+                    <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">O&A SQUAD</span>
                   </div>
                   <div className="p-8 space-y-6">
                     {team.goalkeeperId && (
@@ -161,21 +196,36 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
               ))}
             </div>
 
-            <button 
-              onClick={() => {
-                let msg = `⚽ *ESQUADRÕES O&A* 🇭🇷\n\n`;
-                teamsResult.forEach(t => {
-                  const gk = players.find(p => p.id === t.goalkeeperId);
-                  const flds = t.fieldIds.map(fid => players.find(p => p.id === fid)?.name).filter(Boolean);
-                  msg += `*${t.name.toUpperCase()}*\n🧤 GK: ${gk?.name || '---'}\n🏃: ${flds.join(', ')}\n\n`;
-                });
-                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-              }}
-              className="w-full h-20 bg-success text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4"
-            >
-              <span className="material-symbols-outlined">share</span>
-              ENVIAR ESCALAÇÃO
-            </button>
+            <div className="space-y-4">
+              <button 
+                onClick={handlePushToArena}
+                disabled={isSavingArena}
+                className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-elite active:scale-95 transition-all flex items-center justify-center gap-4"
+              >
+                {isSavingArena ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : (
+                  <>
+                    <span className="material-symbols-outlined">stadium</span>
+                    INICIAR ARENA COM ESTES TIMES
+                  </>
+                )}
+              </button>
+              
+              <button 
+                onClick={() => {
+                  let msg = `⚽ *ESQUADRÕES O&A* 🇭🇷\n\n`;
+                  teamsResult.forEach(t => {
+                    const gk = players.find(p => p.id === t.goalkeeperId);
+                    const flds = t.fieldIds.map(fid => players.find(p => p.id === fid)?.name).filter(Boolean);
+                    msg += `*${t.name.toUpperCase()}*\n🧤 GK: ${gk?.name || '---'}\n🏃: ${flds.join(', ')}\n\n`;
+                  });
+                  window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+                }}
+                className="w-full h-16 bg-success text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+              >
+                <span className="material-symbols-outlined text-lg">share</span>
+                COMPARTILHAR NO WHATSAPP
+              </button>
+            </div>
           </div>
         )}
       </main>
