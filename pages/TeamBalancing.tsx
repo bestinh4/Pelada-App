@@ -33,10 +33,12 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
     
     setIsGenerating(true);
     
+    // Simulação de "embaralhamento" visual
     setTimeout(() => {
       const gks = selectedPlayers.filter(p => p.position === 'Goleiro');
       const field = selectedPlayers.filter(p => p.position !== 'Goleiro');
 
+      // Fisher-Yates shuffle
       const shuffledGks = [...gks].sort(() => Math.random() - 0.5);
       const shuffledField = [...field].sort(() => Math.random() - 0.5);
 
@@ -62,7 +64,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
 
       setTeamsResult(teams);
       setIsGenerating(false);
-    }, 1200);
+    }, 1500);
   };
 
   const handlePushToArena = async () => {
@@ -118,11 +120,11 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
       <main className="pb-40">
         {!teamsResult ? (
           <div className="space-y-8">
-            <div className="mesh-gradient-champions rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-elite min-h-[220px] flex flex-col justify-center">
-               <img src={mainLogoUrl} className="absolute -right-10 -bottom-10 w-48 h-48 opacity-10 rotate-12 grayscale brightness-200" />
+            <div className="mesh-gradient-champions rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-elite min-h-[240px] flex flex-col justify-center">
+               <img src={mainLogoUrl} className="absolute -right-10 -bottom-10 w-48 h-48 opacity-[0.15] rotate-12 grayscale brightness-[200%] animate-float" />
                <div className="relative z-10">
-                <p className="text-[10px] font-black opacity-60 uppercase tracking-widest mb-2">GERENCIADOR DE TIMES</p>
-                <h3 className="text-4xl font-condensed italic font-black mb-10">{selectedIds.size} ATLETAS PRONTOS</h3>
+                <p className="text-[10px] font-black opacity-60 uppercase tracking-widest mb-2">GERENCIADOR DE CONFRONTOS</p>
+                <h3 className="text-4xl font-condensed italic font-black mb-10">{selectedIds.size} ATLETAS NA FILA</h3>
                 <button 
                   onClick={handleGenerateNormal}
                   disabled={isGenerating || selectedIds.size < 4}
@@ -131,7 +133,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                   {isGenerating ? <div className="w-6 h-6 border-3 border-navy/20 border-t-navy rounded-full animate-spin"></div> : (
                     <>
                       <span className="material-symbols-outlined">shuffle</span>
-                      GERAR ESQUADRÕES
+                      REALIZAR SORTEIO
                     </>
                   )}
                 </button>
@@ -139,7 +141,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">QUEM VAI PRO SORTEIO?</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">QUEM PARTICIPA?</h4>
               <div className="grid grid-cols-1 gap-3">
                 {confirmedPlayers.map(p => (
                   <div 
@@ -149,7 +151,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                       if (next.has(p.id)) next.delete(p.id); else next.add(p.id);
                       setSelectedIds(next);
                     }}
-                    className={`bg-white border p-4 rounded-[1.75rem] flex items-center justify-between cursor-pointer transition-all ${selectedIds.has(p.id) ? 'border-primary shadow-soft-white' : 'border-slate-100 opacity-40'}`}
+                    className={`bg-white border p-4 rounded-[1.75rem] flex items-center justify-between cursor-pointer transition-all ${selectedIds.has(p.id) ? 'border-primary shadow-soft-white' : 'border-slate-100 opacity-40 scale-95'}`}
                   >
                     <div className="flex items-center gap-4">
                       <img src={p.photoUrl} className="w-12 h-12 rounded-2xl object-cover" />
@@ -169,16 +171,16 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
         ) : (
           <div className="space-y-8 animate-slide-up">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">RESULTADO DO CONFRONTO</h3>
-              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER</button>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">TIMES SORTEADOS</h3>
+              <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER SORTEIO</button>
             </div>
 
             <div className="space-y-6">
               {teamsResult.map((team, idx) => (
-                <div key={idx} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-soft-white overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 0.1}s` }}>
+                <div key={idx} className="bg-white rounded-[2.5rem] border border-slate-100 shadow-soft-white overflow-hidden animate-slide-up" style={{ animationDelay: `${idx * 0.15}s` }}>
                   <div className={`px-8 py-5 flex justify-between items-center ${idx % 2 === 0 ? 'bg-navy' : 'bg-primary'} text-white`}>
                     <h4 className="font-black uppercase italic tracking-tighter">{team.name}</h4>
-                    <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">O&A SQUAD</span>
+                    <span className="text-[9px] font-black opacity-50 uppercase tracking-widest">SQUAD {idx+1}</span>
                   </div>
                   <div className="p-8 space-y-6">
                     {team.goalkeeperId && (
@@ -196,7 +198,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
               ))}
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
               <button 
                 onClick={handlePushToArena}
                 disabled={isSavingArena}
@@ -205,7 +207,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                 {isSavingArena ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : (
                   <>
                     <span className="material-symbols-outlined">stadium</span>
-                    INICIAR ARENA COM ESTES TIMES
+                    INICIAR PARTIDAS COM ESTES TIMES
                   </>
                 )}
               </button>
@@ -223,7 +225,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                 className="w-full h-16 bg-success text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
               >
                 <span className="material-symbols-outlined text-lg">share</span>
-                COMPARTILHAR NO WHATSAPP
+                COMPARTILHAR NO GRUPO
               </button>
             </div>
           </div>
@@ -241,7 +243,7 @@ const PlayerRow = ({ pid, players, isGK }: any) => {
       <img src={p.photoUrl} className={`w-12 h-12 rounded-2xl object-cover border-2 ${isGK ? 'border-primary' : 'border-slate-50'}`} />
       <div>
         <p className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</p>
-        <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${isGK ? 'bg-primary text-white' : 'bg-slate-50 text-slate-300'}`}>
+        <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${isGK ? 'bg-primary text-white' : 'bg-slate-50 text-slate-400'}`}>
           {isGK ? 'GOLEIRO 🧤' : p.position}
         </span>
       </div>

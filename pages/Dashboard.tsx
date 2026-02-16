@@ -89,7 +89,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
       <main className="space-y-8">
         {match ? (
-          <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] p-8 text-white shadow-elite min-h-[380px] flex flex-col justify-between">
+          <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] p-8 text-white shadow-elite min-h-[440px] flex flex-col justify-between">
             {/* LOGO FLUTUANTE DE FUNDO (MARCA D'ÁGUA) */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 opacity-[0.12] pointer-events-none animate-float select-none">
                 <img src={mainLogoUrl} className="w-full h-full object-contain brightness-[200%] grayscale" />
@@ -142,15 +142,27 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                  </div>
               </div>
 
-              <button 
-                onClick={togglePresence}
-                disabled={isUpdating}
-                className={`w-full h-18 rounded-[1.75rem] font-black uppercase text-[11px] tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 ${isConfirmed ? 'bg-white text-navy' : 'bg-primary-bright text-white shadow-glow-red'}`}
-              >
-                {isUpdating ? <div className="w-5 h-5 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : (
-                  <>{isConfirmed ? 'CONFIRMADO ✅' : 'MARCAR PRESENÇA ⚽'}</>
+              <div className="flex flex-col gap-4">
+                <button 
+                  onClick={togglePresence}
+                  disabled={isUpdating}
+                  className={`w-full h-18 rounded-[1.75rem] font-black uppercase text-[11px] tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 ${isConfirmed ? 'bg-white text-navy' : 'bg-primary-bright text-white shadow-glow-red'}`}
+                >
+                  {isUpdating ? <div className="w-5 h-5 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : (
+                    <>{isConfirmed ? 'CONFIRMADO ✅' : 'MARCAR PRESENÇA ⚽'}</>
+                  )}
+                </button>
+
+                {isAdmin && confirmedPlayers.length >= 4 && (
+                  <button 
+                    onClick={() => onPageChange(Page.TeamBalancing)}
+                    className="w-full h-16 bg-navy text-white rounded-[1.75rem] font-black uppercase text-[10px] tracking-widest border border-white/20 active:scale-95 transition-all flex items-center justify-center gap-3 shadow-xl"
+                  >
+                    <span className="material-symbols-outlined">shuffle</span>
+                    SORTEAR TIMES AGORA
+                  </button>
                 )}
-              </button>
+              </div>
             </div>
           </div>
         ) : (

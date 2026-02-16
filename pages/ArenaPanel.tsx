@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
 import { MatchSession, Team } from '../domain/types.ts';
-import { db, doc, onSnapshot, updateDoc, setDoc, deleteDoc } from '../services/firebase.ts';
+import { db, doc, onSnapshot, updateDoc, deleteDoc } from '../services/firebase.ts';
 import { registerGoal, finishMatch } from '../domain/matchEngine.ts';
 
 interface ArenaPanelProps {
@@ -67,20 +67,24 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, onPageChange }) => {
   if (!session) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] p-8 animate-fade-in">
-        <div className="bg-white border border-slate-100 rounded-[2.5rem] p-12 text-center flex flex-col items-center gap-10 shadow-elite max-w-sm w-full">
+        <div className="bg-white border border-slate-100 rounded-[3rem] p-12 text-center flex flex-col items-center gap-10 shadow-elite max-w-sm w-full relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
           <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center border border-slate-100 animate-float">
              <span className="material-symbols-outlined text-6xl text-navy font-light">stadium</span>
           </div>
           <div className="space-y-3">
-            <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA COMANDO</h2>
-            <p className="text-[10px] font-black text-primary uppercase tracking-[0.5em] leading-relaxed">NENHUMA SESSÃO ATIVA</p>
+            <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA VAZIA</h2>
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.5em] leading-relaxed">TIMES NÃO SORTEADOS</p>
           </div>
+          <p className="text-xs text-slate-400 font-bold leading-relaxed px-4">
+            Para iniciar o cronômetro e o placar, você precisa primeiro realizar o sorteio dos jogadores confirmados.
+          </p>
           <button 
             onClick={() => onPageChange(Page.TeamBalancing)} 
-            className="w-full h-20 bg-primary text-white rounded-3xl font-black uppercase text-[12px] tracking-widest shadow-glow-red active:scale-95 transition-all flex items-center justify-center gap-3"
+            className="w-full h-18 bg-primary text-white rounded-2xl font-black uppercase text-[12px] tracking-widest shadow-glow-red active:scale-95 transition-all flex items-center justify-center gap-3"
           >
             <span className="material-symbols-outlined">shuffle</span>
-            SORTEAR E INICIAR
+            IR PARA SORTEIO
           </button>
         </div>
       </div>
@@ -104,7 +108,7 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, onPageChange }) => {
       </header>
 
       <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] pt-12 pb-10 px-8 text-white shadow-elite">
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.1] scale-[1.5] pointer-events-none rotate-[20deg]">
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.12] scale-[1.5] pointer-events-none rotate-[20deg] animate-float">
            <img src={mainLogoUrl} className="w-full h-full object-contain grayscale brightness-[200%]" alt="" />
         </div>
 
