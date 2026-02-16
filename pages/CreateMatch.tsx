@@ -18,6 +18,8 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ onPageChange }) => {
     gkSlots: 4
   });
 
+  const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
+
   const handleCreate = async () => {
     if (!matchData.location.trim()) return alert("Insira o local.");
     setIsSaving(true);
@@ -28,63 +30,54 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ onPageChange }) => {
         confirmedPlayers: 0,
         createdAt: new Date().toISOString()
       });
-      alert("Convocação disparada!");
       onPageChange(Page.Dashboard);
-    } catch (err) {
-      alert("Falha ao criar partida.");
-    } finally {
-      setIsSaving(false);
-    }
+    } catch (err) { alert("Falha ao criar."); }
+    finally { setIsSaving(false); }
   };
 
   return (
     <div className="flex flex-col animate-fade-in px-6">
-      <header className="py-10 flex items-center gap-4">
-        <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-sm">
-          <span className="material-symbols-outlined">arrow_back</span>
+      <header className="py-12 flex items-center gap-6">
+        <button onClick={() => onPageChange(Page.Dashboard)} className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-soft-white">
+          <span className="material-symbols-outlined text-2xl">arrow_back</span>
         </button>
-        <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter">AGENDAR ARENA</h2>
+        <div className="space-y-1">
+          <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">NOVO RACHA</h2>
+          <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">ABRIR CONVOCAÇÃO</p>
+        </div>
       </header>
 
-      <main className="space-y-8 pb-40">
-        <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-elite space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">LOCAL DA PELADA</label>
-            <input 
-              type="text" 
-              placeholder="Ex: Arena Ousadia" 
-              value={matchData.location}
-              onChange={e => setMatchData({...matchData, location: e.target.value})}
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-navy outline-none focus:border-primary"
-            />
+      <main className="space-y-10 pb-48">
+        <div className="bg-white rounded-[3.5rem] p-10 border border-slate-100 shadow-elite space-y-8 relative overflow-hidden">
+          <div className="absolute -top-10 -right-10 w-48 h-48 opacity-[0.08] pointer-events-none rotate-12">
+              <img src={mainLogoUrl} className="w-full h-full grayscale" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-               <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">DATA</label>
-               <input type="date" value={matchData.date} onChange={e => setMatchData({...matchData, date: e.target.value})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-4 font-bold text-navy outline-none" />
+          <div className="space-y-4 relative z-10">
+            <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">LOCAL DO ESTÁDIO</label>
+            <input type="text" placeholder="Ex: Arena Ousadia" value={matchData.location} onChange={e => setMatchData({...matchData, location: e.target.value})} className="w-full h-18 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-navy text-lg focus:border-navy outline-none" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 relative z-10">
+            <div className="space-y-4">
+               <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">DATA DO JOGO</label>
+               <input type="date" value={matchData.date} onChange={e => setMatchData({...matchData, date: e.target.value})} className="w-full h-18 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-navy outline-none" />
             </div>
-            <div className="space-y-2">
-               <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">HORA</label>
-               <input type="time" value={matchData.time} onChange={e => setMatchData({...matchData, time: e.target.value})} className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-4 font-bold text-navy outline-none" />
+            <div className="space-y-4">
+               <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">HORÁRIO</label>
+               <input type="time" value={matchData.time} onChange={e => setMatchData({...matchData, time: e.target.value})} className="w-full h-18 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-black text-navy outline-none" />
             </div>
           </div>
 
           <button 
             onClick={handleCreate}
             disabled={isSaving}
-            className="w-full h-18 bg-primary text-white rounded-[1.75rem] font-black uppercase text-[11px] tracking-widest shadow-glow-red active:scale-95 transition-all flex items-center justify-center gap-3"
+            className="w-full h-22 bg-navy text-white rounded-[2.5rem] font-black uppercase text-[12px] tracking-widest shadow-elite active:scale-95 transition-all flex items-center justify-center gap-4 mt-6"
           >
-            {isSaving ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : "ABRIR LISTA"}
+            {isSaving ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : (
+              <><span className="material-symbols-outlined">send</span> DISPARAR CONVOCAÇÃO</>
+            )}
           </button>
-        </div>
-        
-        <div className="mesh-gradient-champions rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl group cursor-pointer" onClick={() => onPageChange(Page.TeamBalancing)}>
-           <div className="relative z-10 space-y-4">
-              <h3 className="text-2xl font-condensed italic uppercase leading-tight">DIVISÃO DE TIMES IA</h3>
-              <p className="text-[9px] font-black uppercase tracking-widest opacity-60">EQUILIBRE OS CONVOCADOS USANDO IA</p>
-           </div>
-           <span className="material-symbols-outlined absolute right-8 top-1/2 -translate-y-1/2 text-4xl opacity-20">bolt</span>
         </div>
       </main>
     </div>

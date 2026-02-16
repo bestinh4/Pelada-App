@@ -108,7 +108,7 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, onPageChange }) => {
       </header>
 
       <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] pt-12 pb-10 px-8 text-white shadow-elite">
-        <div className="absolute inset-0 flex items-center justify-center opacity-[0.12] scale-[1.5] pointer-events-none rotate-[20deg] animate-float">
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.16] scale-[1.5] pointer-events-none rotate-[20deg] animate-float">
            <img src={mainLogoUrl} className="w-full h-full object-contain grayscale brightness-[200%]" alt="" />
         </div>
 

@@ -119,7 +119,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
         {!teamsResult ? (
           <div className="space-y-8">
             <div className="bg-white border border-slate-100 rounded-[3rem] p-10 text-navy relative overflow-hidden shadow-elite min-h-[260px] flex flex-col justify-center">
-               <img src={mainLogoUrl} className="absolute -right-10 -bottom-10 w-48 h-48 opacity-[0.05] rotate-12 grayscale animate-float" />
+               <img src={mainLogoUrl} className="absolute -right-10 -bottom-10 w-48 h-48 opacity-[0.08] rotate-12 grayscale animate-float" />
                <div className="relative z-10">
                 <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">BALANÇO DE ESQUADRÕES</p>
                 <h3 className="text-4xl font-condensed italic font-black mb-10 tracking-tight">{selectedIds.size} ATLETAS CONFIRMADOS</h3>
