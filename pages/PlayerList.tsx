@@ -70,7 +70,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     }
 
     message += `\n-------------------------------------------\n`;
-    message += `⚽ *Acesse o App:* https://ousadia.vercel.app\n`;
+    message += `⚽ *Acesse o App:* https://pelada-app.vercel.app\n`;
     message += `_Gestao Ousadia & Alegria_`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
