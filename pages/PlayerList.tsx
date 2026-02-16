@@ -28,12 +28,51 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const isCurrentUserAdmin = adminUser?.role === 'admin' || currentUser?.email === MASTER_ADMIN_EMAIL;
 
   const filtered = players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
-  const confirmed = filtered.filter(p => p.status === 'presente');
-  const pending = filtered.filter(p => p.status !== 'presente');
+  
+  // Lógica de separação para a mensagem
+  const allPresent = players.filter(p => p.status === 'presente');
+  const maxSlots = (match?.fieldSlots || 30) + (match?.gkSlots || 4);
+  
+  const confirmed = allPresent.slice(0, maxSlots);
+  const waitingList = allPresent.length > maxSlots ? allPresent.slice(maxSlots) : [];
+  const outPlayers = players.filter(p => p.status !== 'presente');
 
   const handleShareList = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
-    let message = `🏆 *ELENCO O&A* 🇭🇷\n🗓️ *DATA:* ${dateStr}\n\n📢 *STATUS:* ${confirmed.length} CONFIRMADOS ✅`;
+    const location = match?.location || 'A DEFINIR';
+    const time = match?.time || '--:--';
+
+    let message = `🏆 *ARENA OUSADIA & ALEGRIA* 🇭🇷\n`;
+    message += `_Convocação Oficial para o Racha_\n`;
+    message += `-------------------------------------------\n\n`;
+    message += `📍 *LOCAL:* ${location.toUpperCase()}\n`;
+    message += `📅 *DATA:* ${dateStr.toUpperCase()}\n`;
+    message += `⏰ *HORÁRIO:* ${time}H\n\n`;
+
+    message += `✅ *CONFIRMADOS (${confirmed.length}/${maxSlots})*\n`;
+    confirmed.forEach((p, i) => {
+      const posIcon = p.position === 'Goleiro' ? '🧤' : '🏃';
+      message += `${i + 1}. ${p.name.toUpperCase()} (${posIcon} ${p.position})\n`;
+    });
+
+    if (waitingList.length > 0) {
+      message += `\n⏳ *LISTA DE ESPERA*\n`;
+      waitingList.forEach((p, i) => {
+        message += `${i + 1}. ${p.name.toUpperCase()} (AGUARDANDO VAGA)\n`;
+      });
+    }
+
+    if (outPlayers.length > 0) {
+      message += `\n❌ *NÃO DISPONÍVEIS / FORA*\n`;
+      outPlayers.forEach((p) => {
+        message += `- ${p.name.toUpperCase()}\n`;
+      });
+    }
+
+    message += `\n-------------------------------------------\n`;
+    message += `⚽ *Acesse o App:* https://ousadia.vercel.app\n`;
+    message += `_Gestão Croatia Elite Series_`;
+
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 
@@ -46,15 +85,15 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
              <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">CONVOCAÇÃO ATUAL</p>
            </div>
            <div className="flex gap-4">
-             <button onClick={handleShareList} className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-soft-white active:scale-90 transition-all text-navy">
-                <span className="material-symbols-outlined">share</span>
+             <button onClick={handleShareList} className="w-14 h-14 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-soft-white active:scale-90 transition-all text-navy group">
+                <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">share</span>
              </button>
            </div>
         </div>
         <div className="relative">
           <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">search</span>
           <input 
-            type="text" placeholder="Buscar atleta..." value={searchQuery} 
+            type="text" placeholder="Buscar atleta no elenco..." value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-16 bg-white border border-slate-100 rounded-2xl pl-14 pr-6 text-[15px] font-bold text-navy outline-none shadow-soft-white focus:border-navy transition-all" 
           />
@@ -64,7 +103,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       <main className="space-y-14 pb-48">
         <PlayerSection 
           title="CONFIRMADOS" 
-          list={confirmed} 
+          list={allPresent.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
           isAdmin={isCurrentUserAdmin} 
           onQuickToggle={async (p: Player) => {
             setProcessingId(p.id);
@@ -91,8 +130,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         />
 
         <PlayerSection 
-          title="EM ESPERA" 
-          list={pending} 
+          title="FORA / PENDENTES" 
+          list={outPlayers.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
           isAdmin={isCurrentUserAdmin} 
           onQuickToggle={async (p: Player) => {
             setProcessingId(p.id);
@@ -110,7 +149,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
             });
           }} 
           onDelete={async (p: Player) => {
-            if (confirm(`Remover ${p.name.toUpperCase()}?`)) {
+            if (confirm(`Remover ${p.name.toUpperCase()} do elenco?`)) {
               await deleteDoc(doc(db, "players", p.id));
             }
           }}
@@ -136,8 +175,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
               </div>
               
               <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto hide-scrollbar relative">
-                 {/* MARCA D'ÁGUA NO MODAL */}
-                 <img src="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-[0.05] grayscale pointer-events-none" />
+                 <img src="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-[0.08] grayscale pointer-events-none" />
 
                  <div className="grid grid-cols-2 gap-4 relative z-10">
                     <div className="space-y-2">
@@ -205,7 +243,7 @@ const PlayerSection = ({ title, list, isAdmin, onQuickToggle, onEdit, onDelete, 
        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{list.length} ATLETAS</span>
     </div>
     <div className="space-y-4">
-      {list.map((p: Player) => (
+      {list.length > 0 ? list.map((p: Player) => (
         <div key={p.id} className="bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-soft-white flex items-center justify-between group transition-all hover:border-navy/20">
           <div className="flex items-center gap-5">
             <div className="relative">
@@ -247,7 +285,11 @@ const PlayerSection = ({ title, list, isAdmin, onQuickToggle, onEdit, onDelete, 
             </div>
           )}
         </div>
-      ))}
+      )) : (
+        <div className="py-10 text-center bg-slate-50/50 border border-dashed border-slate-100 rounded-[2rem]">
+           <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Nenhum atleta nesta categoria</p>
+        </div>
+      )}
     </div>
   </section>
 );
