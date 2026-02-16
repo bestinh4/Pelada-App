@@ -47,7 +47,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     try {
       const playerRef = doc(db, "players", user.uid);
       await updateDoc(playerRef, { status: isConfirmed ? 'pendente' : 'presente' });
-    } catch (e) { alert("Erro de conexão."); } finally { setIsUpdating(false); }
+    } catch (e) { alert("Conexão falhou."); } finally { setIsUpdating(false); }
   };
 
   const handleShareMatch = () => {
@@ -75,13 +75,12 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       </header>
 
       <main className="space-y-8">
-        {/* HERO MESH GRADIENT CARD */}
+        {/* HERO MESH GRADIENT CARD COM LOGO WATERMARK */}
         <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] pt-12 pb-10 px-8 text-white shadow-elite">
-          {/* STARBALL SVG WATERMARK */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-[0.15] scale-[1.5] pointer-events-none select-none">
-            <svg viewBox="0 0 100 100" className="w-full h-full text-white fill-current">
-              <path d="M50 0L61.2 35.5L97.6 35.5L68.1 57.4L79.3 92.9L50 71L20.7 92.9L31.9 57.4L2.4 35.5L38.8 35.5L50 0Z" />
-            </svg>
+          
+          {/* LOGO WATERMARK - Substituindo a Estrela */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-[0.12] scale-[1.8] pointer-events-none select-none rotate-[15deg]">
+             <img src={mainLogoUrl} className="w-full h-full object-contain grayscale brightness-[200%]" alt="" />
           </div>
           
           <div className="flex justify-between items-start mb-10 relative z-10">
