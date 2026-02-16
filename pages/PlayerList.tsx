@@ -122,7 +122,14 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           isAdmin={isCurrentUserAdmin} 
           onEdit={(p) => {
             setSelectedPlayerForStats(p);
-            setStatsData({ goals: p.goals, assists: p.assists, concededGoals: p.concededGoals, role: p.role as any, playerType: p.playerType, status: p.status });
+            setStatsData({ 
+              goals: p.goals || 0, 
+              assists: p.assists || 0, 
+              concededGoals: p.concededGoals || 0, 
+              role: (p.role as 'admin' | 'player') || 'player', 
+              playerType: p.playerType || 'avulso', 
+              status: p.status || 'pendente' 
+            });
           }} 
           onDelete={handleDeletePlayer} 
           isDeletingId={isDeletingId}
@@ -135,7 +142,14 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           isAdmin={isCurrentUserAdmin} 
           onEdit={(p) => {
             setSelectedPlayerForStats(p);
-            setStatsData({ goals: p.goals, assists: p.assists, concededGoals: p.concededGoals, role: p.role as any, playerType: p.playerType, status: p.status });
+            setStatsData({ 
+              goals: p.goals || 0, 
+              assists: p.assists || 0, 
+              concededGoals: p.concededGoals || 0, 
+              role: (p.role as 'admin' | 'player') || 'player', 
+              playerType: p.playerType || 'avulso', 
+              status: p.status || 'pendente' 
+            });
           }} 
           onDelete={handleDeletePlayer} 
           isDeletingId={isDeletingId}
@@ -145,8 +159,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
 
       {/* MODAL EDIT - Neo Champions Style */}
       {selectedPlayerForStats && (
-        <div className="fixed inset-0 bg-navy/80 backdrop-blur-md z-[110] flex items-center justify-center p-6">
-           <div className="w-full max-w-[360px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-slide-up">
+        <div className="fixed inset-0 bg-navy/80 backdrop-blur-md z-[110] flex items-center justify-center p-6 overflow-y-auto">
+           <div className="w-full max-w-[360px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-slide-up my-auto">
               <div className="p-8 bg-navy text-white flex items-center justify-between">
                  <div className="flex items-center gap-4">
                     <img src={selectedPlayerForStats.photoUrl} className="w-12 h-12 rounded-2xl object-cover border-2 border-white/20" alt="" />
@@ -154,27 +168,43 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                  </div>
                  <button onClick={() => setSelectedPlayerForStats(null)} className="material-symbols-outlined text-white/40">close</button>
               </div>
-              <div className="p-10 space-y-8">
+              <div className="p-10 space-y-6">
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                        <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest block px-1">GOLS</label>
-                       <input type="number" value={statsData.goals} onChange={e => setStatsData({...statsData, goals: Number(e.target.value)})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy text-center text-xl" />
+                       <input type="number" value={statsData.goals} onChange={e => setStatsData({...statsData, goals: Number(e.target.value)})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy text-center text-xl focus:border-primary outline-none" />
                     </div>
                     <div className="space-y-2">
                        <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest block px-1">ASSISTS</label>
-                       <input type="number" value={statsData.assists} onChange={e => setStatsData({...statsData, assists: Number(e.target.value)})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy text-center text-xl" />
+                       <input type="number" value={statsData.assists} onChange={e => setStatsData({...statsData, assists: Number(e.target.value)})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy text-center text-xl focus:border-primary outline-none" />
                     </div>
                  </div>
                  
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-primary uppercase tracking-widest block px-1">CONTRATO / PRESENÇA</label>
-                    <select value={statsData.status} onChange={e => setStatsData({...statsData, status: e.target.value as any})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy px-6">
+                    <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest block px-1">PRESENÇA</label>
+                    <select value={statsData.status} onChange={e => setStatsData({...statsData, status: e.target.value as any})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy px-6 focus:border-primary outline-none">
                       <option value="presente">CONFIRMADO</option>
                       <option value="pendente">AUSENTE</option>
                     </select>
                  </div>
+
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest block px-1">TIPO DE CONTRATO</label>
+                    <select value={statsData.playerType} onChange={e => setStatsData({...statsData, playerType: e.target.value as any})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy px-6 focus:border-primary outline-none">
+                      <option value="mensalista">MENSALISTA</option>
+                      <option value="avulso">AVULSO</option>
+                    </select>
+                 </div>
+
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black text-primary uppercase tracking-widest block px-1">NÍVEL DE ACESSO</label>
+                    <select value={statsData.role} onChange={e => setStatsData({...statsData, role: e.target.value as any})} className="w-full h-14 bg-slate-100 rounded-2xl border-2 border-primary/20 font-black text-navy px-6 focus:border-primary outline-none">
+                      <option value="player">ATLETA</option>
+                      <option value="admin">DIRETORIA (ADM)</option>
+                    </select>
+                 </div>
                  
-                 <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-18 bg-primary text-white rounded-3xl font-black uppercase text-[11px] tracking-widest shadow-glow-red active:scale-95 transition-all">
+                 <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-18 bg-primary text-white rounded-3xl font-black uppercase text-[11px] tracking-widest shadow-glow-red active:scale-95 transition-all mt-4">
                     {isSavingStats ? "PROCESSANDO..." : "SALVAR ALTERAÇÕES"}
                  </button>
               </div>
@@ -190,8 +220,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                  <h3 className="text-lg font-black uppercase italic tracking-[0.2em] leading-none">NOVO ATLETA</h3>
               </div>
               <div className="p-10 space-y-6">
-                 <input type="text" placeholder="Nome do Jogador" value={newPlayer.name} onChange={e => setNewPlayer({...newPlayer, name: e.target.value})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 px-6 font-bold text-navy" />
-                 <select value={newPlayer.position} onChange={e => setNewPlayer({...newPlayer, position: e.target.value})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 px-6 font-bold text-navy">
+                 <input type="text" placeholder="Nome do Jogador" value={newPlayer.name} onChange={e => setNewPlayer({...newPlayer, name: e.target.value})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 px-6 font-bold text-navy focus:border-primary outline-none" />
+                 <select value={newPlayer.position} onChange={e => setNewPlayer({...newPlayer, position: e.target.value})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 px-6 font-bold text-navy focus:border-primary outline-none">
                     <option value="Atacante">Atacante</option>
                     <option value="Meia">Meia</option>
                     <option value="Volante">Volante</option>
@@ -227,7 +257,10 @@ const PlayerSection = ({ title, list, isAdmin, onEdit, onDelete, isDeletingId, t
               <img src={p.photoUrl} className="w-full h-full object-cover" alt="" />
             </div>
             <div>
-              <h4 className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</h4>
+              <div className="flex items-center gap-2 mb-1.5">
+                <h4 className="text-[14px] font-black text-navy uppercase italic leading-none">{p.name}</h4>
+                {p.role === 'admin' && <span className="bg-primary/10 text-primary text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest">ADM</span>}
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{p.position}</span>
                 <span className="w-1 h-1 bg-slate-200 rounded-full"></span>

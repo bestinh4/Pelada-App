@@ -20,6 +20,8 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
   const [timeLeft, setTimeLeft] = useState(MATCH_LIMIT_MINUTES * 60);
   const [timerActive, setTimerActive] = useState(false);
 
+  const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
+
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "sessions", "current"), (snap) => {
       if (snap.exists()) setSession(snap.data() as MatchSession);
@@ -32,16 +34,13 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
     let interval: any;
     if (timerActive && timeLeft > 0) {
       interval = setInterval(() => setTimeLeft(t => t - 1), 1000);
-    } else if (timeLeft === 0) {
-      setTimerActive(false);
-    }
+    } else if (timeLeft === 0) { setTimerActive(false); }
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);
 
   const handleStartNight = async () => {
     const confirmed = players.filter(p => p.status === 'presente');
-    if (confirmed.length < 7) return alert("Mínimo de 7 jogadores confirmados.");
-    
+    if (confirmed.length < 7) return alert("Mínimo de 7 jogadores.");
     const newSession = initializeSession(confirmed as any);
     await setDoc(doc(db, "sessions", "current"), newSession);
     setTimeLeft(MATCH_LIMIT_MINUTES * 60);
@@ -55,22 +54,15 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
 
   const handleFinishMatch = async (winnerSide: 'A' | 'B' | 'draw') => {
     if (!session || !session.activeMatch) return;
-    
     let winnerId = "";
     let loserId = null;
-
-    if (winnerSide === 'A') {
-      winnerId = session.activeMatch.teamAId!;
-      loserId = session.activeMatch.teamBId;
-    } else if (winnerSide === 'B') {
-      winnerId = session.activeMatch.teamBId!;
-      loserId = session.activeMatch.teamAId;
-    } else {
-      const choice = confirm("Vencedor no empate? (OK para Time A, Cancelar para Time B)") ? 'A' : 'B';
+    if (winnerSide === 'A') { winnerId = session.activeMatch.teamAId!; loserId = session.activeMatch.teamBId; }
+    else if (winnerSide === 'B') { winnerId = session.activeMatch.teamBId!; loserId = session.activeMatch.teamAId; }
+    else {
+      const choice = confirm("Vencedor no empate? (OK para Time A, CANCELAR para Time B)") ? 'A' : 'B';
       winnerId = choice === 'A' ? session.activeMatch.teamAId! : session.activeMatch.teamBId!;
       loserId = choice === 'A' ? session.activeMatch.teamBId : session.activeMatch.teamAId;
     }
-
     const updated = finishMatch(session, winnerId, loserId);
     await updateDoc(doc(db, "sessions", "current"), updated as any);
     setTimeLeft(MATCH_LIMIT_MINUTES * 60);
@@ -85,19 +77,19 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
 
   if (!session) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[85vh] p-8 animate-fade-in">
-        <GlassCard className="max-w-xs w-full text-center flex flex-col items-center gap-8 border-white/90">
-          <div className="w-24 h-24 bg-primary/5 rounded-[2.5rem] flex items-center justify-center border border-primary/10 animate-float">
-             <span className="material-symbols-outlined text-6xl text-primary font-light">stadium</span>
+      <div className="flex flex-col items-center justify-center min-h-[80vh] p-8 animate-fade-in">
+        <div className="bg-white border border-slate-100 rounded-[2.5rem] p-12 text-center flex flex-col items-center gap-10 shadow-elite max-w-sm w-full">
+          <div className="w-24 h-24 bg-slate-50 rounded-[2rem] flex items-center justify-center border border-slate-100 animate-float">
+             <span className="material-symbols-outlined text-6xl text-navy font-light">stadium</span>
           </div>
           <div className="space-y-3">
             <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA COMANDO</h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.4em] leading-relaxed">OPERAÇÃO DE MATCHDAY<br/>CHAMPIONS LEGACY</p>
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.5em] leading-relaxed">SESSÃO DE JOGOS</p>
           </div>
-          <GlassButton variant="primary" size="xl" onClick={handleStartNight} className="w-full h-18 !rounded-[1.75rem]">
+          <button onClick={handleStartNight} className="w-full h-20 bg-primary text-white rounded-3xl font-black uppercase text-[12px] tracking-widest shadow-glow-red active:scale-95 transition-all">
             INICIAR PARTIDAS
-          </GlassButton>
-        </GlassCard>
+          </button>
+        </div>
       </div>
     );
   }
@@ -107,144 +99,107 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players }) => {
 
   return (
     <div className="p-6 space-y-10 animate-fade-in pb-48">
-      {/* LIVE HEADER */}
-      <header className="flex justify-between items-end px-2">
-        <div className="space-y-1.5">
-          <h2 className="text-2xl font-black text-navy uppercase italic leading-none tracking-tighter">LIVE CONTROL</h2>
+      <header className="flex justify-between items-center px-2">
+        <div className="space-y-1">
+          <h2 className="text-2xl font-black text-navy uppercase italic tracking-tighter">LIVE CONTROL</h2>
           <div className="flex items-center gap-2">
-             <span className="w-3 h-1 bg-primary rounded-full animate-pulse shadow-glow-red"></span>
-             <span className="text-[10px] font-extrabold text-primary uppercase tracking-[0.5em]">OPERANDO</span>
+             <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-glow-red"></span>
+             <span className="text-[10px] font-black text-primary uppercase tracking-[0.5em]">ONLINE</span>
           </div>
         </div>
-        <button 
-          onClick={() => confirm("Fechar a arena?") && deleteDoc(doc(db, "sessions", "current"))}
-          className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b-2 border-slate-100 pb-1"
-        >
-          ENCERRAR
-        </button>
+        <button onClick={() => confirm("Fechar a arena?") && deleteDoc(doc(db, "sessions", "current"))} className="text-[10px] font-black text-slate-300 uppercase tracking-widest border-b-2 border-slate-100 pb-1">ENCERRAR</button>
       </header>
 
-      {/* PLACAR HERO CHAMPIONS */}
-      <GlassCard className="relative overflow-hidden pt-12 pb-10 px-6 border-white/95">
-        <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100/30 flex">
-           <div className="h-full bg-primary transition-all duration-1000 ease-in-out" style={{ width: `${(timeLeft / (MATCH_LIMIT_MINUTES * 60)) * 100}%` }}></div>
+      {/* PLACAR MESH GRADIENT */}
+      <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] pt-12 pb-10 px-8 text-white shadow-elite">
+        {/* LOGO WATERMARK */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-[0.1] scale-[1.5] pointer-events-none rotate-[20deg]">
+           <img src={mainLogoUrl} className="w-full h-full object-contain grayscale brightness-[200%]" alt="" />
         </div>
 
-        <div className="grid grid-cols-3 items-center mb-12">
-           <div className="text-center space-y-4">
-             <div className="w-12 h-12 bg-navy/5 rounded-2xl mx-auto flex items-center justify-center border border-navy/10">
-                <span className={`material-symbols-outlined text-2xl ${teamA?.hasGoalkeeper ? 'text-navy opacity-50' : 'text-primary'}`}>{teamA?.hasGoalkeeper ? 'guardian' : 'warning'}</span>
+        <div className="absolute top-0 left-0 w-full h-1.5 bg-white/10">
+           <div className="h-full bg-white transition-all duration-1000 ease-linear" style={{ width: `${(timeLeft / (MATCH_LIMIT_MINUTES * 60)) * 100}%` }}></div>
+        </div>
+
+        <div className="grid grid-cols-3 items-center mb-12 relative z-10">
+           <div className="text-center space-y-3">
+             <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl mx-auto flex items-center justify-center border border-white/20">
+                <span className="material-symbols-outlined text-2xl">shield</span>
              </div>
-             <p className="text-[12px] font-black text-navy uppercase italic truncate px-1">{teamA?.name || '---'}</p>
-             {teamA?.consecutiveWins > 0 && (
-                <span className="bg-success/10 text-success text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">{teamA.consecutiveWins} VITÓRIAS</span>
-             )}
+             <p className="text-[14px] font-black uppercase italic truncate">{teamA?.name || '---'}</p>
+             {teamA?.consecutiveWins > 0 && <span className="text-[9px] font-black bg-white/20 px-2 py-0.5 rounded-full">{teamA.consecutiveWins}W</span>}
            </div>
 
            <div className="flex flex-col items-center">
               <div className="flex items-center gap-4">
-                 <span className="text-8xl font-condensed italic font-black text-primary leading-none transition-all duration-300 drop-shadow-sm">{session.activeMatch?.scoreA}</span>
-                 <span className="text-3xl font-light text-slate-200 mx-1">:</span>
-                 <span className="text-8xl font-condensed italic font-black text-primary leading-none transition-all duration-300 drop-shadow-sm">{session.activeMatch?.scoreB}</span>
+                 <span className="text-8xl font-condensed italic font-black leading-none drop-shadow-2xl">{session.activeMatch?.scoreA}</span>
+                 <span className="text-3xl opacity-30 mx-1">:</span>
+                 <span className="text-8xl font-condensed italic font-black leading-none drop-shadow-2xl">{session.activeMatch?.scoreB}</span>
               </div>
            </div>
 
-           <div className="text-center space-y-4">
-             <div className="w-12 h-12 bg-navy/5 rounded-2xl mx-auto flex items-center justify-center border border-navy/10">
-                <span className={`material-symbols-outlined text-2xl ${teamB?.hasGoalkeeper ? 'text-navy opacity-50' : 'text-primary'}`}>{teamB?.hasGoalkeeper ? 'guardian' : 'warning'}</span>
+           <div className="text-center space-y-3">
+             <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-2xl mx-auto flex items-center justify-center border border-white/20">
+                <span className="material-symbols-outlined text-2xl">shield</span>
              </div>
-             <p className="text-[12px] font-black text-navy uppercase italic truncate px-1">{teamB?.name || '---'}</p>
-             {teamB?.consecutiveWins > 0 && (
-                <span className="bg-success/10 text-success text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">{teamB.consecutiveWins} VITÓRIAS</span>
-             )}
+             <p className="text-[14px] font-black uppercase italic truncate">{teamB?.name || '---'}</p>
+             {teamB?.consecutiveWins > 0 && <span className="text-[9px] font-black bg-white/20 px-2 py-0.5 rounded-full">{teamB.consecutiveWins}W</span>}
            </div>
         </div>
 
-        {/* TIMER STATION */}
-        <div className="flex flex-col items-center gap-6 border-t border-navy/5 pt-10">
+        <div className="flex flex-col items-center gap-6 border-t border-white/10 pt-10 relative z-10">
            <div className="flex items-center gap-10">
-              <button 
-                onClick={() => setTimerActive(!timerActive)}
-                className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center transition-all shadow-xl active:scale-95 ${timerActive ? 'bg-slate-100 text-navy' : 'btn-elite-secondary'}`}
-              >
+              <button onClick={() => setTimerActive(!timerActive)} className={`w-16 h-16 rounded-3xl flex items-center justify-center transition-all shadow-xl active:scale-90 ${timerActive ? 'bg-white text-navy' : 'bg-primary text-white shadow-glow-red'}`}>
                 <span className="material-symbols-outlined text-4xl">{timerActive ? 'pause' : 'play_arrow'}</span>
               </button>
-              
               <div className="flex flex-col items-center min-w-[120px]">
-                 <span className={`text-5xl font-condensed italic tracking-widest leading-none ${timeLeft < 60 ? 'text-primary animate-pulse' : 'text-navy'}`}>
+                 <span className="text-5xl font-condensed italic font-black tracking-widest leading-none">
                     {formatTime(timeLeft)}
                  </span>
-                 <span className="text-[8px] font-black text-slate-300 uppercase tracking-[0.4em] mt-2">TIMER ELITE</span>
+                 <span className="text-[9px] font-black text-white/40 uppercase tracking-[0.5em] mt-2">TIMER</span>
               </div>
-
-              <button 
-                onClick={() => { setTimeLeft(MATCH_LIMIT_MINUTES * 60); setTimerActive(false); }}
-                className="w-16 h-16 rounded-[1.5rem] bg-slate-50 text-slate-300 flex items-center justify-center border border-slate-100 active:rotate-180 transition-transform duration-500"
-              >
+              <button onClick={() => { setTimeLeft(MATCH_LIMIT_MINUTES * 60); setTimerActive(false); }} className="w-16 h-16 rounded-3xl bg-white/10 border border-white/20 text-white flex items-center justify-center active:rotate-180 transition-all duration-500">
                 <span className="material-symbols-outlined text-3xl">replay</span>
               </button>
            </div>
         </div>
-      </GlassCard>
+      </div>
 
-      {/* COMMAND ACTIONS */}
+      {/* ACTIONS */}
       <div className="grid grid-cols-2 gap-6">
-         <div className="space-y-5">
-            <GlassButton variant="primary" size="xl" className="w-full h-18 !rounded-[2rem] shadow-glow-red" onClick={() => handleGoal('A')}>
-              GOL A
-            </GlassButton>
-            <GlassButton variant="outline" className="w-full h-12 !rounded-[1.25rem] !text-[9px] !border-slate-200" onClick={() => handleFinishMatch('A')}>
-              VITÓRIA TIME A
-            </GlassButton>
+         <div className="space-y-4">
+            <button onClick={() => handleGoal('A')} className="w-full h-20 bg-primary text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-glow-red active:scale-95 transition-all">GOL A</button>
+            <button onClick={() => handleFinishMatch('A')} className="w-full h-14 bg-white border border-slate-100 rounded-[1.5rem] font-black text-navy text-[10px] tracking-widest active:scale-95 transition-all">VITÓRIA A</button>
          </div>
-         <div className="space-y-5">
-            <GlassButton variant="secondary" size="xl" className="w-full h-18 !rounded-[2rem]" onClick={() => handleGoal('B')}>
-              GOL B
-            </GlassButton>
-            <GlassButton variant="outline" className="w-full h-12 !rounded-[1.25rem] !text-[9px] !border-slate-200" onClick={() => handleFinishMatch('B')}>
-              VITÓRIA TIME B
-            </GlassButton>
+         <div className="space-y-4">
+            <button onClick={() => handleGoal('B')} className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-elite active:scale-95 transition-all">GOL B</button>
+            <button onClick={() => handleFinishMatch('B')} className="w-full h-14 bg-white border border-slate-100 rounded-[1.5rem] font-black text-navy text-[10px] tracking-widest active:scale-95 transition-all">VITÓRIA B</button>
          </div>
       </div>
 
       {session.activeMatch?.scoreA === session.activeMatch?.scoreB && (session.activeMatch?.scoreA || 0) > 0 && (
-         <GlassButton variant="glass" className="w-full h-16 border-navy/10 rounded-[1.5rem] shadow-elite" onClick={() => handleFinishMatch('draw')}>
-           RESOLVER EMPATE EDITORIAL
-         </GlassButton>
+         <button onClick={() => handleFinishMatch('draw')} className="w-full h-18 bg-white border border-slate-100 rounded-[2rem] font-black text-navy uppercase text-[11px] tracking-widest shadow-soft-white active:scale-95 transition-all">RESOLVER EMPATE</button>
       )}
 
-      {/* QUEUE SCROLL */}
+      {/* QUEUE */}
       <section className="space-y-6">
         <div className="flex justify-between items-center px-2">
-          <h3 className="text-[10px] font-black text-navy uppercase italic flex items-center gap-3">
-            <div className="w-5 h-0.5 bg-primary"></div>
-            PRÓXIMOS TIMES
-          </h3>
-          <span className="bg-navy/5 px-2 py-0.5 rounded text-[8px] font-black text-navy uppercase">{session.waitingQueue.length} FILA</span>
+          <h3 className="text-[11px] font-black text-navy uppercase italic">PRÓXIMOS TIMES</h3>
+          <span className="bg-slate-50 border border-slate-100 px-3 py-1 rounded-full text-[9px] font-black text-navy uppercase">{session.waitingQueue.length} FILA</span>
         </div>
-
-        <div className="flex gap-5 overflow-x-auto hide-scrollbar pb-8 px-2 -mx-2">
+        <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-8 px-2 -mx-2">
           {session.waitingQueue.length > 0 ? session.waitingQueue.map((tid, i) => {
             const t = session.teams.find(x => x.id === tid);
-            const isNext = i === 0;
             return (
-              <GlassCard 
-                key={tid} 
-                className={`min-w-[170px] p-6 flex flex-col items-center justify-center gap-5 transition-all relative ${isNext ? 'border-navy/20 bg-white scale-105 shadow-elite ring-1 ring-navy/5' : 'border-white/40 opacity-70'}`}
-              >
-                <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center border border-white shadow-inner">
-                   <span className="text-[11px] font-black italic text-navy">#{i+1}</span>
-                </div>
-                <div className="text-center">
-                   <p className="text-[12px] font-black text-navy uppercase italic leading-none truncate w-32">{t?.name}</p>
-                   <p className="text-[8px] font-bold text-slate-400 uppercase mt-2 tracking-widest">{t?.playerIds.length} ATLETAS</p>
-                </div>
-                {isNext && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[7px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg animate-bounce">DESAFIANTE</span>}
-              </GlassCard>
+              <div key={tid} className={`min-w-[180px] p-8 rounded-[2.5rem] bg-white border flex flex-col items-center gap-5 transition-all shadow-soft-white ${i === 0 ? 'border-primary shadow-elite scale-105' : 'border-slate-100 opacity-60'}`}>
+                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center font-black italic text-navy border border-slate-100 text-lg">{i+1}</div>
+                <p className="text-[14px] font-black text-navy uppercase italic truncate w-full text-center">{t?.name}</p>
+                {i === 0 && <span className="text-[8px] font-black bg-primary text-white px-3 py-1 rounded-full uppercase animate-bounce">DESAFIANTE</span>}
+              </div>
             );
           }) : (
-            <div className="w-full py-12 text-center glass-surface border-dashed border-slate-200 rounded-[2.5rem]">
-               <p className="text-[10px] text-slate-300 font-black uppercase tracking-[0.3em]">Fila vazia</p>
+            <div className="w-full py-16 text-center bg-white border border-dashed border-slate-100 rounded-[2.5rem]">
+               <p className="text-[10px] text-slate-300 font-black uppercase tracking-widest">FILA VAZIA</p>
             </div>
           )}
         </div>

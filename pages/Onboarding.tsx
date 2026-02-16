@@ -28,7 +28,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         id: user.uid,
         name: name,
         email: user.email,
-        photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=003876&color=fff`,
+        photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0051a2&color=fff`,
         goals: 0,
         assists: 0,
         concededGoals: 0,
@@ -40,82 +40,77 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
       });
       
       sendPushNotification(
-        "🚀 BEM-VINDO À ELITE!", 
-        `${name}, seu contrato foi assinado! A Arena O&A espera por você.`
+        "🚀 BEM-VINDO!", 
+        `${name}, seu contrato foi assinado na Arena O&A!`
       );
       
       onComplete();
     } catch (err) {
       console.error(err);
-      alert("Erro ao salvar perfil. Tente novamente.");
+      alert("Erro ao salvar perfil.");
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-slate-bg">
-      <div className="w-full max-w-[420px] bg-white rounded-apple-xl shadow-pro border border-slate-100 p-10 flex flex-col z-10 animate-scale-in">
-        <div className="flex flex-col items-center mb-8">
-          <img src={logoUrl} alt="Logo" className="w-24 h-24 object-contain mb-4" />
-          <h1 className="text-xl font-black text-navy uppercase italic tracking-tighter">CONVOCAÇÃO ELITE</h1>
-          <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.3em] mt-1 text-center">Complete seu cadastro na Arena</p>
+    <div className="min-h-screen bg-neo-dots flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="w-full max-w-[380px] bg-white rounded-[2.5rem] shadow-elite border border-slate-100 p-10 flex flex-col z-10 animate-scale-up">
+        <div className="flex flex-col items-center mb-10">
+          <img src={logoUrl} alt="Logo" className="w-24 h-24 object-contain mb-6 drop-shadow-xl" />
+          <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter leading-none">CONTRATAÇÃO</h1>
+          <p className="text-[10px] font-black uppercase text-primary tracking-[0.4em] mt-2 text-center">FICHA DO ATLETA</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">NOME DE GUERRA</label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[9px] font-black uppercase tracking-widest text-slate-300 px-1">COMO É CHAMADO?</label>
             <input 
               required
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-navy focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-navy focus:border-primary outline-none transition-all"
               placeholder="Ex: Luka Modrić"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">POSIÇÃO PREFERIDA</label>
+          <div className="space-y-2">
+            <label className="text-[9px] font-black uppercase tracking-widest text-slate-300 px-1">ONDE VOCÊ JOGA?</label>
             <select 
               required
               value={position}
               onChange={(e) => setPosition(e.target.value)}
-              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-xl px-4 font-bold text-navy focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              className="w-full h-14 bg-slate-50 border border-slate-100 rounded-2xl px-6 font-bold text-navy focus:border-primary outline-none transition-all"
             >
               <option value="" disabled>Selecione sua posição...</option>
-              <option value="Goleiro">Goleiro (Isento de Taxa 🧤)</option>
+              <option value="Goleiro">Goleiro (ISENTO 🧤)</option>
               <option value="Zagueiro">Zagueiro</option>
               <option value="Lateral">Lateral</option>
               <option value="Volante">Volante</option>
               <option value="Meia">Meia</option>
               <option value="Atacante">Atacante</option>
             </select>
-            {position === 'Goleiro' && (
-              <p className="text-[8px] font-black text-amber-600 uppercase tracking-widest mt-2 bg-amber-50 p-3 rounded-xl border border-amber-100 animate-pulse">
-                🧤 BENEFÍCIO: Goleiros não pagam taxa na Arena O&A Elite.
-              </p>
-            )}
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">TIPO DE ATLETA</label>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <label className="text-[9px] font-black uppercase tracking-widest text-slate-300 px-1">TIPO DE CONTRATO</label>
+            <div className="grid grid-cols-2 gap-4">
                <button 
                 type="button" 
                 onClick={() => setPlayerType('mensalista')}
-                className={`h-14 rounded-xl border flex flex-col items-center justify-center transition-all ${playerType === 'mensalista' ? 'bg-navy border-navy text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
+                className={`h-16 rounded-2xl border flex flex-col items-center justify-center transition-all ${playerType === 'mensalista' ? 'bg-navy border-navy text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
                >
-                 <span className="material-symbols-outlined text-lg mb-0.5">calendar_month</span>
-                 <span className="text-[8px] font-black uppercase">Mensalista</span>
+                 <span className="material-symbols-outlined text-xl mb-1">calendar_month</span>
+                 <span className="text-[9px] font-black uppercase tracking-widest">MENSALISTA</span>
                </button>
                <button 
                 type="button" 
                 onClick={() => setPlayerType('avulso')}
-                className={`h-14 rounded-xl border flex flex-col items-center justify-center transition-all ${playerType === 'avulso' ? 'bg-primary border-primary text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
+                className={`h-16 rounded-2xl border flex flex-col items-center justify-center transition-all ${playerType === 'avulso' ? 'bg-primary border-primary text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
                >
-                 <span className="material-symbols-outlined text-lg mb-0.5">confirmation_number</span>
-                 <span className="text-[8px] font-black uppercase">Avulso</span>
+                 <span className="material-symbols-outlined text-xl mb-1">confirmation_number</span>
+                 <span className="text-[9px] font-black uppercase tracking-widest">AVULSO</span>
                </button>
             </div>
           </div>
@@ -123,16 +118,11 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
           <button 
             type="submit" 
             disabled={isSaving || !name || !position}
-            className="w-full h-16 bg-navy text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] shadow-xl shadow-navy/30 transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 mt-4"
+            className="w-full h-20 bg-primary text-white rounded-[1.75rem] font-black uppercase text-[12px] tracking-[0.4em] shadow-glow-red shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 mt-6"
           >
             {isSaving ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              <>
-                ASSINAR CONTRATO ELITE
-                <span className="material-symbols-outlined">chevron_right</span>
-              </>
-            )}
+              <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : "ASSINAR CONTRATO"}
           </button>
         </form>
       </div>

@@ -76,15 +76,15 @@ const App: React.FC = () => {
           const oldPlayerData = prevPlayersState.current[change.doc.id];
 
           if (change.type === "added") {
-            sendPushNotification("🆕 NOVO CADASTRO NA ARENA!", `O atleta ${playerData.name.toUpperCase()} acaba de entrar para a elite!`);
+            sendPushNotification("🆕 NOVO CADASTRO!", `O atleta ${playerData.name.toUpperCase()} entrou pro racha!`);
           } 
           
           if (change.type === "modified" && oldPlayerData) {
             if (oldPlayerData.status !== playerData.status) {
               if (playerData.status === 'presente') {
-                sendPushNotification("✅ CONFIRMAÇÃO!", `${playerData.name} confirmou presença na pelada!`);
+                sendPushNotification("✅ CONFIRMADO!", `${playerData.name} vai pro jogo!`);
               } else {
-                sendPushNotification("❌ DESISTÊNCIA!", `${playerData.name} saiu da lista de presença.`);
+                sendPushNotification("❌ SAIU DA LISTA!", `${playerData.name} não vai mais.`);
               }
             }
           }
@@ -113,10 +113,10 @@ const App: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-navy font-black text-[10px] tracking-[0.4em] uppercase animate-pulse">Sincronizando Arena...</p>
+      <div className="min-h-screen bg-neo-dots flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <div className="w-20 h-20 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-navy font-black text-[11px] tracking-[0.5em] uppercase animate-pulse">Sincronizando Arena...</p>
         </div>
       </div>
     );
@@ -127,7 +127,7 @@ const App: React.FC = () => {
 
   return (
     <Layout currentPage={currentPage} onPageChange={setCurrentPage} currentUserRole={effectiveRole}>
-      <div className="animate-fade-in">
+      <div className="animate-fade-in h-full">
         {!user && <Login />}
         {user && currentPage === Page.Onboarding && <Onboarding user={user} onComplete={() => setCurrentPage(Page.Dashboard)} />}
         {user && currentPage === Page.Dashboard && <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />}
