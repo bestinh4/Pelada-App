@@ -26,6 +26,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     status: 'presente' as 'presente' | 'pendente'
   });
   const [isSavingStats, setIsSavingStats] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
 
   const adminUser = players.find(p => p.id === currentUser?.uid);
   const isCurrentUserAdmin = adminUser?.role === 'admin' || currentUser?.email === MASTER_ADMIN_EMAIL;
@@ -45,6 +46,20 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     let message = `🏆 *ELENCO O&A* 🇭🇷\n🗓️ *DATA:* ${dateStr}\n⏱️ *HORA:* ${match?.time || '--:--'}H\n────────────────────\n\n📢 *STATUS:* ${confirmed.length} CONFIRMADOS ✅\n🔗 *APP:* ${window.location.origin}`;
     const encoded = encodeURIComponent(message);
     window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+  };
+
+  const handleQuickToggle = async (player: Player) => {
+    if (!isCurrentUserAdmin || processingId) return;
+    setProcessingId(player.id);
+    try {
+      await updateDoc(doc(db, "players", player.id), {
+        status: player.status === 'presente' ? 'pendente' : 'presente'
+      });
+    } catch (e) {
+      alert("Erro ao confirmar jogador.");
+    } finally {
+      setProcessingId(null);
+    }
   };
 
   const handleCreatePlayer = async () => {
@@ -81,7 +96,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
 
   const handleDeletePlayer = async (player: Player) => {
     if (!isCurrentUserAdmin || player.id === currentUser?.uid) return;
-    if (!confirm(`Remover ${player.name}?`)) return;
+    if (!confirm(`Remover ${player.name} permanentemente?`)) return;
     setIsDeletingId(player.id);
     try { await deleteDoc(doc(db, "players", player.id)); } catch (e) { alert("Erro."); } finally { setIsDeletingId(null); }
   };
@@ -108,18 +123,19 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         <div className="relative">
           <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-lg">search</span>
           <input 
-            type="text" placeholder="Buscar atleta..." value={searchQuery} 
+            type="text" placeholder="Buscar pelo nome..." value={searchQuery} 
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full h-14 bg-white border border-slate-100 rounded-2xl pl-12 pr-4 text-sm font-bold text-navy outline-none shadow-sm" 
           />
         </div>
       </header>
 
-      <main className="space-y-10 pb-40">
+      <main className="space-y-12 pb-40">
         <PlayerSection 
           title="DENTRO DO JOGO" 
           list={[...confirmedGks, ...confirmedField]} 
           isAdmin={isCurrentUserAdmin} 
+          onQuickToggle={handleQuickToggle}
           onEdit={(p) => {
             setSelectedPlayerForStats(p);
             setStatsData({ 
@@ -133,13 +149,15 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           }} 
           onDelete={handleDeletePlayer} 
           isDeletingId={isDeletingId}
+          processingId={processingId}
           type="confirmed"
         />
 
         <PlayerSection 
-          title="BANCO / AUSENTES" 
+          title="AUSENTES / AGUARDANDO" 
           list={pending} 
           isAdmin={isCurrentUserAdmin} 
+          onQuickToggle={handleQuickToggle}
           onEdit={(p) => {
             setSelectedPlayerForStats(p);
             setStatsData({ 
@@ -153,6 +171,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           }} 
           onDelete={handleDeletePlayer} 
           isDeletingId={isDeletingId}
+          processingId={processingId}
           type="pending"
         />
       </main>
@@ -160,7 +179,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       {/* MODAL EDIT - Neo Champions Style */}
       {selectedPlayerForStats && (
         <div className="fixed inset-0 bg-navy/80 backdrop-blur-md z-[110] flex items-center justify-center p-6 overflow-y-auto">
-           <div className="w-full max-w-[360px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-slide-up my-auto">
+           <div className="w-full max-w-[360px] bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-slide-up my-auto">
               <div className="p-8 bg-navy text-white flex items-center justify-between">
                  <div className="flex items-center gap-4">
                     <img src={selectedPlayerForStats.photoUrl} className="w-12 h-12 rounded-2xl object-cover border-2 border-white/20" alt="" />
@@ -189,7 +208,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                  </div>
 
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest block px-1">TIPO DE CONTRATO</label>
+                    <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest block px-1">VÍNCULO</label>
                     <select value={statsData.playerType} onChange={e => setStatsData({...statsData, playerType: e.target.value as any})} className="w-full h-14 bg-slate-50 rounded-2xl border border-slate-100 font-black text-navy px-6 focus:border-primary outline-none">
                       <option value="mensalista">MENSALISTA</option>
                       <option value="avulso">AVULSO</option>
@@ -205,7 +224,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                  </div>
                  
                  <button onClick={handleSaveStats} disabled={isSavingStats} className="w-full h-18 bg-primary text-white rounded-3xl font-black uppercase text-[11px] tracking-widest shadow-glow-red active:scale-95 transition-all mt-4">
-                    {isSavingStats ? "PROCESSANDO..." : "SALVAR ALTERAÇÕES"}
+                    {isSavingStats ? "PROCESSANDO..." : "ATUALIZAR DADOS"}
                  </button>
               </div>
            </div>
@@ -215,7 +234,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       {/* MODAL ADD PLAYER */}
       {isAddingPlayer && (
         <div className="fixed inset-0 bg-navy/80 backdrop-blur-md z-[110] flex items-center justify-center p-6">
-           <div className="w-full max-w-[360px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-slide-up">
+           <div className="w-full max-w-[360px] bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-slide-up">
               <div className="p-8 bg-primary text-white">
                  <h3 className="text-lg font-black uppercase italic tracking-[0.2em] leading-none">NOVO ATLETA</h3>
               </div>
@@ -240,41 +259,54 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   );
 };
 
-const PlayerSection = ({ title, list, isAdmin, onEdit, onDelete, isDeletingId, type }: any) => (
+const PlayerSection = ({ title, list, isAdmin, onQuickToggle, onEdit, onDelete, isDeletingId, processingId, type }: any) => (
   <section className="animate-slide-up">
     <div className="flex items-center justify-between mb-6 px-1">
        <div className="flex items-center gap-3">
-          <div className={`w-1.5 h-4 ${type === 'confirmed' ? 'bg-success' : 'bg-slate-200'} rounded-full`}></div>
+          <div className={`w-1.5 h-4 ${type === 'confirmed' ? 'bg-success shadow-[0_0_8px_#10B981]' : 'bg-slate-200'} rounded-full`}></div>
           <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">{title}</h3>
        </div>
        <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{list.length} ATLETAS</span>
     </div>
-    <div className="space-y-3">
+    <div className="space-y-4">
       {list.map((p: Player) => (
-        <div key={p.id} className={`bg-white rounded-[2rem] p-4 border border-slate-100 shadow-soft-white flex items-center justify-between group transition-all hover:shadow-elite ${type === 'pending' ? 'opacity-50 grayscale' : ''}`}>
+        <div key={p.id} className={`bg-white rounded-[2rem] p-4 border border-slate-100 shadow-soft-white flex items-center justify-between group transition-all hover:shadow-elite ${type === 'pending' ? 'opacity-50' : ''}`}>
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl overflow-hidden border border-slate-50">
-              <img src={p.photoUrl} className="w-full h-full object-cover" alt="" />
+            <div className="relative">
+              <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-slate-50 shadow-sm">
+                <img src={p.photoUrl} className="w-full h-full object-cover" alt="" />
+              </div>
+              {isAdmin && (
+                <button 
+                  onClick={() => onQuickToggle(p)}
+                  disabled={processingId === p.id}
+                  className={`absolute -top-2 -right-2 w-8 h-8 rounded-xl border-2 border-white shadow-xl flex items-center justify-center transition-all ${p.status === 'presente' ? 'bg-success text-white' : 'bg-slate-100 text-slate-400'}`}
+                >
+                  {processingId === p.id ? <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div> : (
+                    <span className="material-symbols-outlined text-[16px] font-black">{p.status === 'presente' ? 'check' : 'add'}</span>
+                  )}
+                </button>
+              )}
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <h4 className="text-[14px] font-black text-navy uppercase italic leading-none">{p.name}</h4>
-                {p.role === 'admin' && <span className="bg-primary/10 text-primary text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-widest">ADM</span>}
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="text-[15px] font-black text-navy uppercase italic leading-none">{p.name}</h4>
+                {p.role === 'admin' && <span className="bg-navy text-white text-[7px] font-black px-1.5 py-0.5 rounded-md uppercase tracking-widest">DIR</span>}
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{p.position}</span>
+                <span className={`text-[9px] font-bold uppercase tracking-widest ${p.position === 'Goleiro' ? 'text-primary' : 'text-slate-400'}`}>{p.position}</span>
                 <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                <span className="text-[9px] font-bold text-primary uppercase tracking-widest">{p.playerType === 'mensalista' ? 'MEN' : 'AVU'}</span>
+                <span className="text-[9px] font-bold text-navy/40 uppercase tracking-widest">{p.playerType === 'mensalista' ? 'MENSAL' : 'AVULSO'}</span>
               </div>
             </div>
           </div>
           {isAdmin && (
             <div className="flex gap-2">
-               <button onClick={() => onEdit(p)} className="w-10 h-10 rounded-xl bg-slate-50 text-navy flex items-center justify-center border border-slate-100 hover:bg-white transition-all">
+               <button onClick={() => onEdit(p)} className="w-10 h-10 rounded-xl bg-slate-50 text-navy flex items-center justify-center border border-slate-100 hover:bg-navy hover:text-white transition-all">
                   <span className="material-symbols-outlined text-lg">edit</span>
                </button>
-               <button onClick={() => onDelete(p)} className="w-10 h-10 rounded-xl bg-red-50 text-primary flex items-center justify-center border border-red-50 hover:bg-white transition-all">
-                  <span className="material-symbols-outlined text-lg">delete</span>
+               <button onClick={() => onDelete(p)} disabled={isDeletingId === p.id} className="w-10 h-10 rounded-xl bg-red-50 text-primary flex items-center justify-center border border-red-50 hover:bg-primary hover:text-white transition-all">
+                  {isDeletingId === p.id ? '...' : <span className="material-symbols-outlined text-lg">delete</span>}
                </button>
             </div>
           )}

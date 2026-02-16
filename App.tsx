@@ -98,10 +98,13 @@ const App: React.FC = () => {
       setPlayers(playerList);
     });
 
+    // Ajustado para garantir que a UI limpe quando não houver partidas
     const qMatches = query(collection(db, "matches"), orderBy("createdAt", "desc"));
     const unsubscribeMatches = onSnapshot(qMatches, (snapshot) => {
       if (!snapshot.empty) {
         setCurrentMatch({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Match);
+      } else {
+        setCurrentMatch(null);
       }
     });
 
@@ -133,7 +136,7 @@ const App: React.FC = () => {
         {user && currentPage === Page.Dashboard && <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.PlayerList && <PlayerList players={players} currentUser={user} match={currentMatch} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.Ranking && <Ranking players={players} currentUser={user} onPageChange={setCurrentPage} />}
-        {user && currentPage === Page.CreateMatch && <CreateMatch players={players} currentUser={user} onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.CreateMatch && <CreateMatch onPageChange={setCurrentPage} />}
         {user && currentPage === Page.TeamBalancing && <TeamBalancing players={players} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.ArenaPanel && <ArenaPanel players={players} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.Profile && (

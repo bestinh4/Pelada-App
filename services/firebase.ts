@@ -23,6 +23,8 @@ import {
   orderBy, 
   onSnapshot, 
   getDoc, 
+  /* Fix: Added getDocs to resolve compilation error in Dashboard.tsx */
+  getDocs,
   where 
 } from "firebase/firestore";
 import { getMessaging } from "firebase/messaging";
@@ -80,6 +82,8 @@ export {
   orderBy, 
   onSnapshot, 
   getDoc,
+  /* Fix: Added getDocs to exports */
+  getDocs,
   where
 };
 
