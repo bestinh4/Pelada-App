@@ -10,8 +10,8 @@ interface TeamBalancingProps {
 
 interface TeamData {
   name: string;
-  field: string[];
-  goalkeeper: string | null;
+  fieldIds: string[];
+  goalkeeperId: string | null;
 }
 
 const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) => {
@@ -40,8 +40,16 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
     setIsGenerating(true);
     try {
       const result = await balanceTeams(selectedPlayers);
-      setTeamsResult(result.teams);
-    } catch (e) { alert("Falha no balanceamento IA."); } finally { setIsGenerating(false); }
+      if (result && result.teams) {
+        setTeamsResult(result.teams);
+      } else {
+        throw new Error("Formato de resposta inválido");
+      }
+    } catch (e) { 
+      alert("Falha no balanceamento IA. Verifique sua conexão."); 
+    } finally { 
+      setIsGenerating(false); 
+    }
   };
 
   return (
@@ -62,7 +70,6 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
       <main className="space-y-8 pb-40">
         {!teamsResult ? (
           <>
-            {/* HERO SELECTOR */}
             <div className="bg-navy rounded-[2.5rem] p-10 text-white relative overflow-hidden shadow-elite">
               <div className="absolute top-0 right-0 h-full w-2 bg-primary"></div>
               <div className="relative z-10 flex justify-between items-center mb-10">
@@ -85,12 +92,12 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
             </div>
 
             <div className="space-y-3">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">QUEM ESTÁ PRESENTE</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">CONFIRMADOS</h4>
               <div className="grid grid-cols-1 gap-3">
                 {confirmedPlayers.map((p) => (
-                  <div key={p.id} onClick={() => togglePlayer(p.id)} className={`bg-white border p-4 rounded-[1.75rem] flex items-center justify-between cursor-pointer transition-all ${selectedIds.has(p.id) ? 'border-primary shadow-soft-white' : 'border-slate-100 opacity-50'}`}>
+                  <div key={p.id} onClick={() => togglePlayer(p.id)} className={`bg-white border p-4 rounded-[1.75rem] flex items-center justify-between cursor-pointer transition-all ${selectedIds.has(p.id) ? 'border-primary shadow-soft-white' : 'border-slate-100 opacity-50 grayscale'}`}>
                     <div className="flex items-center gap-4">
-                      <img src={p.photoUrl} className="w-12 h-12 rounded-2xl object-cover grayscale" alt="" />
+                      <img src={p.photoUrl} className="w-12 h-12 rounded-2xl object-cover" alt="" />
                       <div>
                         <p className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</p>
                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{p.position}</p>
@@ -107,7 +114,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
         ) : (
           <div className="space-y-8 animate-slide-up">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-navy italic">ESQUADRÕES DEFINIDOS</h3>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.5em] text-navy italic">CONVOCAÇÃO IA</h3>
               <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-1">REFAZER</button>
             </div>
 
@@ -120,14 +127,14 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                   </div>
                   
                   <div className="p-8 space-y-6">
-                    {team.goalkeeper && (
+                    {team.goalkeeperId && (
                       <div className="pb-4 border-b border-slate-50">
-                        <PlayerRow name={team.goalkeeper} isGK={true} allPlayers={players} />
+                        <PlayerRow playerId={team.goalkeeperId} isGK={true} allPlayers={players} />
                       </div>
                     )}
                     <div className="grid grid-cols-1 gap-4">
-                       {team.field.map((name, i) => (
-                         <PlayerRow key={i} name={name} allPlayers={players} />
+                       {team.fieldIds.map((pid, i) => (
+                         <PlayerRow key={i} playerId={pid} allPlayers={players} />
                        ))}
                     </div>
                   </div>
@@ -138,13 +145,17 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
             <button 
               onClick={() => {
                 let msg = `⚽ *ESCALAÇÃO O&A* 🇭🇷\n\n`;
-                teamsResult.forEach(t => msg += `*${t.name.toUpperCase()}*\n🧤 GK: ${t.goalkeeper || '...'}\n🏃: ${t.field.join(', ')}\n\n`);
+                teamsResult.forEach(t => {
+                  const gk = players.find(p => p.id === t.goalkeeperId);
+                  const field = t.fieldIds.map(fid => players.find(p => p.id === fid)?.name).filter(Boolean);
+                  msg += `*${t.name.toUpperCase()}*\n🧤 GK: ${gk?.name || '...'}\n🏃: ${field.join(', ')}\n\n`;
+                });
                 window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
               }}
               className="w-full h-20 bg-success text-white rounded-[2rem] font-black uppercase text-[12px] tracking-[0.4em] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-4"
             >
               <span className="material-symbols-outlined">share</span>
-              WHATSAPP
+              ENVIAR ESCALAÇÃO
             </button>
           </div>
         )}
@@ -153,16 +164,16 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
   );
 };
 
-const PlayerRow = ({ name, isGK = false, allPlayers }: any) => {
-  const p = allPlayers.find((x: any) => x.name === name);
-  if (!name) return null;
+const PlayerRow = ({ playerId, isGK = false, allPlayers }: any) => {
+  const p = allPlayers.find((x: any) => x.id === playerId);
+  if (!p) return null;
   return (
     <div className="flex items-center gap-4">
-      <img src={p?.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0051a2&color=fff`} className="w-12 h-12 rounded-2xl object-cover grayscale" alt="" />
+      <img src={p.photoUrl} className="w-12 h-12 rounded-2xl object-cover border border-slate-100" alt="" />
       <div>
-        <h5 className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{name}</h5>
+        <h5 className="text-[14px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</h5>
         <span className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${isGK ? 'bg-primary text-white' : 'bg-slate-50 text-slate-300'}`}>
-          {isGK ? 'GOLEIRO' : (p?.position || 'LINHA')}
+          {isGK ? 'GOLEIRO' : p.position}
         </span>
       </div>
     </div>

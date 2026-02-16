@@ -1,9 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Match, Player, Page } from '../types.ts';
-import { db, doc, updateDoc } from '../services/firebase.ts';
-import { GlassCard } from '../components/ui/GlassCard.tsx';
-import { GlassButton } from '../components/ui/GlassButton.tsx';
+import { db, doc, updateDoc, deleteDoc } from '../services/firebase.ts';
+import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 
 interface DashboardProps {
   match: Match | null;
@@ -21,6 +20,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   const currentPlayer = players.find(p => p.id === user?.uid);
   const isConfirmed = currentPlayer?.status === 'presente';
+  const isAdmin = currentPlayer?.role === 'admin' || user?.email === MASTER_ADMIN_EMAIL;
   
   const confirmedPlayers = players.filter(p => p.status === 'presente');
   const fieldSlots = match?.fieldSlots || 30;
@@ -50,6 +50,19 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     } catch (e) { alert("Conexão falhou."); } finally { setIsUpdating(false); }
   };
 
+  const handleDeleteMatch = async () => {
+    if (!match?.id || isUpdating) return;
+    if (!confirm("Tem certeza que deseja CANCELAR este racha? Esta ação é irreversível e removerá a lista atual.")) return;
+    setIsUpdating(true);
+    try {
+      await deleteDoc(doc(db, "matches", match.id));
+      // Reset status de todos os jogadores para pendente ao cancelar
+      const batchUpdates = players.map(p => updateDoc(doc(db, "players", p.id), { status: 'pendente' }));
+      await Promise.all(batchUpdates);
+      alert("Partida cancelada com sucesso!");
+    } catch (e) { alert("Erro ao cancelar partida."); } finally { setIsUpdating(false); }
+  };
+
   const handleShareMatch = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
     let message = `🏆 *OUSADIA & ALEGRIA* 🇭🇷\n🏟️ *ARENA:* ${match?.location?.toUpperCase() || 'ARENA OUSADIA'}\n🗓️ *DATA:* ${dateStr}\n⏱️ *HORA:* ${match?.time || '--:--'}H\n\n📢 *STATUS:* ${confirmedPlayers.length} CONFIRMADOS ✅\n🔗 *APP:* ${window.location.origin}`;
@@ -68,17 +81,22 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
             <h1 className="text-2xl font-black tracking-tighter text-navy uppercase italic leading-none">PRÓXIMO RACHA</h1>
             <div className="flex items-center gap-2">
                <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-               <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">LISTA ABERTA</p>
+               <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">
+                 {match ? 'LISTA ABERTA' : 'AGUARDANDO AGENDA'}
+               </p>
             </div>
           </div>
         </div>
+        {isAdmin && !match && (
+          <button onClick={() => onPageChange(Page.CreateMatch)} className="w-10 h-10 bg-navy text-white rounded-xl flex items-center justify-center shadow-elite active:scale-90 transition-all">
+             <span className="material-symbols-outlined">add</span>
+          </button>
+        )}
       </header>
 
       <main className="space-y-8">
-        {/* HERO MESH GRADIENT CARD COM LOGO WATERMARK */}
+        {/* HERO CARD */}
         <div className="mesh-gradient-champions relative overflow-hidden rounded-[2.5rem] pt-12 pb-10 px-8 text-white shadow-elite">
-          
-          {/* LOGO WATERMARK - Substituindo a Estrela */}
           <div className="absolute inset-0 flex items-center justify-center opacity-[0.12] scale-[1.8] pointer-events-none select-none rotate-[15deg]">
              <img src={mainLogoUrl} className="w-full h-full object-contain grayscale brightness-[200%]" alt="" />
           </div>
@@ -88,9 +106,16 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
               <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.4em] block">CROATIA EDITION</span>
               <h2 className="text-4xl font-condensed tracking-tight uppercase italic leading-none">{match?.location || "ARENA OUSADIA"}</h2>
             </div>
-            <button onClick={handleShareMatch} className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl flex items-center justify-center active:scale-90 transition-all">
-              <span className="material-symbols-outlined text-white font-light">share</span>
-            </button>
+            <div className="flex gap-2">
+              {isAdmin && match && (
+                <button onClick={handleDeleteMatch} className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl flex items-center justify-center text-white active:scale-90 transition-all">
+                  <span className="material-symbols-outlined">delete_forever</span>
+                </button>
+              )}
+              <button onClick={handleShareMatch} className="w-12 h-12 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl flex items-center justify-center active:scale-90 transition-all">
+                <span className="material-symbols-outlined text-white font-light">share</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-8 mb-10 relative z-10">
@@ -109,30 +134,39 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
              </div>
           </div>
 
-          <button 
-            onClick={togglePresence} 
-            disabled={isUpdating}
-            className={`w-full h-18 rounded-[1.75rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl transition-all active:scale-95 relative z-10 flex items-center justify-center gap-3 ${isConfirmed ? 'bg-white text-navy' : 'bg-primary-bright text-white shadow-glow-red'}`}
-          >
-            {isUpdating ? <div className="w-5 h-5 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : (
-              <>
-                <span className="material-symbols-outlined">{isConfirmed ? 'check_circle' : 'stadium'}</span>
-                {isConfirmed ? 'DENTRO DO JOGO' : 'CONFIRMAR PRESENÇA'}
-              </>
-            )}
-          </button>
+          {match ? (
+            <button 
+              onClick={togglePresence} 
+              disabled={isUpdating}
+              className={`w-full h-18 rounded-[1.75rem] font-black uppercase text-[11px] tracking-[0.2em] shadow-2xl transition-all active:scale-95 relative z-10 flex items-center justify-center gap-3 ${isConfirmed ? 'bg-white text-navy' : 'bg-primary-bright text-white shadow-glow-red'}`}
+            >
+              {isUpdating ? <div className="w-5 h-5 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : (
+                <>
+                  <span className="material-symbols-outlined">{isConfirmed ? 'check_circle' : 'stadium'}</span>
+                  {isConfirmed ? 'DENTRO DO JOGO' : 'CONFIRMAR PRESENÇA'}
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="w-full h-18 bg-white/10 backdrop-blur-sm border border-white/10 rounded-[1.75rem] flex items-center justify-center">
+               <p className="text-[10px] font-black text-white uppercase tracking-widest">AGUARDANDO NOVA DATA</p>
+            </div>
+          )}
         </div>
 
-        {/* RANKING SECTION */}
         <section className="space-y-6">
           <div className="flex items-center justify-between px-2">
             <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA</h3>
             <button onClick={() => onPageChange(Page.PlayerList)} className="text-[10px] font-extrabold text-primary uppercase tracking-widest border-b border-primary/30 pb-1">SQUAD COMPLETO</button>
           </div>
           <div className="space-y-3">
-            {topScorers.map((p, i) => (
+            {topScorers.length > 0 ? topScorers.map((p, i) => (
               <StatRow key={p.id} player={p} value={p.goals} rank={i+1} label="GOLS" />
-            ))}
+            )) : (
+              <div className="bg-white border border-slate-100 rounded-[2rem] p-10 text-center opacity-40">
+                <p className="text-[9px] font-black uppercase tracking-widest">NENHUM GOL MARCADO</p>
+              </div>
+            )}
           </div>
         </section>
       </main>
