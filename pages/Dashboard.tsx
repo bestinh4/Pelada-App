@@ -78,7 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       <header className="py-10 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img src={mainLogoUrl} className="w-14 h-14 object-contain animate-float" />
-          <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA O&A</h1>
+          <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter leading-none">PELADA O&A</h1>
         </div>
         {isAdmin && !match && (
           <button onClick={() => onPageChange(Page.CreateMatch)} className="w-12 h-12 bg-navy text-white rounded-2xl flex items-center justify-center shadow-elite animate-float">
@@ -98,7 +98,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-8">
                 <div className="space-y-2">
-                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] block">PRÓXIMA ARENA</span>
+                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] block">PRÓXIMA PELADA</span>
                   <h2 className="text-5xl font-condensed italic font-black uppercase tracking-tight text-navy leading-none">{match.location}</h2>
                 </div>
                 {isAdmin && (
