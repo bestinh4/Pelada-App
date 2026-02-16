@@ -1,39 +1,57 @@
-import { messaging, db, doc, updateDoc } from './firebase.ts';
-import { getToken } from "firebase/messaging";
 
-export const requestNotificationPermission = async (userId: string) => {
-  if (!('Notification' in window)) return;
+import { db, doc, updateDoc } from './firebase.ts';
+
+export const getNotificationStatus = () => {
+  if (!('Notification' in window)) return 'unsupported';
+  return Notification.permission;
+};
+
+export const requestNotificationPermission = async (userId?: string) => {
+  if (!('Notification' in window)) {
+    console.warn('⚠️ Notificações não suportadas neste navegador.');
+    return false;
+  }
 
   try {
     const permission = await Notification.requestPermission();
-    if (permission === 'granted' && messaging) {
-      // Em um app real, você usaria sua VAPID KEY aqui
-      // getToken(messaging, { vapidKey: 'SUA_KEY' })
-      
-      console.log('Permissão de notificação concedida.');
-      // Simulamos o registro do token no perfil do usuário
+    console.log('🔔 Status da permissão:', permission);
+    
+    if (permission === 'granted' && userId) {
       const userRef = doc(db, "players", userId);
       await updateDoc(userRef, { pushEnabled: true });
+      
+      // Notificação de teste imediata
+      sendPushNotification("CONECTADO! 🚀", "Você receberá alertas de novos jogadores aqui.");
     }
+    return permission === 'granted';
   } catch (error) {
-    console.error("Erro ao solicitar permissão de push:", error);
+    console.error("❌ Erro ao solicitar permissão:", error);
+    return false;
   }
 };
 
 export const sendPushNotification = async (title: string, body: string) => {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-  // Como não temos um servidor backend para disparar FCM real, 
-  // utilizamos o Service Worker para disparar uma notificação local que 
-  // simula o comportamento de um push recebido.
-  const registration = await navigator.serviceWorker.ready;
-  // Fix: Cast the notification options to 'any' to avoid TS errors with 'vibrate', 'badge', etc., which are valid in ServiceWorker showNotification but often missing in standard NotificationOptions types.
-  registration.showNotification(title, {
-    body,
-    icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png',
-    badge: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png',
-    vibrate: [200, 100, 200],
-    tag: 'oa-notification',
-    renotify: true
-  } as any);
+  try {
+    if ('serviceWorker' in navigator) {
+      const registration = await navigator.serviceWorker.ready;
+      if (registration) {
+        registration.showNotification(title, {
+          body,
+          icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png',
+          badge: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png',
+          vibrate: [200, 100, 200],
+          tag: 'oa-notification',
+          renotify: true,
+          data: { url: window.location.origin }
+        } as any);
+        return;
+      }
+    }
+    // Fallback
+    new Notification(title, { body, icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png' });
+  } catch (error) {
+    console.error("❌ Erro ao disparar notificação:", error);
+  }
 };

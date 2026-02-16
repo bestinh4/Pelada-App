@@ -25,7 +25,7 @@ const Login: React.FC = () => {
           <h1 className="text-6xl font-condensed italic font-black tracking-tighter text-navy uppercase leading-none">OUSADIA & ALEGRIA</h1>
           <div className="flex items-center justify-center gap-4">
              <div className="w-8 h-1 bg-primary rounded-full"></div>
-             <p className="text-[12px] font-black uppercase text-navy/40 tracking-[0.5em]">APP OFICIAL</p>
+             <p className="text-[12px] font-black uppercase text-navy/40 tracking-[0.5em]">ESTÁDIO DIGITAL</p>
              <div className="w-8 h-1 bg-primary rounded-full"></div>
           </div>
         </div>
@@ -36,7 +36,7 @@ const Login: React.FC = () => {
             disabled={isLoggingIn}
             className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-[0.4em] shadow-elite active:scale-95 transition-all flex items-center justify-center gap-4"
           >
-            {isLoggingIn ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : 'ENTRAR NA PELADA'}
+            {isLoggingIn ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : 'ENTRAR NO RACHA'}
           </button>
           
           <div className="text-center">

@@ -42,8 +42,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     const location = match?.location || 'A DEFINIR';
     const time = match?.time || '--:--';
 
-    let message = `🏆 *PELADA OUSADIA & ALEGRIA* 🇭🇷\n`;
-    message += `_Convocação Oficial para a Pelada_\n`;
+    let message = `🏆 *ARENA OUSADIA & ALEGRIA* 🇭🇷\n`;
+    message += `_Convocação Oficial para o Racha_\n`;
     message += `-------------------------------------------\n\n`;
     message += `📍 *LOCAL:* ${location.toUpperCase()}\n`;
     message += `📅 *DATA:* ${dateStr.toUpperCase()}\n`;
@@ -70,8 +70,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     }
 
     message += `\n-------------------------------------------\n`;
-    message += `⚽ *Acesse o App:* https://pelada-app.vercel.app\n`;
-    message += `_Gestao Ousadia & Alegria_`;
+    message += `⚽ *Acesse o App:* https://ousadia.vercel.app\n`;
+    message += `_Gestão Croatia Elite Series_`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };

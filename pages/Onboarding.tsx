@@ -12,7 +12,6 @@ interface OnboardingProps {
 const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
   const [name, setName] = useState(user?.displayName || "");
   const [position, setPosition] = useState("");
-  const [playerType, setPlayerType] = useState<'mensalista' | 'avulso'>('mensalista');
   const [isSaving, setIsSaving] = useState(false);
   
   const logoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
@@ -33,7 +32,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         assists: 0,
         concededGoals: 0,
         position: position,
-        playerType: playerType,
+        playerType: 'avulso', // Definido como padrão obrigatório
         paymentStatus: 'pendente',
         status: 'pendente',
         role: 'player'
@@ -93,26 +92,14 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
             </select>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase tracking-widest text-slate-300 px-1">TIPO DE CONTRATO</label>
-            <div className="grid grid-cols-2 gap-4">
-               <button 
-                type="button" 
-                onClick={() => setPlayerType('mensalista')}
-                className={`h-16 rounded-2xl border flex flex-col items-center justify-center transition-all ${playerType === 'mensalista' ? 'bg-navy border-navy text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
-               >
-                 <span className="material-symbols-outlined text-xl mb-1">calendar_month</span>
-                 <span className="text-[9px] font-black uppercase tracking-widest">MENSALISTA</span>
-               </button>
-               <button 
-                type="button" 
-                onClick={() => setPlayerType('avulso')}
-                className={`h-16 rounded-2xl border flex flex-col items-center justify-center transition-all ${playerType === 'avulso' ? 'bg-primary border-primary text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
-               >
-                 <span className="material-symbols-outlined text-xl mb-1">confirmation_number</span>
-                 <span className="text-[9px] font-black uppercase tracking-widest">AVULSO</span>
-               </button>
+          <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-navy text-sm">info</span>
+              <p className="text-[9px] font-black text-navy uppercase tracking-widest">REGIME CONTRATUAL</p>
             </div>
+            <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+              Sua entrada está registrada como <span className="text-primary font-black">AVULSO</span>. Para migrar para Mensalista, solicite à diretoria após o primeiro jogo.
+            </p>
           </div>
 
           <button 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Match, Player, Page } from '../types.ts';
 import { db, doc, updateDoc, deleteDoc, collection, getDocs } from '../services/firebase.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
+import { getNotificationStatus, requestNotificationPermission } from '../services/notificationService.ts';
 
 interface DashboardProps {
   match: Match | null;
@@ -15,8 +16,16 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const [isUpdating, setIsUpdating] = useState(false);
   const [lineProgress, setLineProgress] = useState(0);
   const [gkProgress, setGkProgress] = useState(0);
+  const [showNotifyBanner, setShowNotifyBanner] = useState(false);
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
+
+  useEffect(() => {
+    // Verifica se precisa mostrar o banner de notificações
+    if (getNotificationStatus() === 'default') {
+      setShowNotifyBanner(true);
+    }
+  }, []);
 
   const currentPlayer = players.find(p => p.id === user?.uid);
   const isConfirmed = currentPlayer?.status === 'presente';
@@ -52,6 +61,11 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     } catch (e) { alert("Erro de conexão."); } finally { setIsUpdating(false); }
   };
 
+  const handleEnableNotifications = async () => {
+    const granted = await requestNotificationPermission(user?.uid);
+    if (granted) setShowNotifyBanner(false);
+  };
+
   const handleClearAllMatches = async () => {
     if (isUpdating) return;
     if (!confirm("⚠️ ATENÇÃO: Deseja apagar a pelada atual? Isso resetará a lista de presença para a próxima.")) return;
@@ -78,7 +92,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       <header className="py-10 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img src={mainLogoUrl} className="w-14 h-14 object-contain animate-float" />
-          <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter leading-none">PELADA O&A</h1>
+          <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA O&A</h1>
         </div>
         {isAdmin && !match && (
           <button onClick={() => onPageChange(Page.CreateMatch)} className="w-12 h-12 bg-navy text-white rounded-2xl flex items-center justify-center shadow-elite animate-float">
@@ -87,10 +101,32 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         )}
       </header>
 
+      {showNotifyBanner && (
+        <div className="mb-8 animate-slide-up">
+          <div className="bg-primary rounded-[2rem] p-6 flex items-center justify-between shadow-glow-red overflow-hidden relative">
+            <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center animate-bounce">
+                <span className="material-symbols-outlined text-white">notifications_active</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">ALERTAS DA ARENA</p>
+                <p className="text-[11px] font-medium text-white/80">Ative para saber quem confirmou!</p>
+              </div>
+            </div>
+            <button 
+              onClick={handleEnableNotifications}
+              className="bg-white text-primary px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all relative z-10"
+            >
+              ATIVAR
+            </button>
+          </div>
+        </div>
+      )}
+
       <main className="space-y-8">
         {match ? (
           <div className="bg-white border border-slate-100 relative overflow-hidden rounded-[3rem] p-10 text-navy shadow-elite min-h-[520px] flex flex-col justify-between">
-            {/* LOGO FLUTUANTE DE FUNDO (MARCA D'ÁGUA EM TEMA CLARO) - OPACIDADE AJUSTADA */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 opacity-[0.08] pointer-events-none animate-float select-none">
                 <img src={mainLogoUrl} className="w-full h-full object-contain grayscale" />
             </div>
@@ -98,7 +134,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
             <div className="relative z-10">
               <div className="flex justify-between items-start mb-8">
                 <div className="space-y-2">
-                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] block">PRÓXIMA PELADA</span>
+                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] block">PRÓXIMA ARENA</span>
                   <h2 className="text-5xl font-condensed italic font-black uppercase tracking-tight text-navy leading-none">{match.location}</h2>
                 </div>
                 {isAdmin && (

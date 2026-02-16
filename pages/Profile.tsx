@@ -14,8 +14,9 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
   const isMaster = currentUserEmail === MASTER_ADMIN_EMAIL;
+  const isAdm = player.role === 'admin' || isMaster;
 
-  const isDirty = editedName !== player.name || editedPosition !== player.position || editedPlayerType !== player.playerType;
+  const isDirty = editedName !== player.name || editedPosition !== player.position || (isAdm && editedPlayerType !== player.playerType);
 
   return (
     <div className="flex flex-col animate-fade-in px-6">
@@ -31,7 +32,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
 
       <main className="flex flex-col items-center pb-48">
         <div className="relative mb-14">
-           <div className={`w-40 h-40 rounded-[3rem] border-4 ${isMaster ? 'border-primary shadow-glow-red' : 'border-white'} shadow-elite overflow-hidden relative z-10 bg-white group cursor-pointer`} onClick={() => fileInputRef.current?.click()}>
+           <div className={`w-40 h-40 rounded-[3rem] border-4 ${isAdm ? 'border-primary shadow-glow-red' : 'border-white'} shadow-elite overflow-hidden relative z-10 bg-white group cursor-pointer`} onClick={() => fileInputRef.current?.click()}>
              <img src={player.photoUrl} className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700" alt="" />
              {isUploading && <div className="absolute inset-0 bg-navy/40 flex items-center justify-center animate-pulse"><div className="w-8 h-8 border-3 border-white border-t-transparent rounded-full animate-spin"></div></div>}
            </div>
@@ -65,24 +66,40 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
             <select value={editedPosition} onChange={(e) => setEditedPosition(e.target.value)} className="w-full h-18 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-navy text-lg focus:border-navy outline-none">
               <option value="Goleiro">Goleiro</option>
               <option value="Zagueiro">Zagueiro</option>
+              <option value="Lateral">Lateral</option>
+              <option value="Volante">Volante</option>
               <option value="Meia">Meia</option>
               <option value="Atacante">Atacante</option>
             </select>
           </div>
 
-          <div className="space-y-4 relative z-10">
-            <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">MODALIDADE CONTRATUAL</label>
-            <div className="grid grid-cols-2 gap-4">
-               <button onClick={() => setEditedPlayerType('mensalista')} className={`h-18 rounded-2xl border-2 flex items-center justify-center font-black uppercase text-[11px] tracking-widest transition-all ${editedPlayerType === 'mensalista' ? 'bg-navy border-navy text-white shadow-elite' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>MENSALISTA</button>
-               <button onClick={() => setEditedPlayerType('avulso')} className={`h-18 rounded-2xl border-2 flex items-center justify-center font-black uppercase text-[11px] tracking-widest transition-all ${editedPlayerType === 'avulso' ? 'bg-primary border-primary text-white shadow-glow-red' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>AVULSO</button>
+          {/* APENAS ADMS PODEM VER E EDITAR A MODALIDADE NO PERFIL */}
+          {isAdm ? (
+            <div className="space-y-4 relative z-10">
+              <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">MODALIDADE CONTRATUAL</label>
+              <div className="grid grid-cols-2 gap-4">
+                 <button onClick={() => setEditedPlayerType('mensalista')} className={`h-18 rounded-2xl border-2 flex items-center justify-center font-black uppercase text-[11px] tracking-widest transition-all ${editedPlayerType === 'mensalista' ? 'bg-navy border-navy text-white shadow-elite' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>MENSALISTA</button>
+                 <button onClick={() => setEditedPlayerType('avulso')} className={`h-18 rounded-2xl border-2 flex items-center justify-center font-black uppercase text-[11px] tracking-widest transition-all ${editedPlayerType === 'avulso' ? 'bg-primary border-primary text-white shadow-glow-red' : 'bg-slate-50 border-slate-100 text-slate-300'}`}>AVULSO</button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 relative z-10">
+               <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest block mb-2">STATUS CONTRATUAL</span>
+               <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${player.playerType === 'mensalista' ? 'bg-navy' : 'bg-primary'} animate-pulse`}></div>
+                  <p className="text-[13px] font-black text-navy uppercase italic">{player.playerType || 'AVULSO'}</p>
+               </div>
+               <p className="text-[9px] text-slate-400 mt-2 italic">*Alterações permitidas apenas pela diretoria.</p>
+            </div>
+          )}
 
           {isDirty && (
             <button 
               onClick={async () => {
                 setIsSaving(true);
-                await updateDoc(doc(db, "players", player.id), { name: editedName, position: editedPosition, playerType: editedPlayerType });
+                const updates: any = { name: editedName, position: editedPosition };
+                if (isAdm) updates.playerType = editedPlayerType;
+                await updateDoc(doc(db, "players", player.id), updates);
                 setIsSaving(false); alert("Salvo!");
               }}
               className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-elite active:scale-95 transition-all mt-6"
