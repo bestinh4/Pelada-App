@@ -2,61 +2,44 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Player } from "../types.ts";
 
-const sanitizeForAI = (players: Player[]) => {
-  return players.map(p => ({
-    id: p.id,
-    nome: String(p.name || "Jogador"),
-    posicao: String(p.position || "Linha"),
-    skills: {
-      ataque: Number(p.skills?.attack || 50),
-      defesa: Number(p.skills?.defense || 50)
-    }
-  }));
-};
-
 export const balanceTeams = async (players: Player[]) => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const cleanData = sanitizeForAI(players);
+  
+  // Envia apenas o essencial para a IA economizar tokens e ser precisa
+  const playersData = players.map(p => ({
+    id: p.id,
+    n: p.name,
+    p: p.position === 'Goleiro' ? 'GK' : 'Linha',
+    sk: (p.skills?.attack || 50) + (p.skills?.defense || 50)
+  }));
+
   const numTeams = Math.ceil(players.length / 7);
 
-  const promptText = `Aja como um treinador de elite. 
-  Divida estes jogadores em ${numTeams} times equilibrados de 7 pessoas.
+  const prompt = `Aja como técnico de futebol. Divida estes jogadores em ${numTeams} times equilibrados.
+  Cada time deve ter 7 jogadores (máximo 1 GK por time).
   
-  REGRAS OBRIGATÓRIAS:
-  1. Use APENAS os IDs que eu te enviei: ${cleanData.map(p => p.id).join(', ')}.
-  2. Não crie IDs novos. Não altere os nomes.
-  3. Cada time deve ter 1 Goleiro (se disponível) e o restante Linha.
-  4. Retorne APENAS o JSON puro.
+  REGRAS:
+  1. Use APENAS estes IDs: ${playersData.map(p => p.id).join(', ')}.
+  2. Retorne APENAS um JSON no formato: {"teams": [{"name": "Time A", "fieldIds": ["id1", "..."], "goalkeeperId": "idGK"}]}.
 
-  DADOS DOS ATLETAS:
-  ${JSON.stringify(cleanData)}
-
-  FORMATO DO RETORNO:
-  {
-    "teams": [
-      { 
-        "name": "Time A", 
-        "fieldIds": ["id1", "id2", "id3", "id4", "id5", "id6"], 
-        "goalkeeperId": "idGK" 
-      }
-    ]
-  }`;
+  JOGADORES:
+  ${JSON.stringify(playersData)}`;
 
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3-pro-preview",
-      contents: promptText,
+      contents: prompt,
       config: {
         responseMimeType: "application/json",
-        thinkingConfig: { thinkingBudget: 0 }
+        temperature: 0.1
       }
     });
 
     const result = JSON.parse(response.text.trim());
     return result;
   } catch (error) {
-    console.error("Erro IA:", error);
-    // Fallback manual para não travar o app
+    console.error("Erro na IA:", error);
+    // Fallback robusto
     const teams = [];
     const shuffled = [...players].sort(() => 0.5 - Math.random());
     for (let i = 0; i < numTeams; i++) {
@@ -64,7 +47,7 @@ export const balanceTeams = async (players: Player[]) => {
       const gk = chunk.find(p => p.position === 'Goleiro');
       const field = chunk.filter(p => p.id !== gk?.id).map(p => p.id);
       teams.push({
-        name: `Time ${String.fromCharCode(65 + i)}`,
+        name: `Equipe ${String.fromCharCode(65 + i)}`,
         fieldIds: field,
         goalkeeperId: gk?.id || null
       });
