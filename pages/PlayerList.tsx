@@ -31,7 +31,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   
   // Lógica de separação para a mensagem
   const allPresent = players.filter(p => p.status === 'presente');
-  const maxSlots = (match?.fieldSlots || 30) + (match?.gkSlots || 4);
+  const maxSlots = (match?.fieldSlots || 30) + (match?.gkSlots || 5);
   
   const confirmed = allPresent.slice(0, maxSlots);
   const waitingList = allPresent.length > maxSlots ? allPresent.slice(maxSlots) : [];
