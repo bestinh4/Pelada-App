@@ -110,7 +110,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
           <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-sm">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO ELITE</h2>
+          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO</h2>
         </div>
         <img src={mainLogoUrl} className="w-12 h-12 animate-float" />
       </header>
@@ -139,7 +139,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
             </div>
 
             <div className="space-y-4">
-              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">QUEM VAI PRO RACHA?</h4>
+              <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">QUEM VAI PRA Pelada?</h4>
               <div className="grid grid-cols-1 gap-3">
                 {confirmedPlayers.map(p => (
                   <div 
@@ -169,7 +169,7 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
         ) : (
           <div className="space-y-8 animate-slide-up">
             <div className="flex items-center justify-between px-2">
-              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">CONFORMAÇÃO DOS TIMES</h3>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">CONFIRMAÇÃO DOS TIMES</h3>
               <button onClick={() => setTeamsResult(null)} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER</button>
             </div>
 
