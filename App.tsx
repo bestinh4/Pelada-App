@@ -76,7 +76,7 @@ const App: React.FC = () => {
           const oldPlayerData = prevPlayersState.current[change.doc.id];
 
           if (change.type === "added") {
-            sendPushNotification("🆕 NOVO CADASTRO!", `O atleta ${playerData.name.toUpperCase()} entrou pro racha!`);
+            sendPushNotification("🆕 NOVO CADASTRO!", `O atleta ${playerData.name.toUpperCase()} entrou pra pelada!`);
           } 
           
           if (change.type === "modified" && oldPlayerData) {
