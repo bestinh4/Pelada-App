@@ -12,10 +12,10 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ onPageChange }) => {
   const [matchData, setMatchData] = useState({
     location: '',
     date: new Date().toISOString().split('T')[0],
-    time: '19:00',
+    time: '07:00',
     price: 35,
     fieldSlots: 30,
-    gkSlots: 4
+    gkSlots: 5
   });
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
