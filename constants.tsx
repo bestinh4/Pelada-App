@@ -17,6 +17,6 @@ export const CURRENT_MATCH: Match = {
   price: 40.00,
   confirmedPlayers: 18,
   fieldSlots: 30,
-  gkSlots: 4,
+  gkSlots: 5,
   createdAt: '2026-02-01T10:00:00Z'
 };
