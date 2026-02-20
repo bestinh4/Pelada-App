@@ -31,7 +31,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   
   // Lógica de separação para a mensagem
   const allPresent = players.filter(p => p.status === 'presente');
-  const maxSlots = (match?.fieldSlots || 30) + (match?.gkSlots || 5);
+  const maxSlots = (match?.fieldSlots || 30) + (match?.gkSlots || 4);
   
   const confirmed = allPresent.slice(0, maxSlots);
   const waitingList = allPresent.length > maxSlots ? allPresent.slice(maxSlots) : [];
@@ -70,8 +70,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     }
 
     message += `\n-------------------------------------------\n`;
-    message += `⚽ *Acesse o App:* https://pelada-app.vercel.app\n`;
-    message += `_Gestão Ousadia & Alegria_`;
+    message += `⚽ *Acesse o App:* https://ousadia.vercel.app\n`;
+    message += `_Gestão Croatia Elite Series_`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };

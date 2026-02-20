@@ -57,7 +57,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
           </div>
 
           <div className="space-y-4 relative z-10">
-            <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">NOME</label>
+            <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-2">NOME DE GUERRA</label>
             <input type="text" value={editedName} onChange={(e) => setEditedName(e.target.value)} className="w-full h-18 bg-slate-50 border border-slate-100 rounded-2xl px-8 font-black text-navy text-lg focus:border-navy outline-none" />
           </div>
 
