@@ -1,12 +1,10 @@
 import { Player, Team } from '../types.ts';
 
 /**
- * Gera times fixos.
- *
  * Regras:
- * - Máximo 7 por time
- * - Máximo 6 jogadores de linha
- * - Pode existir time sem goleiro
+ * - Máximo 7 jogadores por time (1 GK + 6 linha)
+ * - Se não houver GK disponível:
+ *      → time entra com no máximo 6 jogadores de linha
  * - Nunca improvisa goleiro
  */
 export const generateFixedTeams = (confirmedPlayers: Player[]): Team[] => {
@@ -14,47 +12,54 @@ export const generateFixedTeams = (confirmedPlayers: Player[]): Team[] => {
   const field = confirmedPlayers.filter(p => p.position !== 'Goleiro');
 
   const maxFieldPerTeam = 6;
-  const maxPlayersPerTeam = 7;
-
-  const totalPlayers = confirmedPlayers.length;
-  const numTeams = Math.ceil(totalPlayers / maxPlayersPerTeam);
 
   const teams: Team[] = [];
+
   let gkIdx = 0;
   let fieldIdx = 0;
+  let teamIndex = 0;
 
-  for (let i = 0; i < numTeams; i++) {
+  while (fieldIdx < field.length || gkIdx < gks.length) {
+
     const teamPlayerIds: string[] = [];
-    let fieldCount = 0;
     let hasGK = false;
+    let fieldCount = 0;
 
-    // 1️⃣ Tenta adicionar goleiro
+    // 🔹 Verifica se ainda tem goleiro disponível
     if (gkIdx < gks.length) {
       teamPlayerIds.push(gks[gkIdx].id);
       gkIdx++;
       hasGK = true;
     }
 
-    // 2️⃣ Adiciona no máximo 6 jogadores de linha
+    // 🔹 Define limite total do time
+    const maxPlayersThisTeam = hasGK ? 7 : 6;
+
+    // 🔹 Adiciona no máximo 6 jogadores de linha
     while (
       fieldIdx < field.length &&
       fieldCount < maxFieldPerTeam &&
-      teamPlayerIds.length < maxPlayersPerTeam
+      teamPlayerIds.length < maxPlayersThisTeam
     ) {
       teamPlayerIds.push(field[fieldIdx].id);
       fieldIdx++;
       fieldCount++;
     }
 
+    // Se o time ficou vazio (caso extremo), interrompe
+    if (teamPlayerIds.length === 0) break;
+
     teams.push({
-      id: `team-${i + 1}`,
-      name: `Time ${String.fromCharCode(65 + i)}`,
+      id: `team-${teamIndex + 1}`,
+      name: `Time ${String.fromCharCode(65 + teamIndex)}`,
       playerIds: teamPlayerIds,
       hasGK,
-      isComplete: hasGK && fieldCount === maxFieldPerTeam,
+      isComplete: hasGK && fieldCount === 6,
       consecutiveWins: 0,
       totalWins: 0
     });
+
+    teamIndex++;
   }
 
   return teams;
