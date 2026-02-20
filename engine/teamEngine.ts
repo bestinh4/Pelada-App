@@ -5,69 +5,37 @@ export const generateFixedTeams = (confirmedPlayers: Player[]): Team[] => {
   const field = confirmedPlayers.filter(p => p.position !== 'Goleiro');
 
   const maxFieldPerTeam = 6;
+  const maxTeamsByField = Math.ceil(field.length / maxFieldPerTeam);
 
   const teams: Team[] = [];
+
   let fieldIdx = 0;
-  let teamIndex = 0;
+  let gkIdx = 0;
 
-  // =============================
-  // 🔹 FASE 1 — TIMES COM GK
-  // =============================
-  const possibleTeamsWithGK = Math.min(
-    gks.length,
-    Math.floor(field.length / maxFieldPerTeam)
-  );
-
-  for (let i = 0; i < possibleTeamsWithGK; i++) {
+  for (let i = 0; i < maxTeamsByField; i++) {
     const teamPlayerIds: string[] = [];
 
-    // 1 GK
-    teamPlayerIds.push(gks[i].id);
-
-    // 6 jogadores de linha
-    for (let j = 0; j < maxFieldPerTeam; j++) {
+    // adiciona até 6 jogadores de linha
+    for (let j = 0; j < maxFieldPerTeam && fieldIdx < field.length; j++) {
       teamPlayerIds.push(field[fieldIdx].id);
       fieldIdx++;
     }
 
-    teams.push({
-      id: `team-${teamIndex + 1}`,
-      name: `Time ${String.fromCharCode(65 + teamIndex)}`,
-      playerIds: teamPlayerIds,
-      hasGK: true,
-      isComplete: true,
-      consecutiveWins: 0,
-      totalWins: 0
-    });
-
-    teamIndex++;
-  }
-
-  // =============================
-  // 🔹 FASE 2 — TIMES SEM GK
-  // =============================
-  const remainingField = field.length - fieldIdx;
-  const possibleTeamsWithoutGK = Math.floor(remainingField / maxFieldPerTeam);
-
-  for (let i = 0; i < possibleTeamsWithoutGK; i++) {
-    const teamPlayerIds: string[] = [];
-
-    for (let j = 0; j < maxFieldPerTeam; j++) {
-      teamPlayerIds.push(field[fieldIdx].id);
-      fieldIdx++;
+    // adiciona goleiro apenas se existir
+    if (gkIdx < gks.length) {
+      teamPlayerIds.unshift(gks[gkIdx].id); // GK sempre primeiro
+      gkIdx++;
     }
 
     teams.push({
-      id: `team-${teamIndex + 1}`,
-      name: `Time ${String.fromCharCode(65 + teamIndex)}`,
+      id: `team-${i + 1}`,
+      name: `Time ${String.fromCharCode(65 + i)}`,
       playerIds: teamPlayerIds,
-      hasGK: false,
-      isComplete: false,
+      hasGK: i < gks.length,
+      isComplete: teamPlayerIds.length === 7,
       consecutiveWins: 0,
       totalWins: 0
     });
-
-    teamIndex++;
   }
 
   return teams;
