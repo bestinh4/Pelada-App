@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Match, Player, Page } from '../types.ts';
 import { db, doc, updateDoc, deleteDoc, collection, getDocs } from '../services/firebase.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
-import { getNotificationStatus, requestNotificationPermission } from '../services/notificationService.ts';
+import { getNotificationStatus, requestNotificationPermission, broadcastNotification } from '../services/notificationService.ts';
 
 interface DashboardProps {
   match: Match | null;
@@ -32,6 +32,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const isAdmin = currentPlayer?.role === 'admin' || user?.email === MASTER_ADMIN_EMAIL;
   
   const confirmedPlayers = players.filter(p => p.status === 'presente');
+  const pendingPlayers = players.filter(p => p.status !== 'presente');
   const fieldSlots = match?.fieldSlots || 30;
   const gkSlots = match?.gkSlots || 4;
 
@@ -64,6 +65,24 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const handleEnableNotifications = async () => {
     const granted = await requestNotificationPermission(user?.uid);
     if (granted) setShowNotifyBanner(false);
+  };
+
+  const handleSendReminder = async () => {
+    if (isUpdating || !match) return;
+    if (!confirm(`Deseja enviar um lembrete para os ${pendingPlayers.length} atletas que ainda não confirmaram?`)) return;
+
+    setIsUpdating(true);
+    try {
+      await broadcastNotification(
+        "⏰ LEMBRETE DE JOGO!", 
+        `O racha na ${match.location.toUpperCase()} está chegando! Confirme sua presença agora.`
+      );
+      alert("Lembrete enviado com sucesso!");
+    } catch (e) {
+      alert("Erro ao enviar lembrete.");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleClearAllMatches = async () => {
@@ -138,9 +157,19 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                   <h2 className="text-5xl font-condensed italic font-black uppercase tracking-tight text-navy leading-none">{match.location}</h2>
                 </div>
                 {isAdmin && (
-                  <button onClick={handleClearAllMatches} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 active:bg-primary active:text-white transition-all">
-                    <span className="material-symbols-outlined">delete_sweep</span>
-                  </button>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={handleSendReminder} 
+                      disabled={isUpdating || pendingPlayers.length === 0}
+                      className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 active:bg-navy active:text-white transition-all disabled:opacity-50"
+                      title="Enviar Lembrete"
+                    >
+                      <span className="material-symbols-outlined">notification_important</span>
+                    </button>
+                    <button onClick={handleClearAllMatches} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 active:bg-primary active:text-white transition-all">
+                      <span className="material-symbols-outlined">delete_sweep</span>
+                    </button>
+                  </div>
                 )}
               </div>
 

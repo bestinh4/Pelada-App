@@ -3,6 +3,7 @@ import { logout, db, doc, updateDoc } from '../services/firebase.ts';
 import React, { useRef, useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
+import { requestNotificationPermission, getNotificationStatus, sendPushNotification } from '../services/notificationService.ts';
 
 const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChange: (page: Page) => void }> = ({ player, currentUserEmail, onPageChange }) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -10,6 +11,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
   const [editedName, setEditedName] = useState(player.name);
   const [editedPosition, setEditedPosition] = useState(player.position);
   const [editedPlayerType, setEditedPlayerType] = useState(player.playerType || 'avulso');
+  const [notifStatus, setNotifStatus] = useState(getNotificationStatus());
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
@@ -107,6 +109,47 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
               {isSaving ? "PROCESSANDO..." : "SALVAR ALTERAÇÕES"}
             </button>
           )}
+        </div>
+
+        <div className="w-full mt-10 space-y-6">
+           <div className="bg-white border border-slate-100 p-8 rounded-[3rem] shadow-soft-white">
+              <div className="flex items-center justify-between mb-6">
+                 <div>
+                    <h4 className="text-[11px] font-black text-navy uppercase italic tracking-tighter leading-none mb-1">NOTIFICAÇÕES DO SISTEMA</h4>
+                    <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">STATUS: {notifStatus.toUpperCase()}</p>
+                 </div>
+                 <div className={`w-3 h-3 rounded-full ${notifStatus === 'granted' ? 'bg-success' : 'bg-primary'} animate-pulse`}></div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4">
+                 {notifStatus !== 'granted' && (
+                    <button 
+                      onClick={async () => {
+                        const granted = await requestNotificationPermission(player.id);
+                        setNotifStatus(getNotificationStatus());
+                        if (granted) alert("Notificações ativadas!");
+                      }}
+                      className="w-full h-16 bg-navy text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-elite flex items-center justify-center gap-3 active:scale-95 transition-all"
+                    >
+                      <span className="material-symbols-outlined text-lg">notifications_active</span>
+                      ATIVAR ALERTAS NO DISPOSITIVO
+                    </button>
+                 )}
+                 
+                 <button 
+                    onClick={() => {
+                      sendPushNotification("TESTE DE ELITE! ⚽", "Se você está vendo isso, as notificações estão configuradas corretamente.");
+                    }}
+                    className="w-full h-16 bg-slate-50 border border-slate-100 text-navy rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all"
+                 >
+                    <span className="material-symbols-outlined text-lg">send</span>
+                    TESTAR NOTIFICAÇÃO AGORA
+                 </button>
+              </div>
+              <p className="text-[9px] text-slate-400 mt-4 italic text-center leading-relaxed">
+                *As notificações aparecem na barra do sistema mesmo com o app em segundo plano. Se o app estiver fechado, certifique-se de ter instalado o PWA (Adicionar à tela inicial).
+              </p>
+           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-6 w-full mt-10">

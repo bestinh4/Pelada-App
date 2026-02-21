@@ -64,7 +64,7 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, onPageChange }) => {
     return `${m}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (!session) {
+  if (!session || session.status === 'waiting') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[80vh] p-8 animate-fade-in">
         <div className="bg-white border border-slate-100 rounded-[3rem] p-12 text-center flex flex-col items-center gap-10 shadow-elite max-w-sm w-full relative overflow-hidden">
@@ -73,18 +73,24 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, onPageChange }) => {
              <span className="material-symbols-outlined text-6xl text-navy font-light">stadium</span>
           </div>
           <div className="space-y-3">
-            <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA VAZIA</h2>
-            <p className="text-[10px] font-black text-primary uppercase tracking-[0.5em] leading-relaxed">TIMES NÃO SORTEADOS</p>
+            <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">
+              {session?.status === 'waiting' ? 'TIMES SORTEADOS' : 'ARENA VAZIA'}
+            </h2>
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.5em] leading-relaxed">
+              {session?.status === 'waiting' ? 'AGUARDANDO INÍCIO' : 'TIMES NÃO SORTEADOS'}
+            </p>
           </div>
           <p className="text-xs text-slate-400 font-bold leading-relaxed px-4">
-            Para iniciar o cronômetro e o placar, você precisa primeiro realizar o sorteio dos jogadores confirmados.
+            {session?.status === 'waiting' 
+              ? 'Os times já foram definidos. Um administrador precisa iniciar a partida no painel de sorteio.' 
+              : 'Para iniciar o cronômetro e o placar, você precisa primeiro realizar o sorteio dos jogadores confirmados.'}
           </p>
           <button 
             onClick={() => onPageChange(Page.TeamBalancing)} 
             className="w-full h-18 bg-primary text-white rounded-2xl font-black uppercase text-[12px] tracking-widest shadow-glow-red active:scale-95 transition-all flex items-center justify-center gap-3"
           >
-            <span className="material-symbols-outlined">shuffle</span>
-            IR PARA SORTEIO
+            <span className="material-symbols-outlined">{session?.status === 'waiting' ? 'visibility' : 'shuffle'}</span>
+            {session?.status === 'waiting' ? 'VER TIMES SORTEADOS' : 'IR PARA SORTEIO'}
           </button>
         </div>
       </div>

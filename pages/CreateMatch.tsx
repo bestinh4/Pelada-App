@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Page, Match } from '../types.ts';
 import { db, addDoc, collection } from '../services/firebase.ts';
+import { broadcastNotification } from '../services/notificationService.ts';
 
 interface CreateMatchProps {
   onPageChange: (page: Page) => void;
@@ -12,10 +13,10 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ onPageChange }) => {
   const [matchData, setMatchData] = useState({
     location: '',
     date: new Date().toISOString().split('T')[0],
-    time: '19:00',
-    price: 35,
+    time: '07:00',
+    price: 10,
     fieldSlots: 30,
-    gkSlots: 4
+    gkSlots: 5
   });
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
@@ -26,10 +27,17 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ onPageChange }) => {
     try {
       await addDoc(collection(db, "matches"), {
         ...matchData,
-        type: 'Society',
+        type: 'Mini-Campo',
         confirmedPlayers: 0,
         createdAt: new Date().toISOString()
       });
+      
+      // Notificar todos os jogadores sobre a nova convocação
+      await broadcastNotification(
+        "⚽ NOVA CONVOCAÇÃO!", 
+        `O racha na ${matchData.location.toUpperCase()} está aberto! Confirme sua presença.`
+      );
+
       onPageChange(Page.Dashboard);
     } catch (err) { alert("Falha ao criar."); }
     finally { setIsSaving(false); }
