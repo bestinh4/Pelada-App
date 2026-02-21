@@ -10,20 +10,40 @@ import CreateMatch from './pages/CreateMatch.tsx';
 import Profile from './pages/Profile.tsx';
 import TeamBalancing from './pages/TeamBalancing.tsx';
 import ArenaPanel from './pages/ArenaPanel.tsx';
+import NotificationToast, { Notification as InAppNotification } from './components/NotificationToast.tsx';
 import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL } from './constants.tsx';
-import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc } from './services/firebase.ts';
+import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc, limit } from './services/firebase.ts';
 import { requestNotificationPermission, sendPushNotification } from './services/notificationService.ts';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState<Page>(Page.Login);
+  const [currentPage, setCurrentPage] = useState<Page>(() => {
+    const saved = localStorage.getItem('oa_current_page');
+    return saved ? (saved as Page) : Page.Login;
+  });
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
+  const [inAppNotifications, setInAppNotifications] = useState<InAppNotification[]>([]);
   
-  const isFirstLoad = useRef(true);
   const prevPlayersState = useRef<Record<string, Player>>({});
+  const lastNotificationId = useRef<string | null>(null);
+
+  // Persistir página atual
+  useEffect(() => {
+    if (currentPage !== Page.Login && currentPage !== Page.Onboarding) {
+      localStorage.setItem('oa_current_page', currentPage);
+    }
+  }, [currentPage]);
+
+  const addInAppNotification = (title: string, message: string, type: InAppNotification['type'] = 'info') => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setInAppNotifications(prev => [{ id, title, message, type, createdAt: Date.now() }, ...prev]);
+    setTimeout(() => {
+      setInAppNotifications(prev => prev.filter(n => n.id !== id));
+    }, 5000);
+  };
 
   useEffect(() => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -45,7 +65,11 @@ const App: React.FC = () => {
           if (!playerDoc.exists()) {
             setCurrentPage(Page.Onboarding);
           } else {
-            setCurrentPage(Page.Dashboard);
+            // Se já tiver uma página salva, mantém ela, senão vai pro Dashboard
+            const saved = localStorage.getItem('oa_current_page');
+            if (!saved || saved === Page.Login || saved === Page.Onboarding) {
+              setCurrentPage(Page.Dashboard);
+            }
           }
         } catch (err) { 
           setCurrentPage(Page.Dashboard);
@@ -53,6 +77,7 @@ const App: React.FC = () => {
       } else {
         setUser(null);
         setCurrentPage(Page.Login);
+        localStorage.removeItem('oa_current_page');
       }
       setLoading(false);
     });
@@ -63,28 +88,30 @@ const App: React.FC = () => {
   useEffect(() => {
     if (!user) return;
 
+    // Flags locais para esta execução do efeito
+    let isInitialPlayersSync = true;
+
     const qPlayers = query(collection(db, "players"), orderBy("goals", "desc"));
     const unsubscribePlayers = onSnapshot(qPlayers, (snapshot) => {
       const playerList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
       
-      const currentPlayerRecord = playerList.find(p => p.id === user?.uid);
-      const isAdmin = currentPlayerRecord?.role === 'admin' || user?.email === MASTER_ADMIN_EMAIL;
-
-      if (isAdmin && !isFirstLoad.current) {
+      if (!isInitialPlayersSync) {
         snapshot.docChanges().forEach((change) => {
           const playerData = change.doc.data() as Player;
           const oldPlayerData = prevPlayersState.current[change.doc.id];
 
-          if (change.type === "added") {
-            sendPushNotification("🆕 NOVO CADASTRO!", `O atleta ${playerData.name.toUpperCase()} entrou pro racha!`);
-          } 
-          
           if (change.type === "modified" && oldPlayerData) {
             if (oldPlayerData.status !== playerData.status) {
               if (playerData.status === 'presente') {
-                sendPushNotification("✅ CONFIRMADO!", `${playerData.name} vai pro jogo!`);
+                const title = "✅ CONFIRMADO!";
+                const msg = `${playerData.name} vai pro jogo!`;
+                sendPushNotification(title, msg);
+                addInAppNotification(title, msg, 'success');
               } else {
-                sendPushNotification("❌ SAIU DA LISTA!", `${playerData.name} não vai mais.`);
+                const title = "❌ SAIU DA LISTA!";
+                const msg = `${playerData.name} não vai mais.`;
+                sendPushNotification(title, msg);
+                addInAppNotification(title, msg, 'error');
               }
             }
           }
@@ -94,7 +121,7 @@ const App: React.FC = () => {
       const newState: Record<string, Player> = {};
       playerList.forEach(p => newState[p.id] = p);
       prevPlayersState.current = newState;
-      isFirstLoad.current = false;
+      isInitialPlayersSync = false;
       setPlayers(playerList);
     });
 
@@ -130,6 +157,10 @@ const App: React.FC = () => {
 
   return (
     <Layout currentPage={currentPage} onPageChange={setCurrentPage} currentUserRole={effectiveRole}>
+      <NotificationToast 
+        notifications={inAppNotifications} 
+        onClose={(id) => setInAppNotifications(prev => prev.filter(n => n.id !== id))} 
+      />
       <div className="animate-fade-in h-full">
         {!user && <Login />}
         {user && currentPage === Page.Onboarding && <Onboarding user={user} onComplete={() => setCurrentPage(Page.Dashboard)} />}

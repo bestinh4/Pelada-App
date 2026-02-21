@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'oa-elite-pro-v4'; // Versão atualizada
+const CACHE_NAME = 'oa-elite-pro-v5'; // Versão atualizada
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

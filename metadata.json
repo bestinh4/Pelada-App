@@ -1,6 +1,6 @@
 {
-  "name": "Ousadia & Alegria - App da Pelada",
-  "description": "Aplicativo para organização da pelada Ousadia & Alegria, com gestão de presença e financeiro.",
+  "name": "Remix: Ousadia \u0026 Alegria - App da Pelada",
+  "description": "Aplicativo para organização da pelada Ousadia \u0026 Alegria, com gestão de presença e financeiro.",
   "requestFramePermissions": [
     "camera"
   ]
