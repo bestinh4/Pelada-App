@@ -47,8 +47,9 @@ export const sendPushNotification = async (title: string, body: string) => {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
   try {
+    // Tenta usar o Service Worker para mostrar a notificação (melhor para background/sistema)
     if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.getRegistration();
       if (registration) {
         registration.showNotification(title, {
           body,
@@ -62,8 +63,12 @@ export const sendPushNotification = async (title: string, body: string) => {
         return;
       }
     }
-    // Fallback
-    new Notification(title, { body, icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png' });
+    
+    // Fallback para o objeto Notification padrão
+    new Notification(title, { 
+      body, 
+      icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png' 
+    });
   } catch (error) {
     console.error("❌ Erro ao disparar notificação:", error);
   }

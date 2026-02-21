@@ -25,7 +25,8 @@ import {
   getDoc, 
   /* Fix: Added getDocs to resolve compilation error in Dashboard.tsx */
   getDocs,
-  where 
+  where,
+  limit
 } from "firebase/firestore";
 import { getMessaging } from "firebase/messaging";
 
@@ -84,7 +85,8 @@ export {
   getDoc,
   /* Fix: Added getDocs to exports */
   getDocs,
-  where
+  where,
+  limit
 };
 
 export default app;
