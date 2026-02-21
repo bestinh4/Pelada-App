@@ -1,5 +1,5 @@
 
-import { db, doc, updateDoc } from './firebase.ts';
+import { db, doc, updateDoc, collection, addDoc } from './firebase.ts';
 
 export const getNotificationStatus = () => {
   if (!('Notification' in window)) return 'unsupported';
@@ -27,6 +27,19 @@ export const requestNotificationPermission = async (userId?: string) => {
   } catch (error) {
     console.error("❌ Erro ao solicitar permissão:", error);
     return false;
+  }
+};
+
+export const broadcastNotification = async (title: string, body: string) => {
+  try {
+    await addDoc(collection(db, "notifications"), {
+      title,
+      body,
+      createdAt: new Date().toISOString(),
+      type: 'broadcast'
+    });
+  } catch (error) {
+    console.error("❌ Erro ao transmitir notificação:", error);
   }
 };
 
