@@ -49,7 +49,8 @@ const App: React.FC = () => {
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         setUser(firebaseUser);
-        requestNotificationPermission(firebaseUser.uid);
+        // Removido o pedido automático de permissão para evitar alertas de spam do navegador
+        // requestNotificationPermission(firebaseUser.uid);
 
         try {
           const playerDocRef = doc(db, "players", firebaseUser.uid);
@@ -105,12 +106,14 @@ const App: React.FC = () => {
               if (playerData.status === 'presente') {
                 const title = "✅ CONFIRMADO!";
                 const msg = `${playerData.name} vai pro jogo!`;
-                sendPushNotification(title, msg);
+                // Notificação Push removida para evitar spam; mantido apenas o Toast interno
+                // sendPushNotification(title, msg);
                 addInAppNotification(title, msg, 'success');
               } else {
                 const title = "❌ SAIU DA LISTA!";
                 const msg = `${playerData.name} não vai mais.`;
-                sendPushNotification(title, msg);
+                // Notificação Push removida para evitar spam; mantido apenas o Toast interno
+                // sendPushNotification(title, msg);
                 addInAppNotification(title, msg, 'error');
               }
             }
@@ -135,9 +138,30 @@ const App: React.FC = () => {
       }
     });
 
+    // Listener para transmissões de notificações (Broadcasts)
+    let isInitialNotificationsSync = true;
+    const qBroadcasts = query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(1));
+    const unsubscribeBroadcasts = onSnapshot(qBroadcasts, (snapshot) => {
+      if (isInitialNotificationsSync) {
+        isInitialNotificationsSync = false;
+        return;
+      }
+
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          // Evita mostrar a própria notificação se o usuário for o remetente (opcional, mas bom)
+          // Aqui vamos mostrar para todos para garantir que o teste funcione
+          sendPushNotification(data.title, data.body);
+          addInAppNotification(data.title, data.body, 'info');
+        }
+      });
+    });
+
     return () => {
       unsubscribePlayers();
       unsubscribeMatches();
+      unsubscribeBroadcasts();
     };
   }, [user]);
 
@@ -169,7 +193,7 @@ const App: React.FC = () => {
         {user && currentPage === Page.Ranking && <Ranking players={players} currentUser={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.CreateMatch && <CreateMatch onPageChange={setCurrentPage} />}
         {user && currentPage === Page.TeamBalancing && <TeamBalancing players={players} onPageChange={setCurrentPage} />}
-        {user && currentPage === Page.ArenaPanel && <ArenaPanel players={players} onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.ArenaPanel && <ArenaPanel players={players} match={currentMatch} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.Profile && (
           <Profile 
             player={currentPlayer || { id: user.uid, name: user.displayName, email: user.email, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente', role: effectiveRole } as Player} 

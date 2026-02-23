@@ -17,7 +17,13 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
   const [session, setSession] = useState<MatchSession | null>(null);
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
-  const confirmedPlayers = players.filter(p => p.status === 'presente');
+  const confirmedPlayers = players
+    .filter(p => p.status === 'presente')
+    .sort((a, b) => {
+      const timeA = a.confirmedAt ? new Date(a.confirmedAt).getTime() : 0;
+      const timeB = b.confirmedAt ? new Date(b.confirmedAt).getTime() : 0;
+      return timeA - timeB;
+    });
 
   // Listener para a sessão atual (compartilhada)
   useEffect(() => {
@@ -164,14 +170,19 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
 
   return (
     <div className="flex flex-col animate-fade-in px-6 relative min-h-screen">
-      <header className="py-10 flex items-center justify-between">
+      <header className="py-12 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <button onClick={() => onPageChange(Page.Dashboard)} className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-sm">
+          <button onClick={() => onPageChange(Page.Dashboard)} className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-navy shadow-soft-white active:scale-90 transition-all">
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
-          <h2 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO ELITE</h2>
+          <div className="space-y-1">
+            <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">SORTEIO ELITE</h2>
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">EQUILÍBRIO DE TIMES</p>
+          </div>
         </div>
-        <img src={mainLogoUrl} className="w-12 h-12 animate-float" />
+        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-soft-white animate-float border border-slate-100 p-2">
+          <img src={mainLogoUrl} className="w-10 h-10 object-contain" />
+        </div>
       </header>
 
       <main className="pb-40">
@@ -208,27 +219,29 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-8"
+              className="lg:grid lg:grid-cols-12 lg:gap-10 lg:items-start"
             >
-              <div className="bg-white border border-slate-100 rounded-[3rem] p-10 text-navy relative overflow-hidden shadow-elite min-h-[260px] flex flex-col justify-center">
-                 <img src={mainLogoUrl} className="absolute -right-10 -bottom-10 w-48 h-48 opacity-[0.08] rotate-12 grayscale animate-float" />
-                 <div className="relative z-10">
-                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">BALANÇO DE ESQUADRÕES</p>
-                  <h3 className="text-4xl font-condensed italic font-black mb-10 tracking-tight">{selectedIds.size} ATLETAS CONFIRMADOS</h3>
-                  <button 
-                    onClick={handleGenerateNormal}
-                    disabled={isGenerating || selectedIds.size < 4}
-                    className="w-full h-18 bg-navy text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-elite flex items-center justify-center gap-4 active:scale-95 transition-all"
-                  >
-                    <span className="material-symbols-outlined">shuffle</span>
-                    GERAR TIMES AGORA
-                  </button>
+              <div className="lg:col-span-5 space-y-8">
+                <div className="bg-white border border-slate-100 rounded-[3rem] p-10 text-navy relative overflow-hidden shadow-elite min-h-[260px] flex flex-col justify-center">
+                   <img src={mainLogoUrl} className="absolute -right-10 -bottom-10 w-48 h-48 opacity-[0.08] rotate-12 grayscale animate-float" />
+                   <div className="relative z-10">
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-3">BALANÇO DE ESQUADRÕES</p>
+                    <h3 className="text-4xl font-condensed italic font-black mb-10 tracking-tight">{selectedIds.size} ATLETAS CONFIRMADOS</h3>
+                    <button 
+                      onClick={handleGenerateNormal}
+                      disabled={isGenerating || selectedIds.size < 4}
+                      className="w-full h-18 bg-navy text-white rounded-2xl font-black uppercase text-[11px] tracking-widest shadow-elite flex items-center justify-center gap-4 active:scale-95 transition-all"
+                    >
+                      <span className="material-symbols-outlined">shuffle</span>
+                      GERAR TIMES AGORA
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">QUEM VAI PRO RACHA?</h4>
-                <div className="grid grid-cols-1 gap-3">
+              <div className="lg:col-span-7 space-y-4 mt-10 lg:mt-0">
+                <h4 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic px-2">QUEM VAI PRA PELADA?</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-3">
                   {confirmedPlayers.map((p, i) => (
                     <motion.div 
                       key={p.id} 
@@ -262,87 +275,91 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
               key="results"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="space-y-8"
+              className="lg:grid lg:grid-cols-12 lg:gap-10 lg:items-start"
             >
-              <div className="flex items-center justify-between px-2">
-                <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">CONFORMAÇÃO DOS TIMES</h3>
-                <button onClick={() => confirm("Deseja refazer o sorteio? Isso apagará o sorteio atual para todos.") && deleteDoc(doc(db, "sessions", "current"))} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER</button>
-              </div>
+              <div className="lg:col-span-8 space-y-8">
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">CONFORMAÇÃO DOS TIMES</h3>
+                  <button onClick={() => confirm("Deseja refazer o sorteio? Isso apagará o sorteio atual para todos.") && deleteDoc(doc(db, "sessions", "current"))} className="text-[10px] font-black text-primary uppercase border-b-2 border-primary/10 pb-1">REFAZER</button>
+                </div>
 
-              <div className="space-y-6">
-                {session.teams.map((team, idx) => (
-                  <motion.div 
-                    key={idx} 
-                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: idx * 0.2, type: "spring", stiffness: 100 }}
-                    className="bg-white rounded-[3rem] border border-slate-100 shadow-soft-white overflow-hidden"
-                  >
-                    <div className={`px-10 py-6 flex justify-between items-center ${idx % 2 === 0 ? 'bg-navy' : 'bg-primary'} text-white`}>
-                      <h4 className="text-xl font-black uppercase italic tracking-tighter leading-none">{team.name}</h4>
-                      <span className="text-[10px] font-black opacity-50 uppercase tracking-widest">SORTEADO</span>
-                    </div>
-                    <div className="p-10 space-y-6">
-                      <div className="grid grid-cols-1 gap-5">
-                        {team.playerIds.map((pid, i) => {
-                          const p = players.find(x => x.id === pid);
-                          const isGK = p?.position === 'Goleiro';
-                          return (
-                            <motion.div 
-                              key={pid}
-                              initial={{ opacity: 0, x: -10 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: idx * 0.2 + 0.3 + (i * 0.1) }}
-                            >
-                              <PlayerRow pid={pid} players={players} isGK={isGK} />
-                            </motion.div>
-                          );
-                        })}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                  {session.teams.map((team, idx) => (
+                    <motion.div 
+                      key={idx} 
+                      initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ delay: idx * 0.2, type: "spring", stiffness: 100 }}
+                      className="bg-white rounded-[3rem] border border-slate-100 shadow-soft-white overflow-hidden"
+                    >
+                      <div className={`px-10 py-6 flex justify-between items-center ${idx % 2 === 0 ? 'bg-navy' : 'bg-primary'} text-white`}>
+                        <h4 className="text-xl font-black uppercase italic tracking-tighter leading-none">{team.name}</h4>
+                        <span className="text-[10px] font-black opacity-50 uppercase tracking-widest">SORTEADO</span>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="p-10 space-y-6">
+                        <div className="grid grid-cols-1 gap-5">
+                          {team.playerIds.map((pid, i) => {
+                            const p = players.find(x => x.id === pid);
+                            const isGK = p?.position === 'Goleiro';
+                            return (
+                              <motion.div 
+                                key={pid}
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.2 + 0.3 + (i * 0.1) }}
+                              >
+                                <PlayerRow pid={pid} players={players} isGK={isGK} />
+                              </motion.div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
 
-              {session.status === 'waiting' && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: (session.teams.length * 0.2) + 0.5 }}
-                  className="space-y-4 pt-6"
-                >
-                  <button 
-                    onClick={handlePushToArena}
-                    disabled={isSavingArena}
-                    className="w-full h-22 bg-navy text-white rounded-[2.5rem] font-black uppercase text-[13px] tracking-widest shadow-elite active:scale-95 transition-all flex items-center justify-center gap-4"
+              <div className="lg:col-span-4 mt-10 lg:mt-0">
+                {session.status === 'waiting' && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: (session.teams.length * 0.2) + 0.5 }}
+                    className="space-y-4 sticky top-10"
                   >
-                    {isSavingArena ? <div className="w-7 h-7 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : (
-                      <>
-                        <span className="material-symbols-outlined text-2xl">stadium</span>
-                        INICIAR ARENA O&A
-                      </>
-                    )}
-                  </button>
-                  
-                  <button 
-                    onClick={() => {
-                      let msg = `⚽ *ESQUADRÕES O&A* 🇭🇷\n\n`;
-                      session.teams.forEach(t => {
-                        const flds = t.playerIds.map(pid => {
-                          const p = players.find(x => x.id === pid);
-                          return p?.position === 'Goleiro' ? `🧤 ${p.name}` : p?.name;
-                        }).filter(Boolean);
-                        msg += `*${t.name.toUpperCase()}*\n🏃: ${flds.join(', ')}\n\n`;
-                      });
-                      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
-                    }}
-                    className="w-full h-16 bg-success text-white rounded-[1.75rem] font-black uppercase text-[11px] tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
-                  >
-                    <span className="material-symbols-outlined text-lg">share</span>
-                    ENVIAR PARA O WHATSAPP
-                  </button>
-                </motion.div>
-              )}
+                    <button 
+                      onClick={handlePushToArena}
+                      disabled={isSavingArena}
+                      className="w-full h-22 bg-navy text-white rounded-[2.5rem] font-black uppercase text-[13px] tracking-widest shadow-elite active:scale-95 transition-all flex items-center justify-center gap-4"
+                    >
+                      {isSavingArena ? <div className="w-7 h-7 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : (
+                        <>
+                          <span className="material-symbols-outlined text-2xl">stadium</span>
+                          INICIAR ARENA O&A
+                        </>
+                      )}
+                    </button>
+                    
+                    <button 
+                      onClick={() => {
+                        let msg = `⚽ *ESQUADRÕES O&A* 🇭🇷\n\n`;
+                        session.teams.forEach(t => {
+                          const flds = t.playerIds.map(pid => {
+                            const p = players.find(x => x.id === pid);
+                            return p?.position === 'Goleiro' ? `🧤 ${p.name}` : p?.name;
+                          }).filter(Boolean);
+                          msg += `*${t.name.toUpperCase()}*\n🏃: ${flds.join(', ')}\n\n`;
+                        });
+                        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
+                      }}
+                      className="w-full h-16 bg-success text-white rounded-[1.75rem] font-black uppercase text-[11px] tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                      <span className="material-symbols-outlined text-lg">share</span>
+                      ENVIAR PARA O WHATSAPP
+                    </button>
+                  </motion.div>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Match, Player, Page } from '../types.ts';
-import { db, doc, updateDoc, deleteDoc, collection, getDocs } from '../services/firebase.ts';
+import { db, doc, updateDoc, deleteDoc, collection, getDocs, writeBatch } from '../services/firebase.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { getNotificationStatus, requestNotificationPermission, broadcastNotification } from '../services/notificationService.ts';
 
@@ -36,8 +36,27 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const fieldSlots = match?.fieldSlots || 30;
   const gkSlots = match?.gkSlots || 4;
 
-  const confirmedGKs = confirmedPlayers.filter(p => p.position === 'Goleiro');
-  const confirmedField = confirmedPlayers.filter(p => p.position !== 'Goleiro');
+  const confirmedGKs = confirmedPlayers.filter(p => p.position === 'Goleiro').sort((a, b) => {
+    const timeA = a.confirmedAt ? new Date(a.confirmedAt).getTime() : new Date(a.createdAt || 0).getTime();
+    const timeB = b.confirmedAt ? new Date(b.confirmedAt).getTime() : new Date(b.createdAt || 0).getTime();
+    return timeA - timeB;
+  });
+  
+  const confirmedField = confirmedPlayers.filter(p => p.position !== 'Goleiro').sort((a, b) => {
+    const timeA = a.confirmedAt ? new Date(a.confirmedAt).getTime() : new Date(a.createdAt || 0).getTime();
+    const timeB = b.confirmedAt ? new Date(b.confirmedAt).getTime() : new Date(b.createdAt || 0).getTime();
+    return timeA - timeB;
+  });
+
+  const isGk = currentPlayer?.position === 'Goleiro';
+  const myIndex = isGk 
+    ? confirmedGKs.findIndex(p => p.id === user?.uid)
+    : confirmedField.findIndex(p => p.id === user?.uid);
+
+  const isInWaitingList = isConfirmed && (
+    (isGk && myIndex >= gkSlots) || 
+    (!isGk && myIndex >= fieldSlots)
+  );
 
   useEffect(() => {
     if (!match) {
@@ -56,9 +75,16 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     if (!user || isUpdating || !match) return;
     setIsUpdating(true);
     try {
-      await updateDoc(doc(db, "players", user.uid), { 
-        status: isConfirmed ? 'pendente' : 'presente' 
-      });
+      const newStatus = isConfirmed ? 'pendente' : 'presente';
+      const updates: any = { status: newStatus };
+      
+      if (newStatus === 'presente') {
+        updates.confirmedAt = new Date().toISOString();
+      } else {
+        updates.confirmedAt = null;
+      }
+
+      await updateDoc(doc(db, "players", user.uid), updates);
     } catch (e) { alert("Erro de conexão."); } finally { setIsUpdating(false); }
   };
 
@@ -75,7 +101,7 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     try {
       await broadcastNotification(
         "⏰ LEMBRETE DE JOGO!", 
-        `O racha na ${match.location.toUpperCase()} está chegando! Confirme sua presença agora.`
+        `A pelada na ${match.location.toUpperCase()} está chegando! Confirme sua presença agora.`
       );
       alert("Lembrete enviado com sucesso!");
     } catch (e) {
@@ -87,20 +113,33 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   const handleClearAllMatches = async () => {
     if (isUpdating) return;
-    if (!confirm("⚠️ ATENÇÃO: Deseja apagar a pelada atual? Isso resetará a lista de presença para a próxima.")) return;
+    if (!confirm("⚠️ ATENÇÃO: Deseja finalizar o evento atual? Isso apagará a convocação, a arena e resetará a lista de presença para a próxima.")) return;
     
     setIsUpdating(true);
     try {
-      const matchesSnap = await getDocs(collection(db, "matches"));
-      const deletePromises = matchesSnap.docs.map(d => deleteDoc(doc(db, "matches", d.id)));
-      await Promise.all(deletePromises);
+      const batch = writeBatch(db);
 
-      const resetPromises = players.map(p => updateDoc(doc(db, "players", p.id), { status: 'pendente' }));
-      await Promise.all(resetPromises);
+      // 1. Apagar convocações
+      const matchesSnap = await getDocs(collection(db, "matches"));
+      matchesSnap.docs.forEach(d => batch.delete(d.ref));
+
+      // 2. Apagar arena (sessão)
+      batch.delete(doc(db, "sessions", "current"));
+
+      // 3. Resetar jogadores
+      players.forEach(p => {
+        if (p.status === 'presente') {
+          batch.update(doc(db, "players", p.id), { 
+            status: 'pendente',
+            confirmedAt: null 
+          });
+        }
+      });
       
-      alert("Pronto! Pelada encerrada.");
+      await batch.commit();
+      alert("Evento finalizado com sucesso!");
     } catch (e) { 
-      alert("Erro ao limpar sistema."); 
+      alert("Erro ao finalizar evento."); 
     } finally { 
       setIsUpdating(false); 
     }
@@ -108,10 +147,15 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   return (
     <div className="flex flex-col animate-fade-in px-6">
-      <header className="py-10 flex items-center justify-between">
+      <header className="py-12 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <img src={mainLogoUrl} className="w-14 h-14 object-contain animate-float" />
-          <h1 className="text-2xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA O&A</h1>
+          <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-soft-white animate-float border border-slate-100 p-2">
+            <img src={mainLogoUrl} className="w-10 h-10 object-contain" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ARENA O&A</h1>
+            <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">ESTÁDIO DIGITAL</p>
+          </div>
         </div>
         {isAdmin && !match && (
           <button onClick={() => onPageChange(Page.CreateMatch)} className="w-12 h-12 bg-navy text-white rounded-2xl flex items-center justify-center shadow-elite animate-float">
@@ -143,134 +187,178 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         </div>
       )}
 
-      <main className="space-y-8">
-        {match ? (
-          <div className="bg-white border border-slate-100 relative overflow-hidden rounded-[3rem] p-10 text-navy shadow-elite min-h-[520px] flex flex-col justify-between">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 opacity-[0.08] pointer-events-none animate-float select-none">
-                <img src={mainLogoUrl} className="w-full h-full object-contain grayscale" />
-            </div>
-
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-8">
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] block">PRÓXIMA ARENA</span>
-                  <h2 className="text-5xl font-condensed italic font-black uppercase tracking-tight text-navy leading-none">{match.location}</h2>
-                </div>
-                {isAdmin && (
-                  <div className="flex gap-3">
-                    <button 
-                      onClick={handleSendReminder} 
-                      disabled={isUpdating || pendingPlayers.length === 0}
-                      className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 active:bg-navy active:text-white transition-all disabled:opacity-50"
-                      title="Enviar Lembrete"
-                    >
-                      <span className="material-symbols-outlined">notification_important</span>
-                    </button>
-                    <button onClick={handleClearAllMatches} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 active:bg-primary active:text-white transition-all">
-                      <span className="material-symbols-outlined">delete_sweep</span>
-                    </button>
-                  </div>
-                )}
+      <main className="lg:grid lg:grid-cols-12 lg:gap-10 lg:items-start pb-40">
+        <div className="lg:col-span-7 space-y-8">
+          {match ? (
+            <div className="bg-white border border-slate-100 relative overflow-hidden rounded-[3rem] p-10 text-navy shadow-elite min-h-[520px] flex flex-col justify-between">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 opacity-[0.08] pointer-events-none animate-float select-none">
+                  <img src={mainLogoUrl} className="w-full h-full object-contain grayscale" />
               </div>
 
-              <div className="space-y-8">
-                <div className="space-y-3">
-                  <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-navy/40 italic">
-                    <span>JOGADORES DE LINHA</span>
-                    <span className="text-navy">{confirmedField.length} / {fieldSlots}</span>
+              <div className="relative z-10">
+                <div className="flex justify-between items-start mb-8">
+                  <div className="space-y-2">
+                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em] block">PRÓXIMA ARENA</span>
+                    <h2 className="text-5xl font-condensed italic font-black uppercase tracking-tight text-navy leading-none">{match.location}</h2>
                   </div>
-                  <div className="h-3.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-0.5">
-                    <div className="h-full bg-navy shadow-[0_0_15px_rgba(0,81,162,0.3)] transition-all duration-1000 rounded-full" style={{ width: `${lineProgress}%` }}></div>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-navy/40 italic">
-                    <span>GOLEIROS</span>
-                    <span className="text-primary">{confirmedGKs.length} / {gkSlots}</span>
-                  </div>
-                  <div className="h-3.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-0.5">
-                    <div className="h-full bg-primary shadow-[0_0_15px_rgba(227,6,19,0.3)] transition-all duration-1000 rounded-full" style={{ width: `${gkProgress}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="relative z-10 pt-10">
-              <div className="flex items-center gap-10 mb-8 border-t border-slate-100 pt-8">
-                 <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
-                     <span className="material-symbols-outlined text-navy text-sm">calendar_today</span>
-                   </div>
-                   <p className="text-sm font-black italic uppercase">{new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase()}</p>
-                 </div>
-                 <div className="flex items-center gap-3">
-                   <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
-                     <span className="material-symbols-outlined text-navy text-sm">schedule</span>
-                   </div>
-                   <p className="text-sm font-black italic uppercase">{match.time}H</p>
-                 </div>
-              </div>
-
-              <div className="flex flex-col gap-5">
-                <button 
-                  onClick={togglePresence}
-                  disabled={isUpdating}
-                  className={`w-full h-20 rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 ${isConfirmed ? 'bg-navy text-white shadow-elite' : 'bg-primary text-white shadow-glow-red'}`}
-                >
-                  {isUpdating ? <div className="w-6 h-6 border-3 border-current/20 border-t-current rounded-full animate-spin"></div> : (
-                    <>{isConfirmed ? 'VOCÊ ESTÁ CONFIRMADO ✅' : 'MARCAR MINHA PRESENÇA ⚽'}</>
+                  {isAdmin && (
+                    <div className="flex gap-3">
+                      <button 
+                        onClick={handleSendReminder} 
+                        disabled={isUpdating || pendingPlayers.length === 0}
+                        className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 active:bg-navy active:text-white transition-all disabled:opacity-50"
+                        title="Enviar Lembrete"
+                      >
+                        <span className="material-symbols-outlined">notification_important</span>
+                      </button>
+                      <button onClick={handleClearAllMatches} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 active:bg-primary active:text-white transition-all">
+                        <span className="material-symbols-outlined">delete_sweep</span>
+                      </button>
+                    </div>
                   )}
-                </button>
+                </div>
 
-                {isAdmin && confirmedPlayers.length >= 4 && (
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-navy/40 italic">
+                      <span>JOGADORES DE LINHA</span>
+                      <span className="text-navy">{confirmedField.length} / {fieldSlots}</span>
+                    </div>
+                    <div className="h-3.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-0.5">
+                      <div className="h-full bg-navy shadow-[0_0_15px_rgba(0,81,162,0.3)] transition-all duration-1000 rounded-full" style={{ width: `${lineProgress}%` }}></div>
+                    </div>
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-navy/40 italic">
+                      <span>GOLEIROS</span>
+                      <span className="text-primary">{confirmedGKs.length} / {gkSlots}</span>
+                    </div>
+                    <div className="h-3.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-0.5">
+                      <div className="h-full bg-primary shadow-[0_0_15px_rgba(227,6,19,0.3)] transition-all duration-1000 rounded-full" style={{ width: `${gkProgress}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative z-10 pt-10">
+                <div className="flex items-center gap-10 mb-8 border-t border-slate-100 pt-8">
+                   <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
+                       <span className="material-symbols-outlined text-navy text-sm">calendar_today</span>
+                     </div>
+                     <p className="text-sm font-black italic uppercase">{new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toUpperCase()}</p>
+                   </div>
+                   <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center">
+                       <span className="material-symbols-outlined text-navy text-sm">schedule</span>
+                     </div>
+                     <p className="text-sm font-black italic uppercase">{match.time}H</p>
+                   </div>
+                </div>
+
+                <div className="flex flex-col gap-5">
                   <button 
-                    onClick={() => onPageChange(Page.TeamBalancing)}
-                    className="w-full h-16 bg-white text-navy border-2 border-slate-100 rounded-[1.75rem] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-3 shadow-soft-white"
+                    onClick={togglePresence}
+                    disabled={isUpdating}
+                    className={`w-full h-20 rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 ${isConfirmed ? (isInWaitingList ? 'bg-amber-500 text-white shadow-glow-amber' : 'bg-navy text-white shadow-elite') : 'bg-primary text-white shadow-glow-red'}`}
                   >
-                    <span className="material-symbols-outlined text-lg">shuffle</span>
-                    SORTEIO DE TIMES
+                    {isUpdating ? <div className="w-6 h-6 border-3 border-current/20 border-t-current rounded-full animate-spin"></div> : (
+                      <>{isConfirmed ? (isInWaitingList ? 'VOCÊ ESTÁ NA ESPERA ⏳' : 'VOCÊ ESTÁ CONFIRMADO ✅') : 'MARCAR MINHA PRESENÇA ⚽'}</>
+                    )}
                   </button>
-                )}
+
+                  {isAdmin && confirmedPlayers.length >= 4 && (
+                    <button 
+                      onClick={() => onPageChange(Page.TeamBalancing)}
+                      className="w-full h-16 bg-white text-navy border-2 border-slate-100 rounded-[1.75rem] font-black uppercase text-[10px] tracking-widest active:scale-95 transition-all flex items-center justify-center gap-3 shadow-soft-white"
+                    >
+                      <span className="material-symbols-outlined text-lg">shuffle</span>
+                      SORTEIO DE TIMES
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div className="py-24 flex flex-col items-center justify-center text-center space-y-10 animate-fade-in bg-white border border-slate-100 rounded-[4rem] shadow-soft-white p-12">
-             <img src={mainLogoUrl} className="w-32 h-32 object-contain opacity-20 animate-float" />
-             <div>
-                <h3 className="text-3xl font-black text-navy uppercase italic tracking-tighter">LISTA FECHADA</h3>
-                <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.4em] mt-4">Aguardando convocação da diretoria</p>
-             </div>
-             {isAdmin && (
-               <button onClick={() => onPageChange(Page.CreateMatch)} className="h-18 px-12 bg-navy text-white rounded-3xl font-black uppercase text-[11px] tracking-widest shadow-elite active:scale-95 transition-all flex items-center gap-3">
-                 <span className="material-symbols-outlined">add_circle</span>
-                 ABRIR CONVOCAÇÃO
-               </button>
-             )}
-          </div>
-        )}
+          ) : (
+            <div className="py-24 flex flex-col items-center justify-center text-center space-y-10 animate-fade-in bg-white border border-slate-100 rounded-[4rem] shadow-soft-white p-12">
+               <img src={mainLogoUrl} className="w-32 h-32 object-contain opacity-20 animate-float" />
+               <div>
+                  <h3 className="text-3xl font-black text-navy uppercase italic tracking-tighter">LISTA FECHADA</h3>
+                  <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.4em] mt-4">Aguardando convocação da diretoria</p>
+               </div>
+               {isAdmin && (
+                 <button onClick={() => onPageChange(Page.CreateMatch)} className="h-18 px-12 bg-navy text-white rounded-3xl font-black uppercase text-[11px] tracking-widest shadow-elite active:scale-95 transition-all flex items-center gap-3">
+                   <span className="material-symbols-outlined">add_circle</span>
+                   ABRIR CONVOCAÇÃO
+                 </button>
+               )}
+            </div>
+          )}
+        </div>
 
-        <section className="space-y-6">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA</h3>
-            <button onClick={() => onPageChange(Page.PlayerList)} className="text-[10px] font-black text-primary uppercase">VER TODOS</button>
-          </div>
-          <div className="space-y-4">
-            {players.filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 3).map((p, i) => (
-              <div key={p.id} className="bg-white border border-slate-100 p-6 rounded-[2.5rem] flex items-center justify-between shadow-soft-white group hover:border-navy/20 transition-all">
-                <div className="flex items-center gap-5">
-                  <div className="w-10 h-10 rounded-2xl bg-slate-50 text-navy border border-slate-100 flex items-center justify-center font-black italic text-sm group-hover:bg-navy group-hover:text-white transition-all">{i+1}</div>
-                  <img src={p.photoUrl} className="w-16 h-16 rounded-[1.5rem] object-cover border-2 border-slate-50" />
-                  <p className="text-[16px] font-black text-navy uppercase italic">{p.name}</p>
-                </div>
-                <div className="text-right">
-                   <p className="text-4xl font-condensed italic font-black text-primary leading-none tracking-tighter">{p.goals}</p>
-                   <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">GOLS</p>
-                </div>
+        <div className="lg:col-span-5 space-y-8 mt-12 lg:mt-0">
+          <section className="space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-xl">workspace_premium</span>
+                <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">ARTILHARIA ELITE</h3>
               </div>
-            ))}
-          </div>
-        </section>
+              <button onClick={() => onPageChange(Page.Ranking)} className="text-[10px] font-black text-primary uppercase border-b border-primary/20 pb-0.5">VER TODOS</button>
+            </div>
+            
+            <div className="space-y-4">
+              {players.filter(p => p.goals > 0).sort((a,b) => b.goals - a.goals).slice(0, 5).map((p, i) => {
+                const isTop3 = i < 3;
+                const rankColors = [
+                  'bg-amber-400 text-white shadow-glow-amber', // 1st
+                  'bg-slate-300 text-white shadow-soft-white', // 2nd
+                  'bg-orange-400 text-white shadow-glow-orange', // 3rd
+                ];
+                const rankIcons = ['trophy', 'military_tech', 'military_tech'];
+                
+                return (
+                  <div 
+                    key={p.id} 
+                    className={`bg-white border p-6 rounded-[2.5rem] flex items-center justify-between transition-all group hover:scale-[1.02] ${isTop3 ? 'border-navy/10 shadow-elite' : 'border-slate-100 shadow-soft-white'}`}
+                  >
+                    <div className="flex items-center gap-5">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black italic text-lg shrink-0 ${isTop3 ? rankColors[i] : 'bg-slate-50 text-navy border border-slate-100'}`}>
+                        {isTop3 ? (
+                          <span className="material-symbols-outlined text-2xl">{rankIcons[i]}</span>
+                        ) : (
+                          i + 1
+                        )}
+                      </div>
+                      <div className="relative">
+                        <img src={p.photoUrl} className={`w-16 h-16 rounded-[1.5rem] object-cover border-2 ${isTop3 ? 'border-navy/10' : 'border-slate-50'}`} />
+                        {isTop3 && (
+                          <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-lg flex items-center justify-center shadow-lg ${rankColors[i]}`}>
+                             <span className="text-[10px] font-black">{i+1}º</span>
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[16px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</p>
+                        <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">{p.position}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                       <p className={`text-4xl font-condensed italic font-black leading-none tracking-tighter ${isTop3 ? 'text-navy' : 'text-primary'}`}>{p.goals}</p>
+                       <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">GOLS</p>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {players.filter(p => p.goals > 0).length === 0 && (
+                <div className="py-20 text-center bg-white border border-dashed border-slate-100 rounded-[3rem]">
+                   <span className="material-symbols-outlined text-4xl text-slate-100 mb-4">sports_soccer</span>
+                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">A TEMPORADA AINDA NÃO COMEÇOU</p>
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
       </main>
     </div>
   );

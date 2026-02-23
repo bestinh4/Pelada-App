@@ -13,6 +13,8 @@ export interface Player {
   totalWins: number;
   position: string;
   status: 'presente' | 'pendente';
+  confirmedAt?: string;
+  createdAt?: string;
   playerType: 'mensalista' | 'avulso';
   role?: 'admin' | 'player';
   skills?: {
@@ -23,6 +25,14 @@ export interface Player {
   // Fix: Adding financial tracking properties used in Ranking.tsx
   monthlyPaid?: boolean;
   paymentStatus?: 'pago' | 'pendente';
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  category: string;
 }
 
 export interface Team {

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Player, Page, Match } from '../types.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
-import { db, doc, updateDoc, deleteDoc, collection } from '../services/firebase.ts';
+import { db, doc, updateDoc, deleteDoc, collection, addDoc } from '../services/firebase.ts';
 
 interface PlayerListProps {
   players: Player[];
@@ -10,6 +10,8 @@ interface PlayerListProps {
   match: Match | null;
   onPageChange: (page: Page) => void;
 }
+
+const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
 const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, onPageChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -23,6 +25,14 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   });
   const [isSavingStats, setIsSavingStats] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [isAddingManual, setIsAddingManual] = useState(false);
+  const [newPlayerData, setNewPlayerData] = useState({
+    name: '',
+    position: 'Atacante',
+    playerType: 'avulso' as 'mensalista' | 'avulso',
+    status: 'presente' as 'presente' | 'pendente'
+  });
+  const [isCreating, setIsCreating] = useState(false);
 
   const adminUser = players.find(p => p.id === currentUser?.uid);
   const isCurrentUserAdmin = adminUser?.role === 'admin' || currentUser?.email === MASTER_ADMIN_EMAIL;
@@ -30,26 +40,57 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   const filtered = players.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
   
   // Lógica de separação para a mensagem
-  const allPresent = players.filter(p => p.status === 'presente');
-  const maxSlots = (match?.fieldSlots || 30) + (match?.gkSlots || 4);
-  
-  const confirmed = allPresent.slice(0, maxSlots);
-  const waitingList = allPresent.length > maxSlots ? allPresent.slice(maxSlots) : [];
+  const sortedPresent = players
+    .filter(p => p.status === 'presente')
+    .sort((a, b) => {
+      const timeA = a.confirmedAt ? new Date(a.confirmedAt).getTime() : new Date(a.createdAt || 0).getTime();
+      const timeB = b.confirmedAt ? new Date(b.confirmedAt).getTime() : new Date(b.createdAt || 0).getTime();
+      return timeA - timeB;
+    });
+
+  const fieldSlots = match?.fieldSlots || 30;
+  const gkSlots = match?.gkSlots || 4;
+
+  const confirmed: Player[] = [];
+  const waitingList: Player[] = [];
+
+  let fieldCount = 0;
+  let gkCount = 0;
+
+  sortedPresent.forEach(p => {
+    if (p.position === 'Goleiro') {
+      if (gkCount < gkSlots) {
+        confirmed.push(p);
+        gkCount++;
+      } else {
+        waitingList.push(p);
+      }
+    } else {
+      if (fieldCount < fieldSlots) {
+        confirmed.push(p);
+        fieldCount++;
+      } else {
+        waitingList.push(p);
+      }
+    }
+  });
+
   const outPlayers = players.filter(p => p.status !== 'presente');
 
   const handleShareList = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
     const location = match?.location || 'A DEFINIR';
     const time = match?.time || '--:--';
+    const totalSlots = (match?.fieldSlots || 30) + (match?.gkSlots || 4);
 
     let message = `🏆 *ARENA OUSADIA & ALEGRIA* 🇭🇷\n`;
-    message += `_Convocação Oficial para o Racha_\n`;
+    message += `_Convocação Oficial para a Pelada_\n`;
     message += `-------------------------------------------\n\n`;
     message += `📍 *LOCAL:* ${location.toUpperCase()}\n`;
     message += `📅 *DATA:* ${dateStr.toUpperCase()}\n`;
     message += `⏰ *HORÁRIO:* ${time}H\n\n`;
 
-    message += `✅ *CONFIRMADOS (${confirmed.length}/${maxSlots})*\n`;
+    message += `✅ *CONFIRMADOS (${confirmed.length}/${totalSlots})*\n`;
     confirmed.forEach((p, i) => {
       const posIcon = p.position === 'Goleiro' ? '🧤' : '🏃';
       message += `${i + 1}. ${p.name.toUpperCase()} (${posIcon} ${p.position})\n`;
@@ -70,44 +111,80 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     }
 
     message += `\n-------------------------------------------\n`;
-    message += `⚽ *Acesse o App:* https://pelada-app.vercel.app\n`;
-    message += `_Gestão Ousadia & Alegria_`;
+    message += `⚽ *Acesse o App:* https://ousadia.vercel.app\n`;
+    message += `_Gestão Croatia Elite Series_`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
 
+  const handleCreateManualPlayer = async () => {
+    if (!newPlayerData.name.trim()) return alert("Digite o nome do jogador!");
+    
+    setIsCreating(true);
+    try {
+      await addDoc(collection(db, "players"), {
+        ...newPlayerData,
+        goals: 0,
+        assists: 0,
+        role: 'player',
+        photoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(newPlayerData.name)}&background=random&color=fff&size=256`,
+        createdAt: new Date().toISOString(),
+        confirmedAt: newPlayerData.status === 'presente' ? new Date().toISOString() : null,
+        manual: true // Flag para identificar que foi adicionado manualmente
+      });
+      setIsAddingManual(false);
+      setNewPlayerData({ name: '', position: 'Atacante', playerType: 'avulso', status: 'presente' });
+    } catch (e) {
+      alert("Erro ao adicionar jogador.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="flex flex-col animate-fade-in px-6">
-      <header className="py-12 flex flex-col gap-10">
-        <div className="flex items-center justify-between">
-           <div className="space-y-1">
-             <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ELENCO O&A</h2>
-             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">CONVOCAÇÃO ATUAL</p>
-           </div>
-           <div className="flex gap-4">
-             <button onClick={handleShareList} className="w-14 h-14 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-soft-white active:scale-90 transition-all text-navy group">
-                <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">share</span>
-             </button>
-           </div>
+      <header className="py-12 flex items-center justify-between">
+        <div className="space-y-1">
+          <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ELENCO O&A</h2>
+          <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">CONVOCAÇÃO ATUAL</p>
         </div>
-        <div className="relative">
-          <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">search</span>
-          <input 
-            type="text" placeholder="Buscar atleta no elenco..." value={searchQuery} 
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full h-16 bg-white border border-slate-100 rounded-2xl pl-14 pr-6 text-[15px] font-bold text-navy outline-none shadow-soft-white focus:border-navy transition-all" 
-          />
+        <div className="flex gap-4">
+          {isCurrentUserAdmin && (
+            <button 
+              onClick={() => setIsAddingManual(true)} 
+              className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-glow-red active:scale-90 transition-all group"
+              title="Adicionar Jogador Manual"
+            >
+              <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform">person_add</span>
+            </button>
+          )}
+          <button onClick={handleShareList} className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-soft-white active:scale-90 transition-all text-navy group">
+            <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">share</span>
+          </button>
+          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-soft-white animate-float border border-slate-100 p-2">
+            <img src={mainLogoUrl} className="w-8 h-8 object-contain" />
+          </div>
         </div>
       </header>
 
-      <main className="space-y-14 pb-48">
-        <PlayerSection 
+      <div className="mb-10 relative">
+        <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">search</span>
+        <input 
+          type="text" placeholder="Buscar atleta no elenco..." value={searchQuery} 
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full h-16 bg-white border border-slate-100 rounded-2xl pl-14 pr-6 text-[15px] font-bold text-navy outline-none shadow-soft-white focus:border-navy transition-all" 
+        />
+      </div>
+
+      <main className="lg:grid lg:grid-cols-12 lg:gap-10 lg:items-start pb-48">
+        <div className="lg:col-span-8 space-y-14">
+          <PlayerSection 
           title="CONFIRMADOS" 
-          list={allPresent.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
+          list={confirmed.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
           isAdmin={isCurrentUserAdmin} 
           onQuickToggle={async (p: Player) => {
             setProcessingId(p.id);
-            await updateDoc(doc(db, "players", p.id), { status: 'pendente' });
+            await updateDoc(doc(db, "players", p.id), { status: 'pendente', confirmedAt: null });
             setProcessingId(null);
           }}
           onEdit={(p: Player) => {
@@ -121,7 +198,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
             });
           }} 
           onDelete={async (p: Player) => {
-            if (confirm(`Remover ${p.name.toUpperCase()} do racha?`)) {
+            if (confirm(`Remover ${p.name.toUpperCase()} da pelada?`)) {
               await deleteDoc(doc(db, "players", p.id));
             }
           }}
@@ -129,33 +206,69 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           type="confirmed"
         />
 
-        <PlayerSection 
-          title="FORA / PENDENTES" 
-          list={outPlayers.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
-          isAdmin={isCurrentUserAdmin} 
-          onQuickToggle={async (p: Player) => {
-            setProcessingId(p.id);
-            await updateDoc(doc(db, "players", p.id), { status: 'presente' });
-            setProcessingId(null);
-          }}
-          onEdit={(p: Player) => {
-            setSelectedPlayerForStats(p);
-            setStatsData({ 
-              goals: p.goals || 0, 
-              assists: p.assists || 0, 
-              role: (p.role as any) || 'player', 
-              playerType: p.playerType || 'avulso', 
-              status: p.status || 'pendente' 
-            });
-          }} 
-          onDelete={async (p: Player) => {
-            if (confirm(`Remover ${p.name.toUpperCase()} do elenco?`)) {
-              await deleteDoc(doc(db, "players", p.id));
-            }
-          }}
-          processingId={processingId}
-          type="pending"
-        />
+        {waitingList.length > 0 && (
+          <PlayerSection 
+            title="LISTA DE ESPERA" 
+            list={waitingList.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
+            isAdmin={isCurrentUserAdmin} 
+            onQuickToggle={async (p: Player) => {
+              setProcessingId(p.id);
+              await updateDoc(doc(db, "players", p.id), { status: 'pendente', confirmedAt: null });
+              setProcessingId(null);
+            }}
+            onEdit={(p: Player) => {
+              setSelectedPlayerForStats(p);
+              setStatsData({ 
+                goals: p.goals || 0, 
+                assists: p.assists || 0, 
+                role: (p.role as any) || 'player', 
+                playerType: p.playerType || 'avulso', 
+                status: p.status || 'pendente' 
+              });
+            }} 
+            onDelete={async (p: Player) => {
+              if (confirm(`Remover ${p.name.toUpperCase()} da espera?`)) {
+                await deleteDoc(doc(db, "players", p.id));
+              }
+            }}
+            processingId={processingId}
+            type="waiting"
+          />
+        )}
+        </div>
+
+        <div className="lg:col-span-4 mt-14 lg:mt-0">
+          <PlayerSection 
+            title="FORA / PENDENTES" 
+            list={outPlayers.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
+            isAdmin={isCurrentUserAdmin} 
+            onQuickToggle={async (p: Player) => {
+              setProcessingId(p.id);
+              await updateDoc(doc(db, "players", p.id), { 
+                status: 'presente',
+                confirmedAt: new Date().toISOString()
+              });
+              setProcessingId(null);
+            }}
+            onEdit={(p: Player) => {
+              setSelectedPlayerForStats(p);
+              setStatsData({ 
+                goals: p.goals || 0, 
+                assists: p.assists || 0, 
+                role: (p.role as any) || 'player', 
+                playerType: p.playerType || 'avulso', 
+                status: p.status || 'pendente' 
+              });
+            }} 
+            onDelete={async (p: Player) => {
+              if (confirm(`Remover ${p.name.toUpperCase()} do elenco?`)) {
+                await deleteDoc(doc(db, "players", p.id));
+              }
+            }}
+            processingId={processingId}
+            type="pending"
+          />
+        </div>
       </main>
 
       {selectedPlayerForStats && (
@@ -213,7 +326,13 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                   onClick={async () => {
                     setIsSavingStats(true);
                     try {
-                      await updateDoc(doc(db, "players", selectedPlayerForStats.id), statsData);
+                      const updates: any = { ...statsData };
+                      if (statsData.status === 'presente' && selectedPlayerForStats.status !== 'presente') {
+                        updates.confirmedAt = new Date().toISOString();
+                      } else if (statsData.status !== 'presente') {
+                        updates.confirmedAt = null;
+                      }
+                      await updateDoc(doc(db, "players", selectedPlayerForStats.id), updates);
                       setSelectedPlayerForStats(null);
                     } catch (e) {
                       alert("Erro ao salvar permissões.");
@@ -229,6 +348,88 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
            </div>
         </div>
       )}
+      {isAddingManual && (
+        <div className="fixed inset-0 bg-navy/60 backdrop-blur-md z-[200] flex items-center justify-center p-6">
+           <div className="w-full max-w-[400px] bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-slide-up">
+              <div className="p-8 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                 <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                       <span className="material-symbols-outlined text-2xl">person_add</span>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">NOVO ATLETA</h3>
+                      <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1">CADASTRO MANUAL (SEM APP)</p>
+                    </div>
+                 </div>
+                 <button onClick={() => setIsAddingManual(false)} className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-300 active:scale-90">
+                    <span className="material-symbols-outlined">close</span>
+                 </button>
+              </div>
+              
+              <div className="p-8 space-y-6">
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">NOME COMPLETO / APELIDO</label>
+                    <input 
+                      type="text" 
+                      value={newPlayerData.name} 
+                      onChange={e => setNewPlayerData({...newPlayerData, name: e.target.value})} 
+                      placeholder="Ex: Romário"
+                      className="w-full h-16 bg-slate-50 rounded-2xl border border-slate-100 px-6 font-black text-navy outline-none focus:border-primary" 
+                    />
+                 </div>
+
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">POSIÇÃO</label>
+                    <select 
+                      value={newPlayerData.position} 
+                      onChange={e => setNewPlayerData({...newPlayerData, position: e.target.value})} 
+                      className="w-full h-16 bg-slate-50 rounded-2xl border border-slate-100 px-6 font-black text-navy outline-none focus:border-primary"
+                    >
+                      <option value="Goleiro">Goleiro</option>
+                      <option value="Zagueiro">Zagueiro</option>
+                      <option value="Lateral">Lateral</option>
+                      <option value="Volante">Volante</option>
+                      <option value="Meia">Meia</option>
+                      <option value="Atacante">Atacante</option>
+                    </select>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">TIPO</label>
+                       <select 
+                        value={newPlayerData.playerType} 
+                        onChange={e => setNewPlayerData({...newPlayerData, playerType: e.target.value as any})} 
+                        className="w-full h-14 bg-slate-50 rounded-xl border border-slate-100 px-4 font-black text-navy text-[11px] outline-none"
+                       >
+                         <option value="avulso">AVULSO</option>
+                         <option value="mensalista">MENSALISTA</option>
+                       </select>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">PRESENÇA</label>
+                       <select 
+                        value={newPlayerData.status} 
+                        onChange={e => setNewPlayerData({...newPlayerData, status: e.target.value as any})} 
+                        className="w-full h-14 bg-slate-50 rounded-xl border border-slate-100 px-4 font-black text-navy text-[11px] outline-none"
+                       >
+                         <option value="presente">CONFIRMADO</option>
+                         <option value="pendente">PENDENTE</option>
+                       </select>
+                    </div>
+                 </div>
+
+                 <button 
+                  onClick={handleCreateManualPlayer}
+                  disabled={isCreating}
+                  className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-[0.2em] shadow-elite active:scale-95 transition-all mt-4"
+                 >
+                    {isCreating ? <div className="w-6 h-6 border-2 border-white/20 border-t-white rounded-full animate-spin mx-auto"></div> : "CADASTRAR JOGADOR"}
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -237,8 +438,8 @@ const PlayerSection = ({ title, list, isAdmin, onQuickToggle, onEdit, onDelete, 
   <section className="animate-slide-up">
     <div className="flex items-center justify-between mb-8 px-2">
        <div className="flex items-center gap-3">
-          <div className={`w-2 h-2 ${type === 'confirmed' ? 'bg-primary shadow-glow-red' : 'bg-slate-200'} rounded-full animate-pulse`}></div>
-          <h3 className="text-[12px] font-black uppercase tracking-[0.5em] text-navy italic">{title}</h3>
+          <div className={`w-2 h-2 ${type === 'confirmed' ? 'bg-primary shadow-glow-red' : type === 'waiting' ? 'bg-amber-400 shadow-glow-amber' : 'bg-slate-200'} rounded-full animate-pulse`}></div>
+          <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">{title}</h3>
        </div>
        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{list.length} ATLETAS</span>
     </div>

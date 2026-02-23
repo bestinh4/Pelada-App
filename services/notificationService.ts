@@ -19,9 +19,7 @@ export const requestNotificationPermission = async (userId?: string) => {
     if (permission === 'granted' && userId) {
       const userRef = doc(db, "players", userId);
       await updateDoc(userRef, { pushEnabled: true });
-      
-      // Notificação de teste imediata
-      sendPushNotification("CONECTADO! 🚀", "Você receberá alertas de novos jogadores aqui.");
+      // Notificação de teste removida para evitar ser marcado como spam
     }
     return permission === 'granted';
   } catch (error) {
@@ -44,32 +42,61 @@ export const broadcastNotification = async (title: string, body: string) => {
 };
 
 export const sendPushNotification = async (title: string, body: string) => {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!('Notification' in window)) {
+    console.error("❌ Notificações não são suportadas neste navegador.");
+    return;
+  }
+  
+  console.log("🔔 Estado da permissão:", Notification.permission);
+
+  if (Notification.permission !== 'granted') {
+    console.warn("🚫 Notificações não permitidas. Tentando solicitar...");
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      console.error("❌ Permissão negada pelo usuário.");
+      return;
+    }
+  }
 
   try {
-    // Tenta usar o Service Worker para mostrar a notificação (melhor para background/sistema)
+    console.log("🔔 Tentando disparar notificação:", title);
+    
+    // Tenta usar o Service Worker (necessário para notificações persistentes no sistema)
     if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.getRegistration();
-      if (registration) {
-        registration.showNotification(title, {
+      const registration = await navigator.serviceWorker.ready;
+      
+      if (registration && registration.showNotification) {
+        console.log("✅ Usando Service Worker para notificação persistente");
+        await registration.showNotification(title, {
           body,
           icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png',
           badge: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png',
           vibrate: [200, 100, 200],
           tag: 'oa-notification',
           renotify: true,
+          requireInteraction: true, // Mantém a notificação até o usuário interagir
           data: { url: window.location.origin }
         } as any);
         return;
       }
     }
     
-    // Fallback para o objeto Notification padrão
-    new Notification(title, { 
+    // Fallback para o objeto Notification padrão (menos persistente, mas funciona)
+    console.log("⚠️ Usando fallback de Notificação padrão (Main Thread)");
+    const notif = new Notification(title, { 
       body, 
       icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png' 
     });
+    
+    notif.onclick = () => {
+      window.focus();
+      notif.close();
+    };
   } catch (error) {
-    console.error("❌ Erro ao disparar notificação:", error);
+    console.error("❌ Erro crítico ao disparar notificação:", error);
+    // Tenta o fallback mais simples possível
+    try {
+       new Notification(title, { body });
+    } catch (e) {}
   }
 };
