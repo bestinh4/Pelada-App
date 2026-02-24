@@ -1,4 +1,5 @@
 
+
 import { db, doc, updateDoc, collection, addDoc } from './firebase.ts';
 
 export const getNotificationStatus = () => {
@@ -69,8 +70,8 @@ export const sendPushNotification = async (title: string, body: string) => {
         console.log("✅ Usando Service Worker para notificação persistente");
         await registration.showNotification(title, {
           body,
-          icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png',
-          badge: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png',
+          icon: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&bg=ffffff&w=192&h=192&fit=contain&padding=10',
+          badge: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&bg=ffffff&w=96&h=96&fit=contain',
           vibrate: [200, 100, 200],
           tag: 'oa-notification',
           renotify: true,
@@ -85,7 +86,7 @@ export const sendPushNotification = async (title: string, body: string) => {
     console.log("⚠️ Usando fallback de Notificação padrão (Main Thread)");
     const notif = new Notification(title, { 
       body, 
-      icon: 'https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png' 
+      icon: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&bg=ffffff&w=192&h=192&fit=contain&padding=10' 
     });
     
     notif.onclick = () => {
