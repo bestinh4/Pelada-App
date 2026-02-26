@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { db, doc, setDoc } from '../services/firebase.ts';
 import { Page } from '../types.ts';
-import { sendPushNotification } from '../services/notificationService.ts';
+import { sendPushNotification, broadcastNotification } from '../services/notificationService.ts';
 
 interface OnboardingProps {
   user: any;
@@ -38,9 +38,9 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
         role: 'player'
       });
       
-      sendPushNotification(
-        "🚀 BEM-VINDO!", 
-        `${name}, seu contrato foi assinado na Arena O&A!`
+      await broadcastNotification(
+        "🚀 NOVO ATLETA!", 
+        `${name} acaba de assinar com a Arena O&A!`
       );
       
       onComplete();

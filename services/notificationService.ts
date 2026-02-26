@@ -1,5 +1,4 @@
 
-
 import { db, doc, updateDoc, collection, addDoc } from './firebase.ts';
 
 export const getNotificationStatus = () => {
@@ -14,8 +13,13 @@ export const requestNotificationPermission = async (userId?: string) => {
   }
 
   try {
+    console.log('🔔 Solicitando permissão de notificação...');
     const permission = await Notification.requestPermission();
     console.log('🔔 Status da permissão:', permission);
+    
+    if (permission === 'denied') {
+      alert("As notificações foram bloqueadas. Para recebê-las, você precisa resetar as permissões no cadeado da barra de endereços do seu navegador.");
+    }
     
     if (permission === 'granted' && userId) {
       const userRef = doc(db, "players", userId);
@@ -50,43 +54,50 @@ export const sendPushNotification = async (title: string, body: string) => {
   
   console.log("🔔 Estado da permissão:", Notification.permission);
 
+  if (Notification.permission === 'denied') {
+    console.warn("🚫 Permissão de notificação negada. O usuário precisa resetar as permissões no navegador.");
+    return;
+  }
+
   if (Notification.permission !== 'granted') {
-    console.warn("🚫 Notificações não permitidas. Tentando solicitar...");
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      console.error("❌ Permissão negada pelo usuário.");
-      return;
-    }
+    console.warn("🚫 Notificações não permitidas. O sistema só pode solicitar permissão via clique do usuário.");
+    return;
   }
 
   try {
-    console.log("🔔 Tentando disparar notificação:", title);
+    console.log("🔔 Disparando notificação:", title);
     
-    // Tenta usar o Service Worker (necessário para notificações persistentes no sistema)
+    const options = {
+      body,
+      icon: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&w=192&h=192&fit=contain&padding=10',
+      badge: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&w=96&h=96&fit=contain',
+      vibrate: [200, 100, 200, 100, 200],
+      tag: 'oa-notification-' + Date.now(),
+      renotify: true,
+      requireInteraction: true,
+      data: { url: window.location.origin }
+    };
+
+    // Tenta usar o Service Worker primeiro (melhor suporte para background e sistema)
     if ('serviceWorker' in navigator) {
-      const registration = await navigator.serviceWorker.ready;
-      
-      if (registration && registration.showNotification) {
-        console.log("✅ Usando Service Worker para notificação persistente");
-        await registration.showNotification(title, {
-          body,
-          icon: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&bg=ffffff&w=192&h=192&fit=contain&padding=10',
-          badge: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&bg=ffffff&w=96&h=96&fit=contain',
-          vibrate: [200, 100, 200],
-          tag: 'oa-notification',
-          renotify: true,
-          requireInteraction: true, // Mantém a notificação até o usuário interagir
-          data: { url: window.location.origin }
-        } as any);
-        return;
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration && registration.showNotification) {
+          console.log("✅ Enviando via Service Worker");
+          await registration.showNotification(title, options as any);
+          return;
+        }
+      } catch (swErr) {
+        console.warn("⚠️ Falha ao usar Service Worker, tentando fallback:", swErr);
       }
     }
     
-    // Fallback para o objeto Notification padrão (menos persistente, mas funciona)
-    console.log("⚠️ Usando fallback de Notificação padrão (Main Thread)");
+    // Fallback para o objeto Notification padrão
+    console.log("⚠️ Usando fallback de Notificação padrão");
     const notif = new Notification(title, { 
-      body, 
-      icon: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&bg=ffffff&w=192&h=192&fit=contain&padding=10' 
+      body: options.body, 
+      icon: options.icon,
+      tag: options.tag
     });
     
     notif.onclick = () => {
@@ -94,10 +105,6 @@ export const sendPushNotification = async (title: string, body: string) => {
       notif.close();
     };
   } catch (error) {
-    console.error("❌ Erro crítico ao disparar notificação:", error);
-    // Tenta o fallback mais simples possível
-    try {
-       new Notification(title, { body });
-    } catch (e) {}
+    console.error("❌ Erro ao disparar notificação:", error);
   }
 };

@@ -185,6 +185,27 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
                 </p>
              </div>
           </div>
+
+          <div className="w-full space-y-6">
+             <div className="bg-white border border-slate-100 p-8 rounded-[3rem] shadow-soft-white">
+                <div className="flex items-center gap-3 mb-6">
+                   <span className="material-symbols-outlined text-primary text-xl">link</span>
+                   <h4 className="text-[11px] font-black text-navy uppercase italic tracking-tighter leading-none">LINKS ÚTEIS</h4>
+                </div>
+                <a 
+                  href="https://pelada-app.vercel.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-full h-16 bg-slate-50 border border-slate-100 text-navy rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-between px-6 active:scale-95 transition-all group"
+                >
+                   <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-primary group-hover:rotate-12 transition-transform">language</span>
+                      SITE PRINCIPAL (VERCEL)
+                   </div>
+                   <span className="material-symbols-outlined text-sm opacity-30">open_in_new</span>
+                </a>
+             </div>
+          </div>
         </div>
       </main>
     </div>

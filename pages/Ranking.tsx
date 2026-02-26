@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
-import { Player, Page, Expense } from '../types.ts';
+import { Player, Page, Expense, Match } from '../types.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { db, doc, updateDoc, setDoc, onSnapshot, collection, addDoc, deleteDoc } from '../services/firebase.ts';
+import { broadcastNotification } from '../services/notificationService.ts';
 
-const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (page: Page) => void }> = ({ players, currentUser, onPageChange }) => {
+const Ranking: React.FC<{ players: Player[], currentUser: any, match: Match | null, onPageChange: (page: Page) => void }> = ({ players, currentUser, match, onPageChange }) => {
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
   const [filter, setFilter] = useState<'todos' | 'pendentes' | 'pagos'>('todos');
   const [view, setView] = useState<'financeiro' | 'artilharia'>('financeiro');
   const [finView, setFinView] = useState<'receitas' | 'despesas'>('receitas');
@@ -38,6 +40,34 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
 
   const activePlayers = players.filter(p => p.status === 'presente');
   
+  // Lógica de Lista de Espera (Sincronizada com Dashboard.tsx)
+  const fieldSlots = match?.fieldSlots || 30;
+  const gkSlots = match?.gkSlots || 4;
+
+  const confirmedGKs = activePlayers.filter(p => p.position === 'Goleiro').sort((a, b) => {
+    const timeA = a.confirmedAt ? new Date(a.confirmedAt).getTime() : new Date(a.createdAt || 0).getTime();
+    const timeB = b.confirmedAt ? new Date(b.confirmedAt).getTime() : new Date(b.createdAt || 0).getTime();
+    return timeA - timeB;
+  });
+  
+  const confirmedField = activePlayers.filter(p => p.position !== 'Goleiro').sort((a, b) => {
+    const timeA = a.confirmedAt ? new Date(a.confirmedAt).getTime() : new Date(a.createdAt || 0).getTime();
+    const timeB = b.confirmedAt ? new Date(b.confirmedAt).getTime() : new Date(b.createdAt || 0).getTime();
+    return timeA - timeB;
+  });
+
+  const getWaitingInfo = (p: Player) => {
+    const isGk = p.position === 'Goleiro';
+    const list = isGk ? confirmedGKs : confirmedField;
+    const slots = isGk ? gkSlots : fieldSlots;
+    const index = list.findIndex(x => x.id === p.id);
+    
+    if (index >= slots) {
+      return { isInWaiting: true, position: index - slots + 1 };
+    }
+    return { isInWaiting: false, position: 0 };
+  };
+
   // REGRA: Goleiros e ADMs (exceto o Master) são isentos
   const checkIsExempt = (p: Player) => {
     const isGoleiro = p.position === 'Goleiro';
@@ -76,6 +106,31 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
           </p>
         </div>
         <div className="flex gap-4">
+          {isUserAdmin && view === 'financeiro' && (
+            <button 
+              onClick={async () => {
+                if (confirm("Deseja enviar um lembrete de pagamento para todos os jogadores com débito?")) {
+                  setIsSendingReminder(true);
+                  try {
+                    await broadcastNotification(
+                      "💰 LEMBRETE DE PAGAMENTO", 
+                      "Ei, atleta! Não esqueça de quitar seu débito da pelada. O cofre agradece! 🙏"
+                    );
+                    alert("Lembretes enviados com sucesso!");
+                  } catch (e) {
+                    alert("Erro ao enviar lembretes.");
+                  } finally {
+                    setIsSendingReminder(false);
+                  }
+                }
+              }}
+              disabled={isSendingReminder}
+              className="h-12 px-6 bg-primary text-white rounded-2xl flex items-center justify-center gap-2 shadow-glow-red active:scale-90 transition-all text-[10px] font-black uppercase tracking-widest disabled:opacity-50"
+            >
+              <span className="material-symbols-outlined text-lg">{isSendingReminder ? 'sync' : 'notifications_active'}</span>
+              {isSendingReminder ? 'ENVIANDO...' : 'COBRAR GERAL'}
+            </button>
+          )}
           <button 
             onClick={() => setView(view === 'financeiro' ? 'artilharia' : 'financeiro')}
             className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-soft-white border border-slate-100 text-navy active:scale-90 transition-all"
@@ -164,43 +219,63 @@ const Ranking: React.FC<{ players: Player[], currentUser: any, onPageChange: (pa
                     {filteredPlayers.map((p) => {
                       const isExempt = checkIsExempt(p);
                       const isPaid = isExempt || (p.playerType === 'mensalista' ? p.monthlyPaid : p.paymentStatus === 'pago');
+                      const waitingInfo = getWaitingInfo(p);
+                      const playerPrice = p.playerType === 'mensalista' ? prices.mensalista : prices.avulso;
                       
                       return (
-                        <div key={p.id} className="bg-white border border-slate-100 rounded-[2.5rem] p-5 flex items-center justify-between shadow-soft-white group hover:border-navy/20 transition-all">
+                        <div key={p.id} className={`bg-white border rounded-[2.5rem] p-6 flex items-center justify-between shadow-soft-white group transition-all ${!isPaid ? 'border-primary/20 bg-primary/[0.02]' : 'border-slate-100 hover:border-navy/20'}`}>
                           <div className="flex items-center gap-5">
                             <div className="relative">
-                              <img src={p.photoUrl} className="w-14 h-14 rounded-2xl object-cover border border-slate-50" alt="" />
-                              <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-sm ${isPaid ? 'bg-success' : 'bg-primary'}`}>
-                                 <span className="material-symbols-outlined text-white text-[12px] font-black">{isPaid ? 'check' : 'priority_high'}</span>
+                              <img src={p.photoUrl} className={`w-16 h-16 rounded-2xl object-cover border ${!isPaid ? 'border-primary/30' : 'border-slate-50'}`} alt="" />
+                              <div className={`absolute -bottom-1 -right-1 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow-md ${isPaid ? 'bg-success' : 'bg-primary animate-pulse'}`}>
+                                 <span className="material-symbols-outlined text-white text-[14px] font-black">{isPaid ? 'check' : 'priority_high'}</span>
                               </div>
                             </div>
-                            <div>
-                              <h4 className="text-[15px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</h4>
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-3">
+                                <h4 className="text-[16px] font-black text-navy uppercase italic leading-none">{p.name}</h4>
+                                {waitingInfo.isInWaiting && (
+                                  <span className="bg-amber-500 text-white text-[8px] font-black px-2 py-1 rounded-lg uppercase tracking-widest animate-bounce">
+                                    ESPERA #{waitingInfo.position}
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2">
                                  <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{isExempt ? (p.position === 'Goleiro' ? 'GOLEIRO' : 'DIRETORIA') : p.playerType.toUpperCase()}</p>
                                  {isExempt && <span className="text-[9px] font-black text-primary uppercase">ISENTO 💼</span>}
                               </div>
                             </div>
                           </div>
-                          {isUserAdmin && !isExempt && (
-                            <button 
-                              onClick={async () => {
-                                setLoadingId(p.id);
-                                const pRef = doc(db, "players", p.id);
-                                if (p.playerType === 'mensalista') await updateDoc(pRef, { monthlyPaid: !p.monthlyPaid });
-                                else await updateDoc(pRef, { paymentStatus: p.paymentStatus === 'pago' ? 'pendente' : 'pago' });
-                                setLoadingId(null);
-                              }}
-                              className={`h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${isPaid ? 'bg-slate-50 text-slate-400 border border-slate-100' : 'bg-primary text-white shadow-glow-red'}`}
-                            >
-                              {loadingId === p.id ? '...' : (isPaid ? 'REVERTER' : 'QUITAR')}
-                            </button>
-                          )}
-                          {isExempt && (
-                             <div className="h-12 px-6 flex items-center text-[10px] font-black text-slate-200 uppercase tracking-widest">
-                                LIBERADO
-                             </div>
-                          )}
+
+                          <div className="flex items-center gap-6">
+                            {!isPaid && !isExempt && (
+                              <div className="text-right">
+                                <p className="text-2xl font-condensed italic font-black text-primary leading-none">R$ {playerPrice}</p>
+                                <p className="text-[8px] font-black text-primary/40 uppercase tracking-widest">PENDENTE</p>
+                              </div>
+                            )}
+                            
+                            {isUserAdmin && !isExempt && (
+                              <button 
+                                onClick={async () => {
+                                  setLoadingId(p.id);
+                                  const pRef = doc(db, "players", p.id);
+                                  if (p.playerType === 'mensalista') await updateDoc(pRef, { monthlyPaid: !p.monthlyPaid });
+                                  else await updateDoc(pRef, { paymentStatus: p.paymentStatus === 'pago' ? 'pendente' : 'pago' });
+                                  setLoadingId(null);
+                                }}
+                                className={`h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${isPaid ? 'bg-slate-50 text-slate-400 border border-slate-100' : 'bg-primary text-white shadow-glow-red active:scale-95'}`}
+                              >
+                                {loadingId === p.id ? '...' : (isPaid ? 'REVERTER' : 'QUITAR')}
+                              </button>
+                            )}
+                            
+                            {isExempt && (
+                               <div className="h-12 px-6 flex items-center text-[10px] font-black text-slate-200 uppercase tracking-widest">
+                                  LIBERADO
+                               </div>
+                            )}
+                          </div>
                         </div>
                       );
                     })}

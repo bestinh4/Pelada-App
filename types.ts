@@ -72,6 +72,17 @@ export interface Match {
   createdAt: string;
 }
 
+export interface MatchHistory {
+  id: string;
+  teamAName: string;
+  teamBName: string;
+  scoreA: number;
+  scoreB: number;
+  winnerId: string | 'draw';
+  timestamp: string;
+  matchId: string; // ID da pelada (Match)
+}
+
 export enum Page {
   Login = 'login',
   Onboarding = 'onboarding',

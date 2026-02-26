@@ -22,9 +22,26 @@ const NotificationToast: React.FC<NotificationToastProps> = ({ notifications, on
         {notifications.map((n) => (
           <motion.div
             key={n.id}
-            initial={{ opacity: 0, y: -20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+            initial={{ opacity: 0, y: -20, scale: 0.95, filter: 'blur(4px)' }}
+            animate={{ 
+              opacity: 1, 
+              y: 0, 
+              scale: 1, 
+              filter: 'blur(0px)',
+              transition: {
+                type: "spring",
+                stiffness: 350,
+                damping: 25
+              }
+            }}
+            exit={{ 
+              opacity: 0, 
+              scale: 0.95, 
+              y: -10,
+              filter: 'blur(4px)',
+              transition: { duration: 0.25, ease: "easeInOut" } 
+            }}
+            layout
             className="pointer-events-auto bg-white/90 backdrop-blur-xl border border-slate-100 rounded-3xl p-5 shadow-elite flex items-center gap-4 relative overflow-hidden"
           >
             {/* Accent Bar */}

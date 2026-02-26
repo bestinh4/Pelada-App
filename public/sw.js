@@ -1,7 +1,6 @@
-
 console.log("🛠️ Service Worker carregado!");
 
-const CACHE_NAME = 'oa-elite-pro-v6'; // Versão atualizada
+const CACHE_NAME = 'oa-elite-pro-v8'; // Incrementado para v8
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -51,8 +50,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&bg=ffffff&w=192&h=192&fit=contain&padding=10',
-    badge: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&bg=ffffff&w=96&h=96&fit=contain',
+    icon: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&w=192&h=192&fit=contain&padding=10',
+    badge: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&w=96&h=96&fit=contain',
     vibrate: [200, 100, 200],
     data: { url: data.url || '/' }
   };
@@ -61,8 +60,26 @@ self.addEventListener('push', (event) => {
 });
 
 self.addEventListener('notificationclick', (event) => {
+  console.log("🖱️ SW: Notificação clicada!");
   event.notification.close();
-  event.waitUntil(clients.openWindow(event.notification.data.url));
+  
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Se já houver uma aba aberta, foca nela
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Se não, abre uma nova
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
 });
 
 self.addEventListener('fetch', (event) => {

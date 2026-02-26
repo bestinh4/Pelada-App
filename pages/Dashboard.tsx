@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Match, Player, Page } from '../types.ts';
-import { db, doc, updateDoc, deleteDoc, collection, getDocs, writeBatch } from '../services/firebase.ts';
+import { Match, Player, Page, MatchHistory } from '../types.ts';
+import { db, doc, updateDoc, deleteDoc, collection, getDocs, writeBatch, query, orderBy, limit } from '../services/firebase.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { getNotificationStatus, requestNotificationPermission, broadcastNotification } from '../services/notificationService.ts';
 
@@ -17,14 +17,29 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const [lineProgress, setLineProgress] = useState(0);
   const [gkProgress, setGkProgress] = useState(0);
   const [showNotifyBanner, setShowNotifyBanner] = useState(false);
+  const [history, setHistory] = useState<MatchHistory[]>([]);
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
   useEffect(() => {
     // Verifica se precisa mostrar o banner de notificações
-    if (getNotificationStatus() === 'default') {
+    const status = getNotificationStatus();
+    if (status === 'default' || status === 'denied') {
       setShowNotifyBanner(true);
     }
+
+    // Buscar histórico de partidas
+    const fetchHistory = async () => {
+      try {
+        const q = query(collection(db, "matchHistory"), orderBy("timestamp", "desc"), limit(5));
+        const snap = await getDocs(q);
+        const historyData = snap.docs.map(d => ({ id: d.id, ...d.data() } as MatchHistory));
+        setHistory(historyData);
+      } catch (e) {
+        console.error("Erro ao buscar histórico:", e);
+      }
+    };
+    fetchHistory();
   }, []);
 
   const currentPlayer = players.find(p => p.id === user?.uid);
@@ -76,6 +91,12 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     setIsUpdating(true);
     try {
       const newStatus = isConfirmed ? 'pendente' : 'presente';
+      
+      // Se estiver confirmando, aproveita para pedir permissão de notificação se ainda não tiver
+      if (newStatus === 'presente' && getNotificationStatus() === 'default') {
+        await requestNotificationPermission(user.uid);
+      }
+
       const updates: any = { status: newStatus };
       
       if (newStatus === 'presente') {
@@ -85,6 +106,13 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       }
 
       await updateDoc(doc(db, "players", user.uid), updates);
+      
+      // Notificar todos sobre a mudança de status
+      if (newStatus === 'presente') {
+        await broadcastNotification("✅ NOVA CONFIRMAÇÃO!", `${currentPlayer?.name || 'Um atleta'} confirmou presença!`);
+      } else {
+        await broadcastNotification("❌ DESISTÊNCIA!", `${currentPlayer?.name || 'Um atleta'} saiu da lista.`);
+      }
     } catch (e) { alert("Erro de conexão."); } finally { setIsUpdating(false); }
   };
 
@@ -157,31 +185,50 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
             <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">ESTÁDIO DIGITAL</p>
           </div>
         </div>
-        {isAdmin && !match && (
-          <button onClick={() => onPageChange(Page.CreateMatch)} className="w-12 h-12 bg-navy text-white rounded-2xl flex items-center justify-center shadow-elite animate-float">
-             <span className="material-symbols-outlined text-3xl">add</span>
-          </button>
-        )}
+        <div className="flex gap-4 items-center">
+          <a 
+            href="https://pelada-app.vercel.app/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="lg:hidden w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-soft-white border border-slate-100 text-primary active:scale-95 transition-all"
+            title="Site Principal"
+          >
+            <span className="material-symbols-outlined">language</span>
+          </a>
+          {isAdmin && !match && (
+            <button onClick={() => onPageChange(Page.CreateMatch)} className="w-12 h-12 bg-navy text-white rounded-2xl flex items-center justify-center shadow-elite animate-float">
+               <span className="material-symbols-outlined text-3xl">add</span>
+            </button>
+          )}
+        </div>
       </header>
 
       {showNotifyBanner && (
         <div className="mb-8 animate-slide-up">
-          <div className="bg-primary rounded-[2rem] p-6 flex items-center justify-between shadow-glow-red overflow-hidden relative">
+          <div className={`${getNotificationStatus() === 'denied' ? 'bg-amber-500' : 'bg-primary'} rounded-[2rem] p-6 flex items-center justify-between shadow-glow-red overflow-hidden relative`}>
             <div className="absolute -right-4 -top-4 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
             <div className="flex items-center gap-4 relative z-10">
               <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center animate-bounce">
-                <span className="material-symbols-outlined text-white">notifications_active</span>
+                <span className="material-symbols-outlined text-white">
+                  {getNotificationStatus() === 'denied' ? 'warning' : 'notifications_active'}
+                </span>
               </div>
               <div>
-                <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">ALERTAS DA ARENA</p>
-                <p className="text-[11px] font-medium text-white/80">Ative para saber quem confirmou!</p>
+                <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">
+                  {getNotificationStatus() === 'denied' ? 'NOTIFICAÇÕES BLOQUEADAS' : 'ALERTAS DA ARENA'}
+                </p>
+                <p className="text-[11px] font-medium text-white/80">
+                  {getNotificationStatus() === 'denied' 
+                    ? 'Clique para saber como desbloquear' 
+                    : 'Ative para saber quem confirmou!'}
+                </p>
               </div>
             </div>
             <button 
               onClick={handleEnableNotifications}
-              className="bg-white text-primary px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all relative z-10"
+              className="bg-white text-navy px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all relative z-10"
             >
-              ATIVAR
+              {getNotificationStatus() === 'denied' ? 'AJUDA' : 'ATIVAR'}
             </button>
           </div>
         </div>
@@ -354,6 +401,54 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                 <div className="py-20 text-center bg-white border border-dashed border-slate-100 rounded-[3rem]">
                    <span className="material-symbols-outlined text-4xl text-slate-100 mb-4">sports_soccer</span>
                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">A TEMPORADA AINDA NÃO COMEÇOU</p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Seção de Histórico de Partidas */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-3 px-2">
+              <span className="material-symbols-outlined text-navy text-xl">history</span>
+              <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">ÚLTIMOS JOGOS</h3>
+            </div>
+
+            <div className="space-y-4">
+              {history.length > 0 ? history.map((h) => (
+                <div key={h.id} className="bg-white border border-slate-100 p-6 rounded-[2.5rem] shadow-soft-white flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 text-center">
+                      <p className="text-[11px] font-black text-navy uppercase italic truncate mb-2">{h.teamAName}</p>
+                      <span className="text-4xl font-condensed italic font-black text-navy">{h.scoreA}</span>
+                    </div>
+                    <div className="px-4 flex flex-col items-center">
+                      <span className="text-[10px] font-black text-slate-200 uppercase mb-1">X</span>
+                      <div className="w-px h-8 bg-slate-100"></div>
+                    </div>
+                    <div className="flex-1 text-center">
+                      <p className="text-[11px] font-black text-navy uppercase italic truncate mb-2">{h.teamBName}</p>
+                      <span className="text-4xl font-condensed italic font-black text-navy">{h.scoreB}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center pt-4 border-t border-slate-50">
+                    <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
+                      {new Date(h.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    {h.winnerId !== 'draw' && (
+                      <span className="text-[8px] font-black bg-success/10 text-success px-3 py-1 rounded-full uppercase tracking-widest">
+                        VITÓRIA {h.winnerId === 'draw' ? 'EMPATE' : (h.scoreA > h.scoreB ? 'TIME A' : 'TIME B')}
+                      </span>
+                    )}
+                    {h.winnerId === 'draw' && (
+                      <span className="text-[8px] font-black bg-slate-100 text-slate-400 px-3 py-1 rounded-full uppercase tracking-widest">
+                        EMPATE
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )) : (
+                <div className="py-16 text-center bg-white border border-dashed border-slate-100 rounded-[3rem]">
+                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">NENHUM JOGO REGISTRADO</p>
                 </div>
               )}
             </div>

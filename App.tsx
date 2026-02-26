@@ -13,7 +13,7 @@ import ArenaPanel from './pages/ArenaPanel.tsx';
 import NotificationToast, { Notification as InAppNotification } from './components/NotificationToast.tsx';
 import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL } from './constants.tsx';
-import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc, limit } from './services/firebase.ts';
+import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc, limit, where } from './services/firebase.ts';
 import { requestNotificationPermission, sendPushNotification } from './services/notificationService.ts';
 
 const App: React.FC = () => {
@@ -104,17 +104,9 @@ const App: React.FC = () => {
           if (change.type === "modified" && oldPlayerData) {
             if (oldPlayerData.status !== playerData.status) {
               if (playerData.status === 'presente') {
-                const title = "✅ CONFIRMADO!";
-                const msg = `${playerData.name} vai pro jogo!`;
-                // Notificação Push removida para evitar spam; mantido apenas o Toast interno
-                // sendPushNotification(title, msg);
-                addInAppNotification(title, msg, 'success');
+                addInAppNotification("✅ CONFIRMADO!", `${playerData.name} vai pro jogo!`, 'success');
               } else {
-                const title = "❌ SAIU DA LISTA!";
-                const msg = `${playerData.name} não vai mais.`;
-                // Notificação Push removida para evitar spam; mantido apenas o Toast interno
-                // sendPushNotification(title, msg);
-                addInAppNotification(title, msg, 'error');
+                addInAppNotification("❌ SAIU DA LISTA!", `${playerData.name} não vai mais.`, 'error');
               }
             }
           }
@@ -139,23 +131,27 @@ const App: React.FC = () => {
     });
 
     // Listener para transmissões de notificações (Broadcasts)
-    let isInitialNotificationsSync = true;
-    const qBroadcasts = query(collection(db, "notifications"), orderBy("createdAt", "desc"), limit(1));
-    const unsubscribeBroadcasts = onSnapshot(qBroadcasts, (snapshot) => {
-      if (isInitialNotificationsSync) {
-        isInitialNotificationsSync = false;
-        return;
-      }
+    // Usamos um pequeno atraso para garantir que não percamos notificações por diferença de relógio
+    const startTime = new Date(Date.now() - 30000).toISOString(); 
+    const qBroadcasts = query(
+      collection(db, "notifications"), 
+      where("createdAt", ">", startTime),
+      orderBy("createdAt", "desc")
+    );
+    
+    console.log("📡 Ouvindo novas notificações desde:", startTime);
 
+    const unsubscribeBroadcasts = onSnapshot(qBroadcasts, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const data = change.doc.data();
-          // Evita mostrar a própria notificação se o usuário for o remetente (opcional, mas bom)
-          // Aqui vamos mostrar para todos para garantir que o teste funcione
+          console.log("🔔 Nova notificação recebida via DB:", data.title);
           sendPushNotification(data.title, data.body);
           addInAppNotification(data.title, data.body, 'info');
         }
       });
+    }, (error) => {
+      console.error("❌ Erro no listener de notificações:", error);
     });
 
     return () => {
@@ -190,7 +186,7 @@ const App: React.FC = () => {
         {user && currentPage === Page.Onboarding && <Onboarding user={user} onComplete={() => setCurrentPage(Page.Dashboard)} />}
         {user && currentPage === Page.Dashboard && <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.PlayerList && <PlayerList players={players} currentUser={user} match={currentMatch} onPageChange={setCurrentPage} />}
-        {user && currentPage === Page.Ranking && <Ranking players={players} currentUser={user} onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.Ranking && <Ranking players={players} currentUser={user} match={currentMatch} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.CreateMatch && <CreateMatch onPageChange={setCurrentPage} />}
         {user && currentPage === Page.TeamBalancing && <TeamBalancing players={players} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.ArenaPanel && <ArenaPanel players={players} match={currentMatch} onPageChange={setCurrentPage} />}

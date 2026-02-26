@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Page, Match } from '../types.ts';
 import { MatchSession, Team } from '../domain/types.ts';
-import { db, doc, onSnapshot, updateDoc, deleteDoc, writeBatch } from '../services/firebase.ts';
+import { db, doc, onSnapshot, updateDoc, deleteDoc, writeBatch, collection, addDoc } from '../services/firebase.ts';
 import { registerGoal, finishMatch } from '../domain/matchEngine.ts';
+import { broadcastNotification } from '../services/notificationService.ts';
 
 interface ArenaPanelProps {
   players: Player[];
@@ -53,6 +54,24 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, match, onPageChange })
       winnerId = choice === 'A' ? session.activeMatch.teamAId! : session.activeMatch.teamBId!;
       loserId = choice === 'A' ? session.activeMatch.teamBId : session.activeMatch.teamAId;
     }
+    const teamA = session.teams.find(t => t.id === session.activeMatch?.teamAId);
+    const teamB = session.teams.find(t => t.id === session.activeMatch?.teamBId);
+
+    // Salvar no histórico
+    try {
+      await addDoc(collection(db, "matchHistory"), {
+        teamAName: teamA?.name || "Time A",
+        teamBName: teamB?.name || "Time B",
+        scoreA: session.activeMatch.scoreA,
+        scoreB: session.activeMatch.scoreB,
+        winnerId: winnerSide === 'draw' ? 'draw' : winnerId,
+        timestamp: new Date().toISOString(),
+        matchId: match?.id || "unknown"
+      });
+    } catch (e) {
+      console.error("Erro ao salvar histórico:", e);
+    }
+
     const updated = finishMatch(session, winnerId, loserId);
     await updateDoc(doc(db, "sessions", "current"), updated as any);
     setTimeLeft(MATCH_LIMIT_MINUTES * 60);
@@ -84,6 +103,13 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, match, onPageChange })
     
     try {
       await batch.commit();
+      
+      // Notificar fim do evento
+      await broadcastNotification(
+        "🏁 EVENTO FINALIZADO!", 
+        "A pelada de hoje chegou ao fim. Obrigado a todos pela presença! ⚽🔥"
+      );
+
       onPageChange(Page.Dashboard);
     } catch (e) {
       alert("Erro ao finalizar evento.");

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Player, Page, Match } from '../types.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { db, doc, updateDoc, deleteDoc, collection, addDoc } from '../services/firebase.ts';
+import { broadcastNotification } from '../services/notificationService.ts';
 
 interface PlayerListProps {
   players: Player[];
@@ -111,8 +112,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     }
 
     message += `\n-------------------------------------------\n`;
-    message += `⚽ *Acesse o App:* https://pelada-app.vercel.app\n`;
-    message += `_Gestão Ousadia & Alegria_`;
+    message += `⚽ *Acesse o App:* https://ousadia.vercel.app\n`;
+    message += `_Gestão Croatia Elite Series_`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
   };
@@ -185,6 +186,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           onQuickToggle={async (p: Player) => {
             setProcessingId(p.id);
             await updateDoc(doc(db, "players", p.id), { status: 'pendente', confirmedAt: null });
+            await broadcastNotification("❌ REMOVIDO!", `${p.name} foi removido da lista pela diretoria.`);
             setProcessingId(null);
           }}
           onEdit={(p: Player) => {

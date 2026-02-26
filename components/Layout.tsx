@@ -64,7 +64,23 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
           />
         </nav>
 
-        <div className="mt-auto pt-10 border-t border-slate-50">
+        <div className="mt-auto space-y-4 pt-10 border-t border-slate-50">
+           <a 
+             href="https://pelada-app.vercel.app/" 
+             target="_blank" 
+             rel="noopener noreferrer"
+             className="flex items-center gap-4 p-4 bg-primary/5 rounded-3xl border border-primary/10 hover:bg-primary/10 transition-all group"
+           >
+              <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                 <span className="material-symbols-outlined text-primary">language</span>
+              </div>
+              <div className="flex-1">
+                 <p className="text-[10px] font-black text-navy uppercase">SITE PRINCIPAL</p>
+                 <p className="text-[8px] font-bold text-primary uppercase">ACESSAR WEB APP</p>
+              </div>
+              <span className="material-symbols-outlined text-primary text-sm">open_in_new</span>
+           </a>
+
            <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-3xl border border-slate-100">
               <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
                  <span className="material-symbols-outlined text-navy">settings</span>
