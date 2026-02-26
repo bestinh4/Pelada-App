@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
 import { MatchSession, Team } from '../domain/types.ts';
 import { db, doc, setDoc, onSnapshot, deleteDoc } from '../services/firebase.ts';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface TeamBalancingProps {
   players: Player[];

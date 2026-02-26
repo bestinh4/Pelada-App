@@ -83,8 +83,30 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Estratégia Network First para o app, caindo para Cache apenas se offline
+  // Ignorar requisições que não sejam GET ou que não sejam http/https
+  if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
+    return;
+  }
+
   event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+    fetch(event.request).catch(async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cachedResponse = await cache.match(event.request);
+      
+      if (cachedResponse) return cachedResponse;
+      
+      // Fallback para navegação (SPA)
+      if (event.request.mode === 'navigate') {
+        const indexFallback = await cache.match('/index.html');
+        if (indexFallback) return indexFallback;
+      }
+      
+      // Retorna uma resposta de erro amigável em vez de undefined
+      return new Response('Recurso não disponível offline', {
+        status: 503,
+        statusText: 'Service Unavailable',
+        headers: new Headers({ 'Content-Type': 'text/plain' })
+      });
+    })
   );
 });

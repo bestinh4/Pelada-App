@@ -9,7 +9,17 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/messaging'],
+          'vendor-motion': ['motion/react'],
+          'vendor-genai': ['@google/genai'],
+        }
+      }
+    }
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx']
