@@ -52,9 +52,15 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
           )}
           <SidebarItem 
             icon="emoji_events" 
-            label="RANKING & COFRE" 
+            label="RANKING" 
             active={currentPage === Page.Ranking} 
             onClick={() => onPageChange(Page.Ranking)} 
+          />
+          <SidebarItem 
+            icon="payments" 
+            label="COFRE O&A" 
+            active={currentPage === Page.Finance} 
+            onClick={() => onPageChange(Page.Finance)} 
           />
           <SidebarItem 
             icon="person" 
@@ -132,6 +138,12 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange, cu
               label="Ranking" 
               active={currentPage === Page.Ranking} 
               onClick={() => onPageChange(Page.Ranking)} 
+            />
+            <NavItem 
+              icon="payments" 
+              label="Cofre" 
+              active={currentPage === Page.Finance} 
+              onClick={() => onPageChange(Page.Finance)} 
             />
             <NavItem 
               icon="person" 

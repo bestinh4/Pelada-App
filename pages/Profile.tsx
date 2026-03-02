@@ -169,7 +169,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
                      <button 
                         onClick={async () => {
                           if (confirm("Isso enviará uma notificação para TODOS os jogadores online. Continuar?")) {
-                            await broadcastNotification("TESTE GERAL! 📢", "O administrador está testando o sistema de avisos.");
+                            await broadcastNotification("TESTE GERAL! 📢", "O administrador está testando o sistema de avisos.", player.id);
                             alert("Sinal de teste enviado!");
                           }
                         }}

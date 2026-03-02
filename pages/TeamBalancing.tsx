@@ -350,6 +350,9 @@ const TeamBalancing: React.FC<TeamBalancingProps> = ({ players, onPageChange }) 
                           }).filter(Boolean);
                           msg += `*${t.name.toUpperCase()}*\n🏃: ${flds.join(', ')}\n\n`;
                         });
+                        msg += `-------------------------------------------\n`;
+                        msg += `⚽ *Acesse o App:* https://pelada-app.vercel.app/\n`;
+                        msg += `_Gestão Ousadia & Alegria_`;
                         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`, '_blank');
                       }}
                       className="w-full h-16 bg-success text-white rounded-[1.75rem] font-black uppercase text-[11px] tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3"

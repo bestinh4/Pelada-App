@@ -40,7 +40,8 @@ const Onboarding: React.FC<OnboardingProps> = ({ user, onComplete }) => {
       
       await broadcastNotification(
         "🚀 NOVO ATLETA!", 
-        `${name} acaba de assinar com a Arena O&A!`
+        `${name} acaba de assinar com a Arena O&A!`,
+        user.uid
       );
       
       onComplete();

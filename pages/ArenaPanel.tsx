@@ -5,8 +5,10 @@ import { MatchSession, Team } from '../domain/types.ts';
 import { db, doc, onSnapshot, updateDoc, deleteDoc, writeBatch, collection, addDoc } from '../services/firebase.ts';
 import { registerGoal, finishMatch } from '../domain/matchEngine.ts';
 import { broadcastNotification } from '../services/notificationService.ts';
+import { playSound } from '../utils/sound.ts';
 
 interface ArenaPanelProps {
+  user: any;
   players: Player[];
   match: Match | null;
   onPageChange: (page: Page) => void;
@@ -14,7 +16,7 @@ interface ArenaPanelProps {
 
 const MATCH_LIMIT_MINUTES = 10;
 
-const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, match, onPageChange }) => {
+const ArenaPanel: React.FC<ArenaPanelProps> = ({ user, players, match, onPageChange }) => {
   const [session, setSession] = useState<MatchSession | null>(null);
   const [timeLeft, setTimeLeft] = useState(MATCH_LIMIT_MINUTES * 60);
   const [timerActive, setTimerActive] = useState(false);
@@ -39,6 +41,7 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, match, onPageChange })
 
   const handleGoal = async (side: 'A' | 'B') => {
     if (!session) return;
+    playSound('cheer');
     const updated = registerGoal(session, side);
     await updateDoc(doc(db, "sessions", "current"), updated as any);
   };
@@ -107,7 +110,8 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ players, match, onPageChange })
       // Notificar fim do evento
       await broadcastNotification(
         "🏁 EVENTO FINALIZADO!", 
-        "A pelada de hoje chegou ao fim. Obrigado a todos pela presença! ⚽🔥"
+        "A pelada de hoje chegou ao fim. Obrigado a todos pela presença! ⚽🔥",
+        user.uid
       );
 
       onPageChange(Page.Dashboard);

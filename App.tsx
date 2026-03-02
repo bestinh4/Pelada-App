@@ -6,6 +6,7 @@ import Onboarding from './pages/Onboarding.tsx';
 import Dashboard from './pages/Dashboard.tsx';
 import PlayerList from './pages/PlayerList.tsx';
 import Ranking from './pages/Ranking.tsx';
+import Finance from './pages/Finance.tsx';
 import CreateMatch from './pages/CreateMatch.tsx';
 import Profile from './pages/Profile.tsx';
 import TeamBalancing from './pages/TeamBalancing.tsx';
@@ -15,6 +16,7 @@ import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL } from './constants.tsx';
 import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc, limit, where } from './services/firebase.ts';
 import { requestNotificationPermission, sendPushNotification } from './services/notificationService.ts';
+import { playSound } from './utils/sound.ts';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<any>(null);
@@ -25,6 +27,7 @@ const App: React.FC = () => {
   });
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
+  const currentMatchRef = useRef<Match | null>(null);
   const [inAppNotifications, setInAppNotifications] = useState<InAppNotification[]>([]);
   
   const prevPlayersState = useRef<Record<string, Player>>({});
@@ -103,10 +106,24 @@ const App: React.FC = () => {
 
           if (change.type === "modified" && oldPlayerData) {
             if (oldPlayerData.status !== playerData.status) {
+              // Evitar notificar se não houver partida ativa (ex: ao encerrar pelada)
+              if (!currentMatchRef.current) return;
+
+              // Evitar notificar o próprio usuário que fez a ação
+              if (playerData.id === user.uid) return;
+
               if (playerData.status === 'presente') {
+                playSound('cheer');
+                sendPushNotification("✅ CONFIRMADO!", `${playerData.name} vai pro jogo!`);
                 addInAppNotification("✅ CONFIRMADO!", `${playerData.name} vai pro jogo!`, 'success');
+              } else if (playerData.status === 'ausente') {
+                playSound('boo');
+                sendPushNotification("🚫 RECUSOU!", `${playerData.name} não poderá participar.`);
+                addInAppNotification("🚫 RECUSOU!", `${playerData.name} não poderá participar.`, 'error');
               } else {
-                addInAppNotification("❌ SAIU DA LISTA!", `${playerData.name} não vai mais.`, 'error');
+                playSound('boo');
+                sendPushNotification("❌ SAIU DA LISTA!", `${playerData.name} voltou para pendente.`);
+                addInAppNotification("❌ SAIU DA LISTA!", `${playerData.name} voltou para pendente.`, 'error');
               }
             }
           }
@@ -124,9 +141,12 @@ const App: React.FC = () => {
     const qMatches = query(collection(db, "matches"), orderBy("createdAt", "desc"));
     const unsubscribeMatches = onSnapshot(qMatches, (snapshot) => {
       if (!snapshot.empty) {
-        setCurrentMatch({ id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Match);
+        const matchData = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() } as Match;
+        setCurrentMatch(matchData);
+        currentMatchRef.current = matchData;
       } else {
         setCurrentMatch(null);
+        currentMatchRef.current = null;
       }
     });
 
@@ -145,7 +165,12 @@ const App: React.FC = () => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const data = change.doc.data();
+          
+          // Evitar notificar o próprio remetente
+          if (data.senderId === user.uid) return;
+
           console.log("🔔 Nova notificação recebida via DB:", data.title);
+          playSound('cheer');
           sendPushNotification(data.title, data.body);
           addInAppNotification(data.title, data.body, 'info');
         }
@@ -186,10 +211,11 @@ const App: React.FC = () => {
         {user && currentPage === Page.Onboarding && <Onboarding user={user} onComplete={() => setCurrentPage(Page.Dashboard)} />}
         {user && currentPage === Page.Dashboard && <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.PlayerList && <PlayerList players={players} currentUser={user} match={currentMatch} onPageChange={setCurrentPage} />}
-        {user && currentPage === Page.Ranking && <Ranking players={players} currentUser={user} match={currentMatch} onPageChange={setCurrentPage} />}
-        {user && currentPage === Page.CreateMatch && <CreateMatch onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.Ranking && <Ranking players={players} currentUser={user} onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.Finance && <Finance players={players} currentUser={user} match={currentMatch} onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.CreateMatch && <CreateMatch user={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.TeamBalancing && <TeamBalancing players={players} onPageChange={setCurrentPage} />}
-        {user && currentPage === Page.ArenaPanel && <ArenaPanel players={players} match={currentMatch} onPageChange={setCurrentPage} />}
+        {user && currentPage === Page.ArenaPanel && <ArenaPanel user={user} players={players} match={currentMatch} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.Profile && (
           <Profile 
             player={currentPlayer || { id: user.uid, name: user.displayName, email: user.email, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente', role: effectiveRole } as Player} 

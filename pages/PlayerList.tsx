@@ -22,7 +22,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     assists: 0, 
     role: 'player' as 'admin' | 'player',
     playerType: 'avulso' as 'mensalista' | 'avulso',
-    status: 'presente' as 'presente' | 'pendente'
+    status: 'presente' as 'presente' | 'pendente' | 'ausente'
   });
   const [isSavingStats, setIsSavingStats] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -31,7 +31,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     name: '',
     position: 'Atacante',
     playerType: 'avulso' as 'mensalista' | 'avulso',
-    status: 'presente' as 'presente' | 'pendente'
+    status: 'presente' as 'presente' | 'pendente' | 'ausente'
   });
   const [isCreating, setIsCreating] = useState(false);
 
@@ -54,6 +54,8 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
 
   const confirmed: Player[] = [];
   const waitingList: Player[] = [];
+  const refusedList: Player[] = [];
+  const pendingList: Player[] = [];
 
   let fieldCount = 0;
   let gkCount = 0;
@@ -76,7 +78,10 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     }
   });
 
-  const outPlayers = players.filter(p => p.status !== 'presente');
+  players.forEach(p => {
+    if (p.status === 'ausente') refusedList.push(p);
+    if (p.status === 'pendente') pendingList.push(p);
+  });
 
   const handleShareList = () => {
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
@@ -104,15 +109,15 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       });
     }
 
-    if (outPlayers.length > 0) {
-      message += `\n❌ *NÃO DISPONÍVEIS / FORA*\n`;
-      outPlayers.forEach((p) => {
+    if (pendingList.length > 0) {
+      message += `\n⏳ *AINDA NÃO CONFIRMARAM*\n`;
+      pendingList.forEach((p) => {
         message += `- ${p.name.toUpperCase()}\n`;
       });
     }
 
     message += `\n-------------------------------------------\n`;
-    message += `⚽ *Acesse o App:* https://pelada-app.vercel.app\n`;
+    message += `⚽ *Acesse o App:* https://pelada-app.vercel.app/\n`;
     message += `_Gestão Ousadia & Alegria_`;
 
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`, '_blank');
@@ -186,7 +191,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           onQuickToggle={async (p: Player) => {
             setProcessingId(p.id);
             await updateDoc(doc(db, "players", p.id), { status: 'pendente', confirmedAt: null });
-            await broadcastNotification("❌ REMOVIDO!", `${p.name} foi removido da lista pela diretoria.`);
+            await broadcastNotification("❌ REMOVIDO!", `${p.name} foi removido da lista pela diretoria.`, currentUser.uid);
             setProcessingId(null);
           }}
           onEdit={(p: Player) => {
@@ -239,10 +244,10 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         )}
         </div>
 
-        <div className="lg:col-span-4 mt-14 lg:mt-0">
+        <div className="lg:col-span-4 mt-14 lg:mt-0 space-y-14">
           <PlayerSection 
-            title="FORA / PENDENTES" 
-            list={outPlayers.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
+            title="AINDA NÃO CONFIRMARAM" 
+            list={pendingList.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))} 
             isAdmin={isCurrentUserAdmin} 
             onQuickToggle={async (p: Player) => {
               setProcessingId(p.id);
@@ -436,65 +441,89 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
   );
 };
 
-const PlayerSection = ({ title, list, isAdmin, onQuickToggle, onEdit, onDelete, processingId, type }: any) => (
-  <section className="animate-slide-up">
-    <div className="flex items-center justify-between mb-8 px-2">
-       <div className="flex items-center gap-3">
-          <div className={`w-2 h-2 ${type === 'confirmed' ? 'bg-primary shadow-glow-red' : type === 'waiting' ? 'bg-amber-400 shadow-glow-amber' : 'bg-slate-200'} rounded-full animate-pulse`}></div>
-          <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">{title}</h3>
-       </div>
-       <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{list.length} ATLETAS</span>
-    </div>
-    <div className="space-y-4">
-      {list.length > 0 ? list.map((p: Player) => (
-        <div key={p.id} className="bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-soft-white flex items-center justify-between group transition-all hover:border-navy/20">
-          <div className="flex items-center gap-5">
-            <div className="relative">
-              <img src={p.photoUrl} className="w-16 h-16 rounded-[1.5rem] object-cover border-2 border-slate-50 shadow-sm" alt="" />
+const PlayerSection = ({ title, list, isAdmin, onQuickToggle, onEdit, onDelete, processingId, type }: any) => {
+  const getStatusInfo = (status: string, sectionType: string) => {
+    switch (status) {
+      case 'presente':
+        if (sectionType === 'waiting') return { icon: 'hourglass_top', color: 'text-amber-500', bg: 'bg-amber-50' };
+        return { icon: 'check_circle', color: 'text-success', bg: 'bg-success/10' };
+      case 'ausente':
+        return { icon: 'cancel', color: 'text-slate-400', bg: 'bg-slate-100' };
+      default:
+        return { icon: 'pending', color: 'text-slate-300', bg: 'bg-slate-50' };
+    }
+  };
+
+  return (
+    <section className="animate-slide-up">
+      <div className="flex items-center justify-between mb-8 px-2">
+         <div className="flex items-center gap-3">
+            <div className={`w-2 h-2 ${type === 'confirmed' ? 'bg-primary shadow-glow-red' : type === 'waiting' ? 'bg-amber-400 shadow-glow-amber' : type === 'refused' ? 'bg-slate-800 shadow-elite' : 'bg-slate-200'} rounded-full animate-pulse`}></div>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">{title}</h3>
+         </div>
+         <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{list.length} ATLETAS</span>
+      </div>
+      <div className="space-y-4">
+        {list.length > 0 ? list.map((p: Player) => {
+          const statusInfo = getStatusInfo(p.status, type);
+          return (
+            <div key={p.id} className="bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-soft-white flex items-center justify-between group transition-all hover:border-navy/20">
+              <div className="flex items-center gap-5">
+                <div className="relative">
+                  <img src={p.photoUrl} className="w-16 h-16 rounded-[1.5rem] object-cover border-2 border-slate-50 shadow-sm" alt="" />
+                  {isAdmin && (
+                    <button 
+                      disabled={processingId === p.id}
+                      onClick={() => onQuickToggle(p)}
+                      className={`absolute -top-2 -right-2 w-8 h-8 rounded-xl border-2 border-white shadow-xl flex items-center justify-center transition-all ${p.status === 'presente' ? 'bg-primary text-white' : 'bg-slate-50 text-slate-300'}`}
+                    >
+                      {processingId === p.id ? <div className="w-3 h-3 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px] font-black">{p.status === 'presente' ? 'check' : 'add'}</span>}
+                    </button>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <h4 className="text-[16px] font-black text-navy uppercase italic leading-none">{p.name}</h4>
+                    {p.role === 'admin' && (
+                      <span className={`text-white text-[7px] font-black px-2 py-0.5 rounded-md uppercase animate-pulse ${p.email === MASTER_ADMIN_EMAIL ? 'bg-navy shadow-elite' : 'bg-primary shadow-glow-red'}`}>
+                        {p.email === MASTER_ADMIN_EMAIL ? 'MASTER' : 'DIRETORIA'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                     <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg ${statusInfo.bg}`}>
+                        <span className={`material-symbols-outlined text-[12px] font-black ${statusInfo.color}`}>{statusInfo.icon}</span>
+                        <p className={`text-[8px] font-black uppercase tracking-widest ${statusInfo.color}`}>
+                          {p.status === 'presente' ? (type === 'waiting' ? 'ESPERA' : 'CONFIRMADO') : p.status === 'ausente' ? 'AUSENTE' : 'PENDENTE'}
+                        </p>
+                     </div>
+                     <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
+                     <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
+                     <p className={`text-[10px] font-black uppercase tracking-widest ${p.playerType === 'mensalista' ? 'text-navy' : 'text-slate-300'}`}>{p.playerType || 'avulso'}</p>
+                  </div>
+                </div>
+              </div>
               {isAdmin && (
-                <button 
-                  disabled={processingId === p.id}
-                  onClick={() => onQuickToggle(p)}
-                  className={`absolute -top-2 -right-2 w-8 h-8 rounded-xl border-2 border-white shadow-xl flex items-center justify-center transition-all ${p.status === 'presente' ? 'bg-primary text-white' : 'bg-slate-50 text-slate-300'}`}
-                >
-                  {processingId === p.id ? <div className="w-3 h-3 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px] font-black">{p.status === 'presente' ? 'check' : 'add'}</span>}
-                </button>
+                <div className="flex gap-3">
+                   <button onClick={() => onEdit(p)} className="w-11 h-11 rounded-2xl bg-slate-50 text-navy flex items-center justify-center border border-slate-100 hover:bg-navy hover:text-white transition-all">
+                      <span className="material-symbols-outlined text-lg">edit_document</span>
+                   </button>
+                   <button onClick={() => onDelete(p)} className="w-11 h-11 rounded-2xl bg-red-50 text-primary flex items-center justify-center border border-red-100 hover:bg-primary hover:text-white transition-all">
+                      <span className="material-symbols-outlined text-lg">delete</span>
+                   </button>
+                </div>
               )}
             </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <h4 className="text-[16px] font-black text-navy uppercase italic leading-none">{p.name}</h4>
-                {p.role === 'admin' && (
-                  <span className={`text-white text-[7px] font-black px-2 py-0.5 rounded-md uppercase animate-pulse ${p.email === MASTER_ADMIN_EMAIL ? 'bg-navy shadow-elite' : 'bg-primary shadow-glow-red'}`}>
-                    {p.email === MASTER_ADMIN_EMAIL ? 'MASTER' : 'DIRETORIA'}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
-                 <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                 <p className={`text-[10px] font-black uppercase tracking-widest ${p.playerType === 'mensalista' ? 'text-navy' : 'text-slate-300'}`}>{p.playerType || 'avulso'}</p>
-              </div>
-            </div>
+          );
+        }) : (
+          <div className="py-10 text-center bg-slate-50/50 border border-dashed border-slate-100 rounded-[2rem]">
+             <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Nenhum atleta nesta categoria</p>
           </div>
-          {isAdmin && (
-            <div className="flex gap-3">
-               <button onClick={() => onEdit(p)} className="w-11 h-11 rounded-2xl bg-slate-50 text-navy flex items-center justify-center border border-slate-100 hover:bg-navy hover:text-white transition-all">
-                  <span className="material-symbols-outlined text-lg">edit_document</span>
-               </button>
-               <button onClick={() => onDelete(p)} className="w-11 h-11 rounded-2xl bg-red-50 text-primary flex items-center justify-center border border-red-100 hover:bg-primary hover:text-white transition-all">
-                  <span className="material-symbols-outlined text-lg">delete</span>
-               </button>
-            </div>
-          )}
-        </div>
-      )) : (
-        <div className="py-10 text-center bg-slate-50/50 border border-dashed border-slate-100 rounded-[2rem]">
-           <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Nenhum atleta nesta categoria</p>
-        </div>
-      )}
-    </div>
-  </section>
-);
+        )}
+      </div>
+    </section>
+  );
+};
 
 export default PlayerList;

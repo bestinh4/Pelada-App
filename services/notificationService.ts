@@ -33,13 +33,14 @@ export const requestNotificationPermission = async (userId?: string) => {
   }
 };
 
-export const broadcastNotification = async (title: string, body: string) => {
+export const broadcastNotification = async (title: string, body: string, senderId?: string) => {
   try {
     await addDoc(collection(db, "notifications"), {
       title,
       body,
       createdAt: new Date().toISOString(),
-      type: 'broadcast'
+      type: 'broadcast',
+      senderId: senderId || null
     });
   } catch (error) {
     console.error("❌ Erro ao transmitir notificação:", error);

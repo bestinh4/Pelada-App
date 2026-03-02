@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Match, Player, Page, MatchHistory } from '../types.ts';
-import { db, doc, updateDoc, deleteDoc, collection, getDocs, writeBatch, query, orderBy, limit } from '../services/firebase.ts';
+import { db, doc, updateDoc, deleteDoc, collection, getDocs, writeBatch, query, orderBy, limit, onSnapshot } from '../services/firebase.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { getNotificationStatus, requestNotificationPermission, broadcastNotification } from '../services/notificationService.ts';
 
@@ -21,12 +21,19 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
+  const [prices, setPrices] = useState({ mensalista: 60, avulso: 40 });
+
   useEffect(() => {
     // Verifica se precisa mostrar o banner de notificações
     const status = getNotificationStatus();
     if (status === 'default' || status === 'denied') {
       setShowNotifyBanner(true);
     }
+
+    // Buscar preços
+    const unsubPrices = onSnapshot(doc(db, "settings", "finance"), (docSnap) => {
+      if (docSnap.exists()) setPrices(docSnap.data() as any);
+    });
 
     // Buscar histórico de partidas
     const fetchHistory = async () => {
@@ -40,14 +47,21 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       }
     };
     fetchHistory();
+
+    return () => unsubPrices();
   }, []);
 
   const currentPlayer = players.find(p => p.id === user?.uid);
   const isConfirmed = currentPlayer?.status === 'presente';
+  const isRefused = currentPlayer?.status === 'ausente';
   const isAdmin = currentPlayer?.role === 'admin' || user?.email === MASTER_ADMIN_EMAIL;
   
+  const isPaid = currentPlayer?.playerType === 'mensalista' ? currentPlayer?.monthlyPaid : currentPlayer?.paymentStatus === 'pago';
+  const myPrice = currentPlayer?.playerType === 'mensalista' ? prices.mensalista : prices.avulso;
+
   const confirmedPlayers = players.filter(p => p.status === 'presente');
-  const pendingPlayers = players.filter(p => p.status !== 'presente');
+  const pendingPlayers = players.filter(p => p.status === 'pendente');
+  const refusedPlayers = players.filter(p => p.status === 'ausente');
   const fieldSlots = match?.fieldSlots || 30;
   const gkSlots = match?.gkSlots || 4;
 
@@ -86,12 +100,10 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     return () => clearTimeout(timer);
   }, [confirmedField.length, confirmedGKs.length, fieldSlots, gkSlots, match]);
 
-  const togglePresence = async () => {
+  const updatePresence = async (newStatus: 'presente' | 'ausente' | 'pendente') => {
     if (!user || isUpdating || !match) return;
     setIsUpdating(true);
     try {
-      const newStatus = isConfirmed ? 'pendente' : 'presente';
-      
       // Se estiver confirmando, aproveita para pedir permissão de notificação se ainda não tiver
       if (newStatus === 'presente' && getNotificationStatus() === 'default') {
         await requestNotificationPermission(user.uid);
@@ -106,13 +118,6 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
       }
 
       await updateDoc(doc(db, "players", user.uid), updates);
-      
-      // Notificar todos sobre a mudança de status
-      if (newStatus === 'presente') {
-        await broadcastNotification("✅ NOVA CONFIRMAÇÃO!", `${currentPlayer?.name || 'Um atleta'} confirmou presença!`);
-      } else {
-        await broadcastNotification("❌ DESISTÊNCIA!", `${currentPlayer?.name || 'Um atleta'} saiu da lista.`);
-      }
     } catch (e) { alert("Erro de conexão."); } finally { setIsUpdating(false); }
   };
 
@@ -129,7 +134,8 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
     try {
       await broadcastNotification(
         "⏰ LEMBRETE DE JOGO!", 
-        `A pelada na ${match.location.toUpperCase()} está chegando! Confirme sua presença agora.`
+        `A pelada na ${match.location.toUpperCase()} está chegando! Confirme sua presença agora.`,
+        user.uid
       );
       alert("Lembrete enviado com sucesso!");
     } catch (e) {
@@ -304,15 +310,25 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                 </div>
 
                 <div className="flex flex-col gap-5">
-                  <button 
-                    onClick={togglePresence}
-                    disabled={isUpdating}
-                    className={`w-full h-20 rounded-[2rem] font-black uppercase text-[12px] tracking-widest shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 ${isConfirmed ? (isInWaitingList ? 'bg-amber-500 text-white shadow-glow-amber' : 'bg-navy text-white shadow-elite') : 'bg-primary text-white shadow-glow-red'}`}
-                  >
-                    {isUpdating ? <div className="w-6 h-6 border-3 border-current/20 border-t-current rounded-full animate-spin"></div> : (
-                      <>{isConfirmed ? (isInWaitingList ? 'VOCÊ ESTÁ NA ESPERA ⏳' : 'VOCÊ ESTÁ CONFIRMADO ✅') : 'MARCAR MINHA PRESENÇA ⚽'}</>
-                    )}
-                  </button>
+                  <div className="flex flex-col gap-4">
+                    <button 
+                      onClick={() => updatePresence(isConfirmed ? 'pendente' : 'presente')}
+                      disabled={isUpdating}
+                      className={`h-24 rounded-[2.5rem] font-black uppercase text-[13px] tracking-widest shadow-2xl active:scale-95 transition-all flex flex-col items-center justify-center gap-2 ${isConfirmed ? (isInWaitingList ? 'bg-amber-500 text-white shadow-glow-amber' : 'bg-navy text-white shadow-elite') : 'bg-primary text-white shadow-glow-red'}`}
+                    >
+                      {isUpdating ? <div className="w-8 h-8 border-4 border-current/20 border-t-current rounded-full animate-spin"></div> : (
+                        <>
+                          <span className="material-symbols-outlined text-3xl">
+                            {isConfirmed ? (isInWaitingList ? 'hourglass_top' : 'check_circle') : 'sports_soccer'}
+                          </span>
+                          <div className="flex flex-col items-center">
+                            <span className="leading-none">{isConfirmed ? (isInWaitingList ? 'NA ESPERA' : 'PRESENÇA CONFIRMADA') : 'CONFIRMAR PRESENÇA'}</span>
+                            {isConfirmed && <span className="text-[9px] opacity-60 mt-1 font-bold lowercase tracking-normal">Clique para cancelar</span>}
+                          </div>
+                        </>
+                      )}
+                    </button>
+                  </div>
 
                   {isAdmin && confirmedPlayers.length >= 4 && (
                     <button 
@@ -384,14 +400,14 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                           </div>
                         )}
                       </div>
-                      <div>
-                        <p className="text-[16px] font-black text-navy uppercase italic leading-none mb-1">{p.name}</p>
+                      <div className="flex flex-col justify-center">
+                        <p className="text-[16px] font-black text-navy uppercase italic leading-none mb-1.5">{p.name}</p>
                         <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">{p.position}</p>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="flex flex-col justify-center items-end">
                        <p className={`text-4xl font-condensed italic font-black leading-none tracking-tighter ${isTop3 ? 'text-navy' : 'text-primary'}`}>{p.goals}</p>
-                       <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">GOLS</p>
+                       <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1">GOLS</p>
                     </div>
                   </div>
                 );

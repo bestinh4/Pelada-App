@@ -5,10 +5,11 @@ import { db, addDoc, collection } from '../services/firebase.ts';
 import { broadcastNotification } from '../services/notificationService.ts';
 
 interface CreateMatchProps {
+  user: any;
   onPageChange: (page: Page) => void;
 }
 
-const CreateMatch: React.FC<CreateMatchProps> = ({ onPageChange }) => {
+const CreateMatch: React.FC<CreateMatchProps> = ({ user, onPageChange }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [matchData, setMatchData] = useState({
     location: '',
@@ -35,7 +36,8 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ onPageChange }) => {
       // Notificar todos os jogadores sobre a nova convocação
       await broadcastNotification(
         "⚽ NOVA CONVOCAÇÃO!", 
-        `A pelada na ${matchData.location.toUpperCase()} está aberta! Confirme sua presença.`
+        `A pelada na ${matchData.location.toUpperCase()} está aberta! Confirme sua presença.`,
+        user.uid
       );
 
       onPageChange(Page.Dashboard);

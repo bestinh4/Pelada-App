@@ -12,7 +12,7 @@ export interface Player {
   totalGames: number;
   totalWins: number;
   position: string;
-  status: 'presente' | 'pendente';
+  status: 'presente' | 'pendente' | 'ausente';
   confirmedAt?: string;
   createdAt?: string;
   playerType: 'mensalista' | 'avulso';
@@ -89,6 +89,7 @@ export enum Page {
   Dashboard = 'dashboard',
   PlayerList = 'players',
   Ranking = 'ranking',
+  Finance = 'finance',
   CreateMatch = 'create-match',
   Profile = 'profile',
   TeamBalancing = 'team-balancing',
