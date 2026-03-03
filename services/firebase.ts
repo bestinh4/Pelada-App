@@ -29,7 +29,7 @@ import {
   limit,
   writeBatch
 } from "firebase/firestore";
-import { getMessaging } from "firebase/messaging";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
 // 🔐 CONFIGURAÇÃO DO FIREBASE
 const firebaseConfig = {
@@ -56,6 +56,7 @@ try {
   // Falha silenciosa se o ambiente não suportar
 }
 export const messaging = messagingInstance;
+export { getToken, onMessage };
 
 // 4. Configuração de Providers e Helpers
 const googleProvider = new GoogleAuthProvider();

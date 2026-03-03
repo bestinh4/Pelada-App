@@ -15,7 +15,7 @@ import NotificationToast, { Notification as InAppNotification } from './componen
 import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL } from './constants.tsx';
 import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc, limit, where } from './services/firebase.ts';
-import { requestNotificationPermission, sendPushNotification } from './services/notificationService.ts';
+import { requestNotificationPermission, sendPushNotification, setupForegroundNotifications } from './services/notificationService.ts';
 import { playSound } from './utils/sound.ts';
 
 const App: React.FC = () => {
@@ -56,6 +56,7 @@ const App: React.FC = () => {
         // requestNotificationPermission(firebaseUser.uid);
 
         try {
+          setupForegroundNotifications();
           const playerDocRef = doc(db, "players", firebaseUser.uid);
           const playerDoc = await getDoc(playerDocRef);
           

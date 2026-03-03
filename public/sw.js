@@ -41,18 +41,34 @@ self.addEventListener('message', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'O&A Elite Pro', body: 'Novidades na Arena!' };
+  console.log("📥 SW: Push recebido!");
+  let data = { title: 'Ousadia & Alegria', body: 'Novidades na Arena!' };
+  
   try {
-    data = event.data ? event.data.json() : data;
+    if (event.data) {
+      const payload = event.data.json();
+      console.log("📥 SW: Payload JSON:", payload);
+      
+      // FCM pode enviar no formato { notification: { title, body }, data: { url } }
+      // ou direto no root se for data message
+      data = {
+        title: payload.notification?.title || payload.title || data.title,
+        body: payload.notification?.body || payload.body || data.body,
+        url: payload.data?.url || payload.url || '/'
+      };
+    }
   } catch (e) {
-    data = { title: 'O&A Elite Pro', body: event.data ? event.data.text() : data.body };
+    console.log("📥 SW: Payload texto:", event.data ? event.data.text() : 'sem dados');
+    data.body = event.data ? event.data.text() : data.body;
   }
 
   const options = {
     body: data.body,
     icon: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&w=192&h=192&fit=contain&padding=10',
     badge: 'https://images.weserv.nl/?url=https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png&w=96&h=96&fit=contain',
-    vibrate: [200, 100, 200],
+    vibrate: [200, 100, 200, 100, 200],
+    tag: 'oa-notification',
+    renotify: true,
     data: { url: data.url || '/' }
   };
 

@@ -1,5 +1,7 @@
 
-import { db, doc, updateDoc, collection, addDoc } from './firebase.ts';
+import { db, doc, updateDoc, collection, addDoc, messaging, getToken, onMessage } from './firebase.ts';
+
+const VAPID_KEY = "BHT6LWPFyDCj0inYpPKEXBh3rXptm3alhFnLQFcVmPZVscVKdEfz-3-JalE_Fjx8V538kqR46EJ6w4o1JatMins"; // Chave pública VAPID do console Firebase
 
 export const getNotificationStatus = () => {
   if (!('Notification' in window)) return 'unsupported';
@@ -24,7 +26,23 @@ export const requestNotificationPermission = async (userId?: string) => {
     if (permission === 'granted' && userId) {
       const userRef = doc(db, "players", userId);
       await updateDoc(userRef, { pushEnabled: true });
-      // Notificação de teste removida para evitar ser marcado como spam
+      
+      // Obter Token FCM para notificações em background
+      if (messaging && 'serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.ready;
+          const token = await getToken(messaging, { 
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: registration
+          });
+          if (token) {
+            console.log("✅ Token FCM obtido:", token);
+            await updateDoc(userRef, { fcmToken: token });
+          }
+        } catch (err) {
+          console.error("❌ Erro ao obter token FCM:", err);
+        }
+      }
     }
     return permission === 'granted';
   } catch (error) {
@@ -33,8 +51,20 @@ export const requestNotificationPermission = async (userId?: string) => {
   }
 };
 
+export const setupForegroundNotifications = () => {
+  if (messaging) {
+    onMessage(messaging, (payload) => {
+      console.log('📥 Notificação em foreground recebida:', payload);
+      if (payload.notification) {
+        sendPushNotification(payload.notification.title || 'O&A', payload.notification.body || '');
+      }
+    });
+  }
+};
+
 export const broadcastNotification = async (title: string, body: string, senderId?: string) => {
   try {
+    // 1. Salvar no Firestore (para histórico e fallback)
     await addDoc(collection(db, "notifications"), {
       title,
       body,
@@ -42,6 +72,14 @@ export const broadcastNotification = async (title: string, body: string, senderI
       type: 'broadcast',
       senderId: senderId || null
     });
+
+    // 2. Chamar a API para disparo imediato (compatível com Vercel)
+    await fetch('/api/send-notification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, body, url: '/' })
+    });
+
   } catch (error) {
     console.error("❌ Erro ao transmitir notificação:", error);
   }
