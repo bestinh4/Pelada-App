@@ -25,6 +25,8 @@ export interface Player {
   // Fix: Adding financial tracking properties used in Ranking.tsx
   monthlyPaid?: boolean;
   paymentStatus?: 'pago' | 'pendente';
+  pushEnabled?: boolean;
+  fcmToken?: string | null;
 }
 
 export interface Expense {

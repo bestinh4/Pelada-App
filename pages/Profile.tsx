@@ -12,6 +12,7 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
   const [editedPosition, setEditedPosition] = useState(player.position);
   const [editedPlayerType, setEditedPlayerType] = useState(player.playerType || 'avulso');
   const [notifStatus, setNotifStatus] = useState(getNotificationStatus());
+  const [fcmToken, setFcmToken] = useState<string | null>(player.fcmToken || null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
@@ -145,13 +146,23 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
                         onClick={async () => {
                           const granted = await requestNotificationPermission(player.id);
                           setNotifStatus(getNotificationStatus());
-                          if (granted) alert("Notificações ativadas!");
+                          if (granted) {
+                            alert("Notificações ativadas!");
+                            window.location.reload();
+                          }
                         }}
                         className="w-full h-16 bg-navy text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-elite flex items-center justify-center gap-3 active:scale-95 transition-all"
                       >
                         <span className="material-symbols-outlined text-lg">notifications_active</span>
                         ATIVAR ALERTAS NO DISPOSITIVO
                       </button>
+                   )}
+
+                   {fcmToken && (
+                     <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl">
+                       <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest mb-1">CÓDIGO DE PUSH (TOKEN)</p>
+                       <p className="text-[9px] font-mono text-navy break-all opacity-50">{fcmToken.substring(0, 40)}...</p>
+                     </div>
                    )}
                    
                     <button 

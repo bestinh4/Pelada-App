@@ -28,13 +28,10 @@ export const requestNotificationPermission = async (userId?: string) => {
       await updateDoc(userRef, { pushEnabled: true });
       
       // Obter Token FCM para notificações em background
-      if (messaging && 'serviceWorker' in navigator) {
+      if (messaging) {
         try {
-          const registration = await navigator.serviceWorker.ready;
-          const token = await getToken(messaging, { 
-            vapidKey: VAPID_KEY,
-            serviceWorkerRegistration: registration
-          });
+          // O Firebase procura automaticamente por firebase-messaging-sw.js
+          const token = await getToken(messaging, { vapidKey: VAPID_KEY });
           if (token) {
             console.log("✅ Token FCM obtido:", token);
             await updateDoc(userRef, { fcmToken: token });

@@ -149,36 +149,36 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
 
   return (
     <div className="flex flex-col animate-fade-in px-6">
-      <header className="py-12 flex items-center justify-between">
+      <header className="py-8 md:py-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 sm:gap-4">
         <div className="space-y-1">
-          <h2 className="text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ELENCO O&A</h2>
-          <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">CONVOCAÇÃO ATUAL</p>
+          <h2 className="text-2xl md:text-3xl font-black text-navy uppercase italic tracking-tighter leading-none">ELENCO O&A</h2>
+          <p className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.4em]">CONVOCAÇÃO ATUAL</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-3 md:gap-4 w-full sm:w-auto justify-end">
           {isCurrentUserAdmin && (
             <button 
               onClick={() => setIsAddingManual(true)} 
-              className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-glow-red active:scale-90 transition-all group"
+              className="w-11 h-11 md:w-12 md:h-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-glow-red active:scale-90 transition-all group"
               title="Adicionar Jogador Manual"
             >
-              <span className="material-symbols-outlined text-2xl group-hover:rotate-90 transition-transform">person_add</span>
+              <span className="material-symbols-outlined text-xl md:text-2xl group-hover:rotate-90 transition-transform">person_add</span>
             </button>
           )}
-          <button onClick={handleShareList} className="w-12 h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-soft-white active:scale-90 transition-all text-navy group">
-            <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">share</span>
+          <button onClick={handleShareList} className="w-11 h-11 md:w-12 md:h-12 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-soft-white active:scale-90 transition-all text-navy group">
+            <span className="material-symbols-outlined text-xl md:text-2xl group-hover:scale-110 transition-transform">share</span>
           </button>
-          <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-soft-white animate-float border border-slate-100 p-2">
-            <img src={mainLogoUrl} className="w-8 h-8 object-contain" />
+          <div className="w-11 h-11 md:w-12 md:h-12 bg-white rounded-2xl flex items-center justify-center shadow-soft-white animate-float border border-slate-100 p-2">
+            <img src={mainLogoUrl} className="w-7 h-7 md:w-8 md:h-8 object-contain" />
           </div>
         </div>
       </header>
 
-      <div className="mb-10 relative">
+      <div className="mb-8 md:mb-10 relative">
         <span className="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-slate-300">search</span>
         <input 
           type="text" placeholder="Buscar atleta no elenco..." value={searchQuery} 
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full h-16 bg-white border border-slate-100 rounded-2xl pl-14 pr-6 text-[15px] font-bold text-navy outline-none shadow-soft-white focus:border-navy transition-all" 
+          className="w-full h-14 md:h-16 bg-white border border-slate-100 rounded-2xl pl-14 pr-6 text-[14px] md:text-[15px] font-bold text-navy outline-none shadow-soft-white focus:border-navy transition-all" 
         />
       </div>
 
@@ -279,22 +279,22 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       </main>
 
       {selectedPlayerForStats && (
-        <div className="fixed inset-0 bg-navy/60 backdrop-blur-md z-[200] flex items-center justify-center p-6">
-           <div className="w-full max-w-[400px] bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-slide-up">
-              <div className="p-8 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                 <div className="flex items-center gap-4">
-                    <img src={selectedPlayerForStats.photoUrl} className="w-14 h-14 rounded-2xl object-cover border-2 border-white shadow-sm" alt="" />
+        <div className="fixed inset-0 bg-navy/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 md:p-6">
+           <div className="w-full max-w-[400px] bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl overflow-hidden animate-slide-up max-h-[90vh] flex flex-col">
+              <div className="p-6 md:p-8 bg-slate-50 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                 <div className="flex items-center gap-3 md:gap-4">
+                    <img src={selectedPlayerForStats.photoUrl} className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl object-cover border-2 border-white shadow-sm" alt="" />
                     <div>
-                      <h3 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">{selectedPlayerForStats.name}</h3>
-                      <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1">CONFIGURAÇÕES DE ACESSO</p>
+                      <h3 className="text-lg md:text-xl font-black text-navy uppercase italic tracking-tighter leading-none truncate max-w-[150px] md:max-w-none">{selectedPlayerForStats.name}</h3>
+                      <p className="text-[8px] md:text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1">CONFIGURAÇÕES DE ACESSO</p>
                     </div>
                  </div>
-                 <button onClick={() => setSelectedPlayerForStats(null)} className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-300 active:scale-90">
-                    <span className="material-symbols-outlined">close</span>
+                 <button onClick={() => setSelectedPlayerForStats(null)} className="w-9 h-9 md:w-10 md:h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-300 active:scale-90">
+                    <span className="material-symbols-outlined text-xl">close</span>
                  </button>
               </div>
               
-              <div className="p-8 space-y-8 max-h-[70vh] overflow-y-auto hide-scrollbar relative">
+              <div className="p-6 md:p-8 space-y-6 md:space-y-8 overflow-y-auto hide-scrollbar relative flex-1">
                  <img src="https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png" className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 opacity-[0.08] grayscale pointer-events-none" />
 
                  <div className="grid grid-cols-2 gap-4 relative z-10">
@@ -356,24 +356,24 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         </div>
       )}
       {isAddingManual && (
-        <div className="fixed inset-0 bg-navy/60 backdrop-blur-md z-[200] flex items-center justify-center p-6">
-           <div className="w-full max-w-[400px] bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-slide-up">
-              <div className="p-8 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                       <span className="material-symbols-outlined text-2xl">person_add</span>
+        <div className="fixed inset-0 bg-navy/60 backdrop-blur-md z-[200] flex items-center justify-center p-4 md:p-6">
+           <div className="w-full max-w-[400px] bg-white rounded-[2.5rem] md:rounded-[3rem] shadow-2xl overflow-hidden animate-slide-up max-h-[90vh] flex flex-col">
+              <div className="p-6 md:p-8 bg-slate-50 border-b border-slate-100 flex items-center justify-between flex-shrink-0">
+                 <div className="flex items-center gap-3 md:gap-4">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+                       <span className="material-symbols-outlined text-xl md:text-2xl">person_add</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-black text-navy uppercase italic tracking-tighter leading-none">NOVO ATLETA</h3>
-                      <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1">CADASTRO MANUAL (SEM APP)</p>
+                      <h3 className="text-lg md:text-xl font-black text-navy uppercase italic tracking-tighter leading-none">NOVO ATLETA</h3>
+                      <p className="text-[8px] md:text-[9px] font-black text-slate-300 uppercase tracking-widest mt-1">CADASTRO MANUAL (SEM APP)</p>
                     </div>
                  </div>
-                 <button onClick={() => setIsAddingManual(false)} className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-300 active:scale-90">
-                    <span className="material-symbols-outlined">close</span>
+                 <button onClick={() => setIsAddingManual(false)} className="w-9 h-9 md:w-10 md:h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-300 active:scale-90">
+                    <span className="material-symbols-outlined text-xl">close</span>
                  </button>
               </div>
               
-              <div className="p-8 space-y-6">
+              <div className="p-6 md:p-8 space-y-5 md:space-y-6 overflow-y-auto hide-scrollbar flex-1">
                  <div className="space-y-2">
                     <label className="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">NOME COMPLETO / APELIDO</label>
                     <input 
@@ -456,61 +456,63 @@ const PlayerSection = ({ title, list, isAdmin, onQuickToggle, onEdit, onDelete, 
 
   return (
     <section className="animate-slide-up">
-      <div className="flex items-center justify-between mb-8 px-2">
+      <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between mb-6 md:mb-8 px-2 gap-2">
          <div className="flex items-center gap-3">
             <div className={`w-2 h-2 ${type === 'confirmed' ? 'bg-primary shadow-glow-red' : type === 'waiting' ? 'bg-amber-400 shadow-glow-amber' : type === 'refused' ? 'bg-slate-800 shadow-elite' : 'bg-slate-200'} rounded-full animate-pulse`}></div>
-            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">{title}</h3>
+            <h3 className="text-[10px] md:text-[11px] font-black uppercase tracking-[0.3em] md:tracking-[0.4em] text-navy italic">{title}</h3>
          </div>
-         <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{list.length} ATLETAS</span>
+         <span className="text-[9px] md:text-[10px] font-black text-slate-300 uppercase tracking-widest">{list.length} ATLETAS</span>
       </div>
       <div className="space-y-4">
         {list.length > 0 ? list.map((p: Player) => {
           const statusInfo = getStatusInfo(p.status, type);
           return (
-            <div key={p.id} className="bg-white rounded-[2.5rem] p-5 border border-slate-100 shadow-soft-white flex items-center justify-between group transition-all hover:border-navy/20">
-              <div className="flex items-center gap-5">
-                <div className="relative">
-                  <img src={p.photoUrl} className="w-16 h-16 rounded-[1.5rem] object-cover border-2 border-slate-50 shadow-sm" alt="" />
+            <div key={p.id} className="bg-white rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-5 border border-slate-100 shadow-soft-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group transition-all hover:border-navy/20">
+              <div className="flex items-center gap-4 md:gap-5 w-full">
+                <div className="relative flex-shrink-0">
+                  <img src={p.photoUrl} className="w-14 h-14 md:w-16 md:h-16 rounded-[1.2rem] md:rounded-[1.5rem] object-cover border-2 border-slate-50 shadow-sm" alt="" />
                   {isAdmin && (
                     <button 
                       disabled={processingId === p.id}
                       onClick={() => onQuickToggle(p)}
-                      className={`absolute -top-2 -right-2 w-8 h-8 rounded-xl border-2 border-white shadow-xl flex items-center justify-center transition-all ${p.status === 'presente' ? 'bg-primary text-white' : 'bg-slate-50 text-slate-300'}`}
+                      className={`absolute -top-2 -right-2 w-7 h-7 md:w-8 md:h-8 rounded-xl border-2 border-white shadow-xl flex items-center justify-center transition-all ${p.status === 'presente' ? 'bg-primary text-white' : 'bg-slate-50 text-slate-300'}`}
                     >
-                      {processingId === p.id ? <div className="w-3 h-3 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[16px] font-black">{p.status === 'presente' ? 'check' : 'add'}</span>}
+                      {processingId === p.id ? <div className="w-3 h-3 border-2 border-current/20 border-t-current rounded-full animate-spin"></div> : <span className="material-symbols-outlined text-[14px] md:text-[16px] font-black">{p.status === 'presente' ? 'check' : 'add'}</span>}
                     </button>
                   )}
                 </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <h4 className="text-[16px] font-black text-navy uppercase italic leading-none">{p.name}</h4>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <h4 className="text-[15px] md:text-[16px] font-black text-navy uppercase italic leading-none truncate">{p.name}</h4>
                     {p.role === 'admin' && (
-                      <span className={`text-white text-[7px] font-black px-2 py-0.5 rounded-md uppercase animate-pulse ${p.email === MASTER_ADMIN_EMAIL ? 'bg-navy shadow-elite' : 'bg-primary shadow-glow-red'}`}>
+                      <span className={`text-white text-[6px] md:text-[7px] font-black px-1.5 md:px-2 py-0.5 rounded-md uppercase animate-pulse ${p.email === MASTER_ADMIN_EMAIL ? 'bg-navy shadow-elite' : 'bg-primary shadow-glow-red'}`}>
                         {p.email === MASTER_ADMIN_EMAIL ? 'MASTER' : 'DIRETORIA'}
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
-                     <div className={`flex items-center gap-1 px-2 py-0.5 rounded-lg ${statusInfo.bg}`}>
-                        <span className={`material-symbols-outlined text-[12px] font-black ${statusInfo.color}`}>{statusInfo.icon}</span>
-                        <p className={`text-[8px] font-black uppercase tracking-widest ${statusInfo.color}`}>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                     <div className={`flex items-center gap-1 px-1.5 md:px-2 py-0.5 rounded-lg ${statusInfo.bg}`}>
+                        <span className={`material-symbols-outlined text-[10px] md:text-[12px] font-black ${statusInfo.color}`}>{statusInfo.icon}</span>
+                        <p className={`text-[7px] md:text-[8px] font-black uppercase tracking-widest ${statusInfo.color}`}>
                           {p.status === 'presente' ? (type === 'waiting' ? 'ESPERA' : 'CONFIRMADO') : p.status === 'ausente' ? 'AUSENTE' : 'PENDENTE'}
                         </p>
                      </div>
-                     <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
-                     <span className="w-1 h-1 bg-slate-200 rounded-full"></span>
-                     <p className={`text-[10px] font-black uppercase tracking-widest ${p.playerType === 'mensalista' ? 'text-navy' : 'text-slate-300'}`}>{p.playerType || 'avulso'}</p>
+                     <span className="w-1 h-1 bg-slate-200 rounded-full hidden xs:block"></span>
+                     <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{p.position}</p>
+                     <span className="w-1 h-1 bg-slate-200 rounded-full hidden xs:block"></span>
+                     <p className={`text-[9px] md:text-[10px] font-black uppercase tracking-widest ${p.playerType === 'mensalista' ? 'text-navy' : 'text-slate-300'}`}>{p.playerType || 'avulso'}</p>
                   </div>
                 </div>
               </div>
               {isAdmin && (
-                <div className="flex gap-3">
-                   <button onClick={() => onEdit(p)} className="w-11 h-11 rounded-2xl bg-slate-50 text-navy flex items-center justify-center border border-slate-100 hover:bg-navy hover:text-white transition-all">
+                <div className="flex gap-2 md:gap-3 w-full sm:w-auto justify-end border-t sm:border-t-0 border-slate-50 pt-3 sm:pt-0">
+                   <button onClick={() => onEdit(p)} className="flex-1 sm:flex-none h-11 px-4 sm:px-0 sm:w-11 rounded-xl md:rounded-2xl bg-slate-50 text-navy flex items-center justify-center border border-slate-100 hover:bg-navy hover:text-white transition-all gap-2">
                       <span className="material-symbols-outlined text-lg">edit_document</span>
+                      <span className="sm:hidden text-[10px] font-black uppercase tracking-widest">Editar</span>
                    </button>
-                   <button onClick={() => onDelete(p)} className="w-11 h-11 rounded-2xl bg-red-50 text-primary flex items-center justify-center border border-red-100 hover:bg-primary hover:text-white transition-all">
+                   <button onClick={() => onDelete(p)} className="flex-1 sm:flex-none h-11 px-4 sm:px-0 sm:w-11 rounded-xl md:rounded-2xl bg-red-50 text-primary flex items-center justify-center border border-red-100 hover:bg-primary hover:text-white transition-all gap-2">
                       <span className="material-symbols-outlined text-lg">delete</span>
+                      <span className="sm:hidden text-[10px] font-black uppercase tracking-widest">Excluir</span>
                    </button>
                 </div>
               )}
