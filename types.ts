@@ -95,5 +95,6 @@ export enum Page {
   CreateMatch = 'create-match',
   Profile = 'profile',
   TeamBalancing = 'team-balancing',
-  ArenaPanel = 'arena-panel'
+  ArenaPanel = 'arena-panel',
+  Tutorial = 'tutorial'
 }

@@ -3,7 +3,7 @@ import { logout, db, doc, updateDoc } from '../services/firebase.ts';
 import React, { useRef, useState, useEffect } from 'react';
 import { Player, Page } from '../types.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
-import { requestNotificationPermission, getNotificationStatus, sendPushNotification, broadcastNotification } from '../services/notificationService.ts';
+import { requestNotificationPermission, getNotificationStatus, sendPushNotification, broadcastNotification, resetNotificationsRoutine } from '../services/notificationService.ts';
 
 const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChange: (page: Page) => void }> = ({ player, currentUserEmail, onPageChange }) => {
   const [isUploading, setIsUploading] = useState(false);
@@ -190,6 +190,18 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
                         TESTAR AVISO GERAL (BROADCAST)
                      </button>
                    )}
+
+                   <button 
+                      onClick={async () => {
+                        if (confirm("Deseja resetar as configurações de notificação? Isso limpará o cache e tentará re-sincronizar seu dispositivo.")) {
+                          await resetNotificationsRoutine(player.id);
+                        }
+                      }}
+                      className="w-full h-16 bg-slate-50 border border-slate-100 text-slate-400 rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all"
+                   >
+                      <span className="material-symbols-outlined text-lg">refresh</span>
+                      RESETAR / CORRIGIR NOTIFICAÇÕES
+                   </button>
                 </div>
                 <p className="text-[9px] text-slate-400 mt-4 italic text-center leading-relaxed">
                   *Para evitar alertas de spam, as notificações agora são solicitadas apenas quando você clica no botão acima. Certifique-se de permitir no seu navegador.
@@ -203,6 +215,17 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
                    <span className="material-symbols-outlined text-primary text-xl">link</span>
                    <h4 className="text-[11px] font-black text-navy uppercase italic tracking-tighter leading-none">LINKS ÚTEIS</h4>
                 </div>
+                <button 
+                  onClick={() => onPageChange(Page.Tutorial)}
+                  className="w-full h-16 bg-navy text-white rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-between px-6 active:scale-95 transition-all group mb-4 shadow-elite"
+                >
+                   <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-white group-hover:rotate-12 transition-transform">install_mobile</span>
+                      TUTORIAL DE INSTALAÇÃO (APP)
+                   </div>
+                   <span className="material-symbols-outlined text-sm opacity-30">chevron_right</span>
+                </button>
+
                 <a 
                   href="https://pelada-app.vercel.app/" 
                   target="_blank" 

@@ -1,3 +1,18 @@
+// Importar scripts do Firebase para suporte nativo a FCM em background
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyBa8kF4pSrx_-GuHVT_hGMgh_UmRc0NBx0",
+  authDomain: "ousadia-5b1d8.firebaseapp.com",
+  projectId: "ousadia-5b1d8",
+  storageBucket: "ousadia-5b1d8.firebasestorage.app",
+  messagingSenderId: "812821310641",
+  appId: "1:812821310641:web:d5256ab8fea0ad1323c690"
+});
+
+const messaging = firebase.messaging();
+
 console.log("🛠️ Service Worker carregado!");
 
 const CACHE_NAME = 'oa-elite-pro-v8'; // Incrementado para v8
@@ -38,10 +53,37 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'PING') {
     event.source.postMessage({ type: 'PONG' });
   }
+  
+  if (event.data && event.data.type === 'CLEAR_CACHE') {
+    console.log("🗑️ SW: Limpando todos os caches por solicitação...");
+    event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => caches.delete(cacheName))
+        );
+      }).then(() => {
+        console.log("✅ SW: Caches limpos!");
+        if (event.source) event.source.postMessage({ type: 'CACHE_CLEARED' });
+      })
+    );
+  }
+
+  if (event.data && event.data.type === 'RESET_NOTIFICATIONS') {
+    console.log("🔄 SW: Resetando notificações ativas...");
+    event.waitUntil(
+      self.registration.getNotifications().then((notifications) => {
+        notifications.forEach(notification => notification.close());
+        console.log("✅ SW: Notificações fechadas!");
+      })
+    );
+  }
 });
 
 self.addEventListener('push', (event) => {
   console.log("📥 SW: Push recebido!");
+  
+  // Se o Firebase Messaging estiver ativo, ele pode lidar com a notificação
+  // Mas mantemos este listener para garantir redundância ou lidar com data messages
   let data = { title: 'Ousadia & Alegria', body: 'Novidades na Arena!' };
   
   try {
@@ -73,6 +115,14 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+// Handler nativo do Firebase para background
+messaging.onBackgroundMessage((payload) => {
+  console.log('📥 [sw] Notificação em background via Firebase:', payload);
+  
+  // O Firebase já mostra a notificação se houver o campo 'notification' no payload
+  // Mas podemos customizar aqui se necessário
 });
 
 self.addEventListener('notificationclick', (event) => {

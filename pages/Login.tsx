@@ -1,8 +1,13 @@
 
 import React, { useState } from 'react';
 import { loginWithGoogle } from '../services/firebase.ts';
+import { Page } from '../types.ts';
 
-const Login: React.FC = () => {
+interface LoginProps {
+  onPageChange: (page: Page) => void;
+}
+
+const Login: React.FC<LoginProps> = ({ onPageChange }) => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const logoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
@@ -37,6 +42,14 @@ const Login: React.FC = () => {
             className="w-full h-20 bg-navy text-white rounded-[2rem] font-black uppercase text-[12px] tracking-[0.4em] shadow-elite active:scale-95 transition-all flex items-center justify-center gap-4"
           >
             {isLoggingIn ? <div className="w-6 h-6 border-3 border-white/20 border-t-white rounded-full animate-spin"></div> : 'ENTRAR NA PELADA'}
+          </button>
+
+          <button 
+            onClick={() => onPageChange(Page.Tutorial)}
+            className="w-full h-14 bg-white/50 backdrop-blur-sm border border-white/20 text-navy rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-3 active:scale-95 transition-all"
+          >
+            <span className="material-symbols-outlined text-lg">install_mobile</span>
+            TUTORIAL DE INSTALAÇÃO
           </button>
           
           <div className="text-center">

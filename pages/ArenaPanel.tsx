@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Player, Page, Match } from '../types.ts';
 import { MatchSession, Team } from '../domain/types.ts';
-import { db, doc, onSnapshot, updateDoc, deleteDoc, writeBatch, collection, addDoc } from '../services/firebase.ts';
+import { db, doc, onSnapshot, updateDoc, deleteDoc, writeBatch, collection, addDoc, query, orderBy, limit } from '../services/firebase.ts';
 import { registerGoal, finishMatch } from '../domain/matchEngine.ts';
 import { broadcastNotification } from '../services/notificationService.ts';
 import { playSound } from '../utils/sound.ts';
@@ -20,6 +20,7 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ user, players, match, onPageCha
   const [session, setSession] = useState<MatchSession | null>(null);
   const [timeLeft, setTimeLeft] = useState(MATCH_LIMIT_MINUTES * 60);
   const [timerActive, setTimerActive] = useState(false);
+  const [lateRemovals, setLateRemovals] = useState<any[]>([]);
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
 
@@ -28,7 +29,17 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ user, players, match, onPageCha
       if (snap.exists()) setSession(snap.data() as MatchSession);
       else setSession(null);
     });
-    return () => unsub();
+
+    // Buscar desistências tardias
+    const q = query(collection(db, "lateRemovals"), orderBy("timestamp", "desc"), limit(10));
+    const unsubRemovals = onSnapshot(q, (snap) => {
+      setLateRemovals(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => {
+      unsub();
+      unsubRemovals();
+    };
   }, []);
 
   useEffect(() => {
@@ -249,7 +260,41 @@ const ArenaPanel: React.FC<ArenaPanelProps> = ({ user, players, match, onPageCha
           )}
         </div>
 
-        <div className="lg:col-span-4 space-y-6 mt-10 lg:mt-0">
+        <div className="lg:col-span-4 space-y-10 mt-10 lg:mt-0">
+          {/* Desistências Tardias */}
+          <section className="space-y-6">
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-3">
+                <span className="material-symbols-outlined text-primary text-xl">history_toggle_off</span>
+                <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-navy italic">DESISTÊNCIAS TARDIAS</h3>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {lateRemovals.length > 0 ? lateRemovals.map((rem) => (
+                <div key={rem.id} className="bg-white border border-red-100 p-4 rounded-2xl shadow-soft-white flex items-center justify-between group animate-slide-up">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-primary">
+                      <span className="material-symbols-outlined text-lg">person_remove</span>
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-black text-navy uppercase italic leading-none mb-1">{rem.playerName}</p>
+                      <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">
+                        {new Date(rem.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} • {rem.matchLocation}
+                      </p>
+                    </div>
+                  </div>
+                  {rem.removedBy && (
+                    <span className="text-[8px] font-black bg-slate-50 text-slate-400 px-2 py-1 rounded-md uppercase">ADM</span>
+                  )}
+                </div>
+              )) : (
+                <div className="py-10 text-center bg-slate-50/50 border border-dashed border-slate-100 rounded-[2rem]">
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">Nenhuma desistência após 18h</p>
+                </div>
+              )}
+            </div>
+          </section>
+
           <div className="flex justify-between items-center px-2">
             <h3 className="text-[11px] font-black text-navy uppercase italic">NA FILA DE ESPERA</h3>
             <span className="bg-slate-50 border border-slate-100 px-3 py-1 rounded-full text-[9px] font-black text-navy uppercase">{session.waitingQueue.length} TIMES</span>

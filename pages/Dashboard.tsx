@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Match, Player, Page, MatchHistory } from '../types.ts';
-import { db, doc, updateDoc, deleteDoc, collection, getDocs, writeBatch, query, orderBy, limit, onSnapshot } from '../services/firebase.ts';
+import { db, doc, updateDoc, deleteDoc, collection, getDocs, writeBatch, query, orderBy, limit, onSnapshot, addDoc } from '../services/firebase.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { getNotificationStatus, requestNotificationPermission, broadcastNotification } from '../services/notificationService.ts';
+import { isLateRemovalTime } from '../utils/timeUtils.ts';
 
 interface DashboardProps {
   match: Match | null;
@@ -115,6 +116,18 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
         updates.confirmedAt = new Date().toISOString();
       } else {
         updates.confirmedAt = null;
+        
+        // REGISTRO DE DESISTÊNCIA TARDIA (Após 18h de Sábado)
+        if (isConfirmed && isLateRemovalTime()) {
+          await addDoc(collection(db, "lateRemovals"), {
+            playerId: user.uid,
+            playerName: currentPlayer?.name || "Atleta",
+            timestamp: new Date().toISOString(),
+            matchId: match.id,
+            matchLocation: match.location
+          });
+          console.log("⚠️ Desistência tardia registrada para:", currentPlayer?.name);
+        }
       }
 
       await updateDoc(doc(db, "players", user.uid), updates);

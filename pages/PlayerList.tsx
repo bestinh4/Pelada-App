@@ -4,6 +4,7 @@ import { Player, Page, Match } from '../types.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { db, doc, updateDoc, deleteDoc, collection, addDoc } from '../services/firebase.ts';
 import { broadcastNotification } from '../services/notificationService.ts';
+import { isLateRemovalTime } from '../utils/timeUtils.ts';
 
 interface PlayerListProps {
   players: Player[];
@@ -190,6 +191,19 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
           isAdmin={isCurrentUserAdmin} 
           onQuickToggle={async (p: Player) => {
             setProcessingId(p.id);
+            
+            // Registro de desistência tardia se o admin remover alguém confirmado
+            if (p.status === 'presente' && isLateRemovalTime() && match) {
+              await addDoc(collection(db, "lateRemovals"), {
+                playerId: p.id,
+                playerName: p.name,
+                timestamp: new Date().toISOString(),
+                matchId: match.id,
+                matchLocation: match.location,
+                removedBy: currentUser.uid // Registra que foi o admin que removeu
+              });
+            }
+
             await updateDoc(doc(db, "players", p.id), { status: 'pendente', confirmedAt: null });
             await broadcastNotification("❌ REMOVIDO!", `${p.name} foi removido da lista pela diretoria.`, currentUser.uid);
             setProcessingId(null);

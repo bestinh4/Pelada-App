@@ -30,8 +30,14 @@ export const requestNotificationPermission = async (userId?: string) => {
       // Obter Token FCM para notificações em background
       if (messaging) {
         try {
-          // O Firebase procura automaticamente por firebase-messaging-sw.js
-          const token = await getToken(messaging, { vapidKey: VAPID_KEY });
+          // Obter a instância do Service Worker já registrado em index.tsx
+          const registration = await navigator.serviceWorker.ready;
+          
+          const token = await getToken(messaging, { 
+            vapidKey: VAPID_KEY,
+            serviceWorkerRegistration: registration
+          });
+          
           if (token) {
             console.log("✅ Token FCM obtido:", token);
             await updateDoc(userRef, { fcmToken: token });
@@ -142,5 +148,52 @@ export const sendPushNotification = async (title: string, body: string) => {
     };
   } catch (error) {
     console.error("❌ Erro ao disparar notificação:", error);
+  }
+};
+
+export const resetNotificationsRoutine = async (userId?: string) => {
+  console.log("🔄 Iniciando rotina de reset de notificações...");
+  
+  try {
+    // 1. Limpar Caches do Navegador
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(key => caches.delete(key)));
+      console.log("✅ Caches de armazenamento limpos.");
+    }
+
+    // 2. Unregister Service Workers
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        // Enviar comando de limpar cache antes de desregistrar
+        if (registration.active) {
+          registration.active.postMessage({ type: 'CLEAR_CACHE' });
+          registration.active.postMessage({ type: 'RESET_NOTIFICATIONS' });
+        }
+        await registration.unregister();
+        console.log("✅ Service Worker desregistrado.");
+      }
+
+      // 3. Re-registrar Service Worker
+      const newReg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      console.log("✅ Novo Service Worker registrado:", newReg.scope);
+      
+      // Aguardar o SW ficar pronto
+      await navigator.serviceWorker.ready;
+    }
+
+    // 4. Re-solicitar permissão e atualizar Token
+    if (userId) {
+      console.log("🔔 Re-sincronizando permissões para o usuário:", userId);
+      await requestNotificationPermission(userId);
+    }
+
+    alert("Rotina de limpeza concluída! As notificações foram resetadas e o cache foi limpo.");
+    return true;
+  } catch (err) {
+    console.error("❌ Erro na rotina de reset:", err);
+    alert("Ocorreu um erro ao resetar as notificações. Tente recarregar a página.");
+    return false;
   }
 };
