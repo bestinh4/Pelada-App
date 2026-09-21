@@ -40,7 +40,7 @@ const Finance: React.FC<{ players: Player[], currentUser: any, match: Match | nu
   const activePlayers = players.filter(p => p.status === 'presente');
   
   const fieldSlots = match?.fieldSlots || 30;
-  const gkSlots = match?.gkSlots || 4;
+  const gkSlots = match?.gkSlots !== undefined ? match.gkSlots : 5;
 
   const confirmedGKs = activePlayers.filter(p => p.position === 'Goleiro').sort((a, b) => {
     const timeA = a.confirmedAt ? new Date(a.confirmedAt).getTime() : new Date(a.createdAt || 0).getTime();

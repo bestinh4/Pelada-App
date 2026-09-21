@@ -215,17 +215,6 @@ const Profile: React.FC<{ player: Player, currentUserEmail?: string, onPageChang
                    <span className="material-symbols-outlined text-primary text-xl">link</span>
                    <h4 className="text-[11px] font-black text-navy uppercase italic tracking-tighter leading-none">LINKS ÚTEIS</h4>
                 </div>
-                <button 
-                  onClick={() => onPageChange(Page.Tutorial)}
-                  className="w-full h-16 bg-navy text-white rounded-2xl font-black uppercase text-[10px] tracking-widest flex items-center justify-between px-6 active:scale-95 transition-all group mb-4 shadow-elite"
-                >
-                   <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-white group-hover:rotate-12 transition-transform">install_mobile</span>
-                      TUTORIAL DE INSTALAÇÃO (APP)
-                   </div>
-                   <span className="material-symbols-outlined text-sm opacity-30">chevron_right</span>
-                </button>
-
                 <a 
                   href="https://pelada-app.vercel.app/" 
                   target="_blank" 

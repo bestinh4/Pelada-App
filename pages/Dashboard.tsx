@@ -64,7 +64,20 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
   const pendingPlayers = players.filter(p => p.status === 'pendente');
   const refusedPlayers = players.filter(p => p.status === 'ausente');
   const fieldSlots = match?.fieldSlots || 30;
-  const gkSlots = match?.gkSlots || 4;
+  const gkSlots = match?.gkSlots !== undefined ? match.gkSlots : 5;
+
+  // Auto-ajustar partida atual de 4 para 5 vagas se necessário
+  useEffect(() => {
+    if (match && match.id && (match.gkSlots === undefined || match.gkSlots === 4)) {
+      updateDoc(doc(db, "matches", match.id), { gkSlots: 5 }).catch(() => {});
+    }
+  }, [match?.id, match?.gkSlots]);
+
+  const handleUpdateGkSlots = async (delta: number) => {
+    if (!match?.id || !isAdmin) return;
+    const newSlots = Math.max(1, gkSlots + delta);
+    await updateDoc(doc(db, "matches", match.id), { gkSlots: newSlots }).catch(() => {});
+  };
 
   const confirmedGKs = confirmedPlayers.filter(p => p.position === 'Goleiro').sort((a, b) => {
     const timeA = a.confirmedAt ? new Date(a.confirmedAt).getTime() : new Date(a.createdAt || 0).getTime();
@@ -295,9 +308,30 @@ const Dashboard: React.FC<DashboardProps> = ({ match, players = [], user, onPage
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-navy/40 italic">
+                    <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-widest text-navy/40 italic">
                       <span>GOLEIROS</span>
-                      <span className="text-primary">{confirmedGKs.length} / {gkSlots}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-primary font-bold">{confirmedGKs.length} / {gkSlots}</span>
+                        {isAdmin && (
+                          <div className="inline-flex items-center gap-1 bg-slate-100 rounded-lg p-0.5 not-italic">
+                            <button 
+                              onClick={() => handleUpdateGkSlots(-1)}
+                              disabled={gkSlots <= 1}
+                              className="w-5 h-5 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:text-navy text-xs font-black transition-all disabled:opacity-30"
+                              title="Diminuir vaga de goleiro"
+                            >
+                              -
+                            </button>
+                            <button 
+                              onClick={() => handleUpdateGkSlots(1)}
+                              className="w-5 h-5 rounded flex items-center justify-center text-slate-500 hover:bg-white hover:text-navy text-xs font-black transition-all"
+                              title="Aumentar vaga de goleiro"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div className="h-3.5 bg-slate-50 rounded-full overflow-hidden border border-slate-100 p-0.5">
                       <div className="h-full bg-primary shadow-[0_0_15px_rgba(227,6,19,0.3)] transition-all duration-1000 rounded-full" style={{ width: `${gkProgress}%` }}></div>

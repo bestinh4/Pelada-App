@@ -51,7 +51,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     });
 
   const fieldSlots = match?.fieldSlots || 30;
-  const gkSlots = match?.gkSlots || 4;
+  const gkSlots = match?.gkSlots !== undefined ? match.gkSlots : 5;
 
   const confirmed: Player[] = [];
   const waitingList: Player[] = [];
@@ -88,7 +88,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     const dateStr = match?.date ? new Date(match.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }) : '--/--';
     const location = match?.location || 'A DEFINIR';
     const time = match?.time || '--:--';
-    const totalSlots = (match?.fieldSlots || 30) + (match?.gkSlots || 4);
+    const totalSlots = fieldSlots + gkSlots;
 
     let message = `🏆 *ARENA OUSADIA & ALEGRIA* 🇭🇷\n`;
     message += `_Convocação Oficial para a Pelada_\n`;
