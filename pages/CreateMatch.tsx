@@ -17,7 +17,7 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ user, onPageChange }) => {
     time: '07:00',
     price: 10,
     fieldSlots: 30,
-    gkSlots: 5
+    gkSlots: 4
   });
 
   const mainLogoUrl = "https://i.postimg.cc/QCGV109g/Gemini-Generated-Image-xrrv8axrrv8axrrv-removebg-preview.png";
