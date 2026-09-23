@@ -71,14 +71,14 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     }
   };
 
-  const fieldSlots = 24; // Exatamente 24 jogadores de linha (6 por time x 4 times)
+  const fieldSlots = 30; // Exatamente 30 jogadores de linha (6 por time x 5 times)
   const gkSlots = 4; // Exatamente e estritamente 4 vagas para goleiros (1 por time)
-  const totalSlots = fieldSlots + gkSlots; // Total 28 convocados (7 por time)
+  const totalSlots = fieldSlots + gkSlots; // Total 34 convocados (7 por time)
 
-  // Garantir que a partida no banco de dados esteja com exatamente 4 vagas de goleiro e 24 de linha
+  // Garantir que a partida no banco de dados esteja com exatamente 4 vagas de goleiro e 30 de linha
   useEffect(() => {
-    if (match?.id && (match.gkSlots !== 4 || match.fieldSlots !== 24)) {
-      updateDoc(doc(db, "matches", match.id), { gkSlots: 4, fieldSlots: 24 }).catch(() => {});
+    if (match?.id && (match.gkSlots !== 4 || match.fieldSlots !== 30)) {
+      updateDoc(doc(db, "matches", match.id), { gkSlots: 4, fieldSlots: 30 }).catch(() => {});
     }
   }, [match]);
 
