@@ -14,9 +14,9 @@ const CreateMatch: React.FC<CreateMatchProps> = ({ user, onPageChange }) => {
   const [matchData, setMatchData] = useState({
     location: 'Granja Cantinho do Céu',
     date: new Date().toISOString().split('T')[0],
-    time: '20:00',
-    price: 40,
-    fieldSlots: 24,
+    time: '10:00',
+    price: 10,
+    fieldSlots: 30,
     gkSlots: 4
   });
 
