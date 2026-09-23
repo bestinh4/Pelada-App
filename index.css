@@ -4,11 +4,6 @@
 
 @layer base {
   body {
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    background-color: #faf8ff;
-    color: #131b2e;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    letter-spacing: -0.012em;
+    @apply bg-white text-slate-900 antialiased;
   }
 }
