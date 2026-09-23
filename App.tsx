@@ -11,6 +11,7 @@ import CreateMatch from './pages/CreateMatch.tsx';
 import Profile from './pages/Profile.tsx';
 import TeamBalancing from './pages/TeamBalancing.tsx';
 import ArenaPanel from './pages/ArenaPanel.tsx';
+import Tutorial from './pages/Tutorial.tsx';
 import NotificationToast, { Notification as InAppNotification } from './components/NotificationToast.tsx';
 import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL } from './constants.tsx';
@@ -208,7 +209,8 @@ const App: React.FC = () => {
         onClose={(id) => setInAppNotifications(prev => prev.filter(n => n.id !== id))} 
       />
       <div className="animate-fade-in h-full">
-        {!user && <Login />}
+        {!user && currentPage !== Page.Tutorial && <Login onPageChange={setCurrentPage} />}
+        {currentPage === Page.Tutorial && <Tutorial onPageChange={setCurrentPage} />}
         {user && currentPage === Page.Onboarding && <Onboarding user={user} onComplete={() => setCurrentPage(Page.Dashboard)} />}
         {user && currentPage === Page.Dashboard && <Dashboard match={currentMatch} players={players} user={user} onPageChange={setCurrentPage} />}
         {user && currentPage === Page.PlayerList && <PlayerList players={players} currentUser={user} match={currentMatch} onPageChange={setCurrentPage} />}
