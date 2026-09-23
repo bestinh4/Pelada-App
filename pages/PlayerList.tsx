@@ -51,7 +51,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
     });
 
   const fieldSlots = match?.fieldSlots || 30;
-  const gkSlots = match?.gkSlots !== undefined ? match.gkSlots : 4;
+  const gkSlots = match?.gkSlots !== undefined ? match.gkSlots : 5;
 
   const confirmed: Player[] = [];
   const waitingList: Player[] = [];

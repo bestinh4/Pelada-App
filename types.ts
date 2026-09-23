@@ -1,42 +1,99 @@
 
-import { Timestamp } from "firebase/firestore";
-
 export interface Player {
   id: string;
   name: string;
-  position: "Goleiro" | "Zagueiro" | "Lateral" | "Volante" | "Meia" | "Atacante";
+  email?: string | null;
   photoUrl: string;
+  number?: number;
+  team?: string;
   goals: number;
   assists: number;
+  concededGoals: number;
   totalGames: number;
   totalWins: number;
-  status: 'presente' | 'pendente';
+  position: string;
+  status: 'presente' | 'pendente' | 'ausente';
+  confirmedAt?: string;
+  createdAt?: string;
   playerType: 'mensalista' | 'avulso';
   role?: 'admin' | 'player';
+  skills?: {
+    attack: number;
+    defense: number;
+    stamina: number;
+  };
+  // Fix: Adding financial tracking properties used in Ranking.tsx
+  monthlyPaid?: boolean;
+  paymentStatus?: 'pago' | 'pendente';
+  pushEnabled?: boolean;
+  fcmToken?: string | null;
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  category: string;
 }
 
 export interface Team {
   id: string;
   name: string;
   playerIds: string[];
-  hasGoalkeeper: boolean;
+  hasGK: boolean;
+  isComplete: boolean;
   consecutiveWins: number;
   totalWins: number;
-  isIncomplete: boolean;
 }
 
 export interface MatchSession {
   id: string;
-  status: "waiting" | "active" | "finished";
-  teams: Team[];
-  waitingQueue: string[]; // Array de teamIds
   activeMatch: {
     teamAId: string | null;
     teamBId: string | null;
     scoreA: number;
     scoreB: number;
-    startedAt: number | null; // Timestamp
-  } | null;
-  createdAt: number;
-  outfieldLimit?: number;
+    startTime: number | null; // timestamp
+  };
+  queue: string[]; // IDs dos times na fila
+  teams: Team[];
+  status: 'inactive' | 'active';
+}
+
+export interface Match {
+  id: string;
+  location: string;
+  date: string;
+  time: string;
+  type: 'Futsal' | 'Society' | 'Campo';
+  price: number;
+  fieldSlots: number;
+  gkSlots: number;
+  confirmedPlayers: number;
+  createdAt: string;
+}
+
+export interface MatchHistory {
+  id: string;
+  teamAName: string;
+  teamBName: string;
+  scoreA: number;
+  scoreB: number;
+  winnerId: string | 'draw';
+  timestamp: string;
+  matchId: string; // ID da pelada (Match)
+}
+
+export enum Page {
+  Login = 'login',
+  Onboarding = 'onboarding',
+  Dashboard = 'dashboard',
+  PlayerList = 'players',
+  Ranking = 'ranking',
+  Finance = 'finance',
+  CreateMatch = 'create-match',
+  Profile = 'profile',
+  TeamBalancing = 'team-balancing',
+  ArenaPanel = 'arena-panel'
 }
