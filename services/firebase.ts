@@ -9,7 +9,8 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut, 
-  onAuthStateChanged 
+  onAuthStateChanged,
+  updateProfile
 } from "firebase/auth";
 import { 
   getFirestore, 
@@ -74,6 +75,7 @@ export const logout = async () => {
 // 5. Exportações Modulares para uso em todo o App
 export { 
   onAuthStateChanged,
+  updateProfile,
   GoogleAuthProvider,
   doc, 
   updateDoc, 
