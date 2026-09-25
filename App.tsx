@@ -14,7 +14,7 @@ import NotificationToast, { Notification as InAppNotification } from './componen
 import { MaintenanceScreen } from './components/MaintenanceScreen.tsx';
 import { Page, Player, Match } from './types.ts';
 import { MASTER_ADMIN_EMAIL, MOCK_PLAYERS, CURRENT_MATCH } from './constants.tsx';
-import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc, limit, where } from './services/firebase.ts';
+import { auth, db, onAuthStateChanged, onSnapshot, collection, query, orderBy, doc, getDoc, updateDoc, setDoc, getDocs, limit, where } from './services/firebase.ts';
 import { requestNotificationPermission, sendPushNotification, setupForegroundNotifications } from './services/notificationService.ts';
 import { playSound } from './utils/sound.ts';
 
@@ -113,15 +113,35 @@ const App: React.FC = () => {
           setupForegroundNotifications();
           const playerDocRef = doc(db, "players", firebaseUser.uid);
           const playerDoc = await getDoc(playerDocRef);
+          let userProfileExists = playerDoc.exists();
+
+          // Se não encontrou pelo UID mas o usuário tem email, verifica se já existe perfil cadastrado com esse email
+          if (!userProfileExists && firebaseUser.email) {
+            try {
+              const qEmail = query(collection(db, "players"), where("email", "==", firebaseUser.email), limit(1));
+              const emailSnap = await getDocs(qEmail);
+              if (!emailSnap.empty) {
+                const existingData = emailSnap.docs[0].data();
+                await setDoc(playerDocRef, {
+                  ...existingData,
+                  id: firebaseUser.uid,
+                  email: firebaseUser.email,
+                  name: existingData.name || firebaseUser.displayName || 'Atleta',
+                  photoUrl: existingData.photoUrl || firebaseUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(existingData.name || firebaseUser.displayName || 'Atleta')}&background=0051a2&color=fff`
+                }, { merge: true });
+                userProfileExists = true;
+              }
+            } catch {}
+          }
           
           if (firebaseUser.email === MASTER_ADMIN_EMAIL) {
             const updates: any = {};
-            if (!playerDoc.exists() || playerDoc.data()?.role !== 'admin') updates.role = 'admin';
+            if (!userProfileExists || playerDoc.data()?.role !== 'admin') updates.role = 'admin';
             if (playerDoc.exists() && playerDoc.data()?.email !== MASTER_ADMIN_EMAIL) updates.email = MASTER_ADMIN_EMAIL;
-            if (Object.keys(updates).length > 0) await updateDoc(playerDocRef, updates).catch(() => {});
+            if (Object.keys(updates).length > 0) await setDoc(playerDocRef, updates, { merge: true }).catch(() => {});
           }
 
-          if (!playerDoc.exists()) {
+          if (!userProfileExists) {
             setCurrentPage(Page.Onboarding);
           } else {
             const saved = localStorage.getItem('oa_current_page');
@@ -160,9 +180,11 @@ const App: React.FC = () => {
     // Flags locais para esta execução do efeito
     let isInitialPlayersSync = true;
 
-    const qPlayers = query(collection(db, "players"), orderBy("goals", "desc"));
+    const qPlayers = collection(db, "players");
     const unsubscribePlayers = onSnapshot(qPlayers, (snapshot) => {
-      const playerList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Player));
+      const playerList = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data() } as Player))
+        .sort((a, b) => (b.goals || 0) - (a.goals || 0));
       
       if (!isInitialPlayersSync) {
         snapshot.docChanges().forEach((change) => {
@@ -262,7 +284,10 @@ const App: React.FC = () => {
     );
   }
 
-  const currentPlayer = players.find(p => p.id === user?.uid);
+  const currentPlayer = players.find(p => 
+    p.id === user?.uid || 
+    (user?.email && p.email && p.email.toLowerCase() === user.email.toLowerCase())
+  );
   const isMaster = user?.email === MASTER_ADMIN_EMAIL;
   const effectiveRole = isMaster ? 'admin' : (currentPlayer?.role || 'player');
   const isAdmin = effectiveRole === 'admin' || isMaster;
@@ -357,7 +382,8 @@ const App: React.FC = () => {
         )}
         {user && currentPage === Page.Profile && (
           <Profile 
-            player={currentPlayer || { id: user.uid, name: user.displayName, email: user.email, photoUrl: user.photoURL, goals: 0, assists: 0, position: 'A definir', status: 'pendente', role: effectiveRole } as Player} 
+            player={currentPlayer || { id: user.uid, name: user.displayName || 'Atleta', email: user.email || '', photoUrl: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || 'Atleta')}&background=0051a2&color=fff`, goals: 0, assists: 0, position: 'Meio-Campo', status: 'pendente', role: effectiveRole, playerType: 'avulso' } as Player} 
+            currentUser={user}
             currentUserEmail={user?.email} 
             isMaintenance={isMaintenance}
             onPageChange={setCurrentPage} 
