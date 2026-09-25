@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Match, Player, Page } from '../types.ts';
-import { db, doc, updateDoc, collection, onSnapshot, addDoc } from '../services/firebase.ts';
+import { db, doc, updateDoc, setDoc, collection, onSnapshot, addDoc } from '../services/firebase.ts';
 import { MASTER_ADMIN_EMAIL } from '../constants.tsx';
 import { getNotificationStatus, requestNotificationPermission, broadcastNotification } from '../services/notificationService.ts';
 import { isLateRemovalTime, checkLateRemovalDeadline } from '../utils/timeUtils.ts';
@@ -22,7 +22,7 @@ const Dashboard: React.FC<DashboardProps> = ({
   onPageChange 
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [prices, setPrices] = useState({ mensalista: 60, avulso: 40 });
+  const [prices, setPrices] = useState({ mensalista: 30, avulso: 10 });
 
   // Admin Quick Actions states
   const [isReleasingList, setIsReleasingList] = useState(false);
@@ -44,7 +44,10 @@ const Dashboard: React.FC<DashboardProps> = ({
   }, []);
 
   // Presença do atleta atual
-  const currentPlayer = players.find(p => p.id === user?.uid);
+  const currentPlayer = players.find(p => 
+    p.id === user?.uid || 
+    (user?.email && p.email && p.email.toLowerCase() === user.email.toLowerCase())
+  );
   const isConfirmed = currentPlayer?.status === 'presente';
   const isRefused = currentPlayer?.status === 'ausente';
 
@@ -112,7 +115,11 @@ const Dashboard: React.FC<DashboardProps> = ({
         }
       }
 
-      await updateDoc(doc(db, "players", user.uid), updates);
+      const targetId = currentPlayer?.id || user.uid;
+      await setDoc(doc(db, "players", targetId), updates, { merge: true });
+      if (targetId !== user.uid) {
+        await setDoc(doc(db, "players", user.uid), updates, { merge: true }).catch(() => {});
+      }
     } catch (e) {
       alert("Erro ao atualizar presença.");
     } finally {
