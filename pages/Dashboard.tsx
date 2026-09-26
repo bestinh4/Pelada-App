@@ -22,7 +22,16 @@ const Dashboard: React.FC<DashboardProps> = ({
   onPageChange 
 }) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const [prices, setPrices] = useState({ mensalista: 30, avulso: 10 });
+  const [prices, setPrices] = useState(() => {
+    try {
+      const cached = localStorage.getItem('oa_real_finance_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        return { mensalista: parsed.mensalista ?? 60, avulso: parsed.avulso ?? 40 };
+      }
+    } catch {}
+    return { mensalista: 60, avulso: 40 };
+  });
 
   // Admin Quick Actions states
   const [isReleasingList, setIsReleasingList] = useState(false);
@@ -38,7 +47,13 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   useEffect(() => {
     const unsubPrices = onSnapshot(doc(db, "settings", "finance"), (docSnap) => {
-      if (docSnap.exists()) setPrices(docSnap.data() as any);
+      if (docSnap.exists()) {
+        const data = docSnap.data() as any;
+        setPrices(data);
+        try {
+          localStorage.setItem('oa_real_finance_cache', JSON.stringify(data));
+        } catch {}
+      }
     });
     return () => unsubPrices();
   }, []);
