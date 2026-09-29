@@ -257,11 +257,11 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
             </div>
             <div className="min-w-0">
               <h2 className="font-headline-sm text-sm sm:text-base text-navy-deep font-bold truncate">
-                Lista Oficial • {confirmed.length}/{totalSlots} Titulares
+                Lista Oficial • {confirmed.length}/{totalSlots} Confirmados
               </h2>
               <p className="font-body-sm text-xs text-outline truncate">
                 {remainingSlots === 0 
-                  ? 'Vagas titulares completas • Novos confirmados entram na suplência'
+                  ? 'Vagas completas • Novos confirmados entram na suplência'
                   : `Restam ${remainingSlots} vagas para fechar as 5 equipes`}
               </p>
             </div>
@@ -332,25 +332,27 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
         </div>
 
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          {isCurrentUserAdmin && (
+            <button 
+              onClick={() => setSelectedFilter('all')}
+              className={`whitespace-nowrap px-3 py-1.5 rounded-lg font-label-md text-xs font-semibold transition-all active:scale-95 ${
+                selectedFilter === 'all' 
+                  ? 'bg-navy-deep text-on-secondary shadow-xs' 
+                  : 'bg-surface-container-lowest text-navy-deep border border-surface-container-high/40'
+              }`}
+            >
+              Todos ({players.length})
+            </button>
+          )}
           <button 
-            onClick={() => setSelectedFilter('all')}
+            onClick={() => setSelectedFilter(isCurrentUserAdmin ? 'confirmed' : 'all')}
             className={`whitespace-nowrap px-3 py-1.5 rounded-lg font-label-md text-xs font-semibold transition-all active:scale-95 ${
-              selectedFilter === 'all' 
+              (isCurrentUserAdmin ? selectedFilter === 'confirmed' : (selectedFilter === 'all' || selectedFilter === 'confirmed'))
                 ? 'bg-navy-deep text-on-secondary shadow-xs' 
                 : 'bg-surface-container-lowest text-navy-deep border border-surface-container-high/40'
             }`}
           >
-            {isCurrentUserAdmin ? `Todos (${players.length})` : `Confirmados (${sortedPresent.length})`}
-          </button>
-          <button 
-            onClick={() => setSelectedFilter('confirmed')}
-            className={`whitespace-nowrap px-3 py-1.5 rounded-lg font-label-md text-xs font-semibold transition-all active:scale-95 ${
-              selectedFilter === 'confirmed' 
-                ? 'bg-navy-deep text-on-secondary shadow-xs' 
-                : 'bg-surface-container-lowest text-navy-deep border border-surface-container-high/40'
-            }`}
-          >
-            Titulares ({confirmed.length})
+            Confirmados ({confirmed.length})
           </button>
           {waitingList.length > 0 && (
             <button 
@@ -506,7 +508,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                     ) : waitingIdx < 0 ? (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-label-md text-[11px] font-bold bg-tertiary-fixed text-on-tertiary-fixed">
                         <span className="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
-                        TITULAR
+                        CONFIRMADO
                       </span>
                     ) : null}
 
@@ -531,10 +533,10 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
                       <button
                         onClick={() => handlePullToMatch(player.id)}
                         className="text-[11px] font-bold text-primary-container hover:underline flex items-center gap-0.5 active:scale-95"
-                        title="Promover da fila de espera para titular"
+                        title="Promover da fila de espera para confirmado"
                       >
                         <span className="material-symbols-outlined text-[14px]">arrow_upward</span>
-                        <span>Titular</span>
+                        <span>Confirmar</span>
                       </button>
                     )}
 
