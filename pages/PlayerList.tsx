@@ -592,13 +592,14 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
       {/* MODAL: EDITAR ATLETA & GOLS MARCADOS (PORTALIZADO PARA EVITAR TELA AZUL E COM TOTAL RESPONSIVIDADE) */}
       {selectedPlayerForStats && typeof document !== 'undefined' && createPortal(
         <div 
-          className="fixed inset-0 z-[99999] bg-navy-deep/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, width: '100vw', height: '100dvh', zIndex: 99999 }}
+          className="bg-navy-deep/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-hidden"
           onClick={(e) => {
             if (e.target === e.currentTarget) setSelectedPlayerForStats(null);
           }}
         >
           <div 
-            className="bg-white text-navy-deep rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-lg shadow-2xl border border-surface-container-high/60 my-auto flex flex-col gap-4 relative max-h-[92vh] overflow-hidden animate-fade-in"
+            className="bg-white text-navy-deep rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-lg max-h-[90dvh] shadow-2xl border border-surface-container-high/60 flex flex-col gap-4 relative overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -630,7 +631,7 @@ const PlayerList: React.FC<PlayerListProps> = ({ players, currentUser, match, on
             </div>
 
             {/* Modal Scrollable Body */}
-            <div className="flex flex-col gap-3.5 overflow-y-auto pr-1">
+            <div className="flex flex-col gap-3.5 overflow-y-auto min-h-0 flex-1 pr-1">
               {/* NOME DO ATLETA */}
               <div>
                 <label className="font-label-md text-xs sm:text-sm text-navy-deep font-bold block mb-1">
